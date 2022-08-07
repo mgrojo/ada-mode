@@ -797,7 +797,7 @@ package body Wisi is
       Action_Region_Chars : in     WisiToken.Buffer_Region;
       Begin_Indent        : in     Integer)
    is begin
-      if not Tree.Editable then
+      if Tree.Root = Syntax_Trees.Invalid_Node_Access then
          raise Parse_Error with "previous parse failed; can't execute post_parse action.";
       end if;
 
@@ -2012,8 +2012,15 @@ package body Wisi is
               (if Query.Label = Parent
                then Tree.Parent (Query.Node, Query.N)
                else Tree.Child (Query.Node, Positive_Index_Type (Query.N)));
-            Char_Region : constant Buffer_Region := Tree.Char_Region (Result, Trailing_Non_Grammar => False);
+            Char_Region : constant Buffer_Region :=
+              (if Result = Invalid_Node_Access
+               then Null_Buffer_Region
+               else Tree.Char_Region (Result, Trailing_Non_Grammar => False));
          begin
+            if Result = Invalid_Node_Access then
+               raise Parse_Error with "previous parse failed; can't execute post_parse action.";
+            end if;
+
             Ada.Text_IO.Put_Line
               ("[" & Query_Tree_Code &
                  Query_Label'Pos (Query.Label)'Image & " " &
@@ -2127,6 +2134,7 @@ package body Wisi is
 
    procedure Put_Errors (Tree : in Syntax_Trees.Tree)
    is
+      use all type SAL.Base_Peek_Type;
       use Ada.Text_IO;
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 

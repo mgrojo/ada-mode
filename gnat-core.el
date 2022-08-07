@@ -1,4 +1,4 @@
-;; gnat-core.el --- Support for running GNAT tools, which support multiple programming  -*- lexical-binding:t -*-
+;;; gnat-core.el --- Support for running GNAT tools, which support multiple programming  -*- lexical-binding:t -*-
 ;; languages.
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
@@ -22,8 +22,6 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Code:
 
 (require 'cl-lib)
 (require 'wisi-prj)

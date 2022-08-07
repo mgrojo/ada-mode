@@ -28,7 +28,6 @@ with GNAT.Traceback.Symbolic;
 with GNATCOLL.Memory;
 with SAL;
 with System.Storage_Elements;
-with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
 package body Emacs_Wisi_Common_Parse is
@@ -249,7 +248,7 @@ package body Emacs_Wisi_Common_Parse is
      (Name                      : in String;
       Language_Protocol_Version : in String;
       Params                    : in Process_Start_Params;
-      Language                  : in Wisi.Parse_Context.Language;
+      Factory                   : in WisiToken.Parse.Factory;
       Trace                     : in WisiToken.Trace_Access)
    is
       use Ada.Text_IO;
@@ -318,7 +317,7 @@ package body Emacs_Wisi_Common_Parse is
             end if;
 
             if Match ("create-context") then
-               Wisi.Parse_Context.Create_No_Text (Wisi.Get_String (Command_Line, Last), Language, Trace);
+               Wisi.Parse_Context.Create_No_Text (Wisi.Get_String (Command_Line, Last), Factory, Trace);
 
             elsif Match ("dump_prev_tree") then
                --  Args: source_file_name save_file_root
@@ -331,7 +330,7 @@ package body Emacs_Wisi_Common_Parse is
                   Save_File_Name   : constant String := Wisi.Get_String (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (Source_File_Name, Language);
+                    (Source_File_Name);
                begin
                   Check_Command_Length (Command_Length, Last);
 
@@ -386,25 +385,31 @@ package body Emacs_Wisi_Common_Parse is
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access :=
                     (case Params.Kind is
                      when Full | Partial => Wisi.Parse_Context.Find_Create
-                       (-Params.Source_File_Name, Language, Trace),
+                       (-Params.Source_File_Name, Factory, Trace),
                      when Incremental => Wisi.Parse_Context.Find
-                       (-Params.Source_File_Name, Language, Have_Text => True));
+                       (-Params.Source_File_Name, Have_Text => True));
 
-                  Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parser     : WisiToken.Parse.Base_Parser'Class renames Parse_Context.Parser.all;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
                begin
                   if Parse_Context.Frozen then
                      raise WisiToken.Parse_Error with "parse_context frozen";
                   end if;
 
-                  if Params.Zombie_Limit > 0 then
-                     Parser.Table.McKenzie_Param.Zombie_Limit := Params.Zombie_Limit;
-                  end if;
-                  if Params.Enqueue_Limit > 0 then
-                     Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
-                  end if;
-                  if Params.Max_Parallel > 0 then
-                     Parser.Table.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
+                  if Parser in WisiToken.Parse.LR.Parser.Parser then
+                     declare
+                        LR_Parser : WisiToken.Parse.LR.Parser.Parser renames WisiToken.Parse.LR.Parser.Parser (Parser);
+                     begin
+                        if Params.Zombie_Limit > 0 then
+                           LR_Parser.Table.McKenzie_Param.Zombie_Limit := Params.Zombie_Limit;
+                        end if;
+                        if Params.Enqueue_Limit > 0 then
+                           LR_Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
+                        end if;
+                        if Params.Max_Parallel > 0 then
+                           LR_Parser.Table.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
+                        end if;
+                     end;
                   end if;
 
                   case Params.Kind is
@@ -555,9 +560,9 @@ package body Emacs_Wisi_Common_Parse is
                   Params : constant Post_Parse_Params := Get_Post_Parse_Params (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (-Params.Source_File_Name, Language, Have_Text => True);
+                    (-Params.Source_File_Name, Have_Text => True);
 
-                  Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parser     : WisiToken.Parse.Base_Parser'Class renames Parse_Context.Parser.all;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
                begin
                   Parse_Data.Reset_Post_Parse
@@ -584,7 +589,7 @@ package body Emacs_Wisi_Common_Parse is
                   Params : constant Refactor_Params := Get_Refactor_Params (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (-Params.Source_File_Name, Language);
+                    (-Params.Source_File_Name);
 
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
                     (Parse_Context.Parser.User_Data.all);
@@ -606,7 +611,7 @@ package body Emacs_Wisi_Common_Parse is
                   Label : constant Wisi.Query_Label := Wisi.Query_Label'Val (Wisi.Get_Integer (Command_Line, Last));
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (-Source_File_Name, Language);
+                    (-Source_File_Name);
 
                   Parse_Data : constant Wisi.Parse_Data_Access_Constant :=
                     Wisi.Parse_Data_Access_Constant (Parse_Context.Parser.User_Data);
@@ -672,7 +677,7 @@ package body Emacs_Wisi_Common_Parse is
                   Enable           : constant Boolean := 1 = Wisi.Get_Integer (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (Source_File_Name, Language);
+                    (Source_File_Name);
                begin
                   Check_Command_Length (Command_Length, Last);
 
@@ -690,7 +695,7 @@ package body Emacs_Wisi_Common_Parse is
                   Save_File_Name   : constant String := Wisi.Get_String (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (Source_File_Name, Language);
+                    (Source_File_Name);
                begin
                   Check_Command_Length (Command_Length, Last);
 
@@ -712,7 +717,7 @@ package body Emacs_Wisi_Common_Parse is
 
                   --  We need "create" here for partial parse.
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find_Create
-                    (Source_File_Name, Language, Trace);
+                    (Source_File_Name, Factory, Trace);
                begin
                   Check_Command_Length (Command_Length, Last);
 
