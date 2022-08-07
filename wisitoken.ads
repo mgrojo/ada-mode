@@ -534,4 +534,6 @@ package WisiToken is
    --  (ending delim is read from the stream but not included in result).
    --  Leading Delims are skipped.
 
+   type Recursion_Strategy is (None, Partial, Full);
+
 end WisiToken;

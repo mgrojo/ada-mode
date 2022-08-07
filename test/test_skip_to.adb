@@ -22,16 +22,12 @@ with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with Skip_To_Grammar_LALR_Main;
 with Test_Skip_To_Aux;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
-with WisiToken.Text_IO_Trace;
 package body Test_Skip_To is
 
-   Trace     : aliased WisiToken.Text_IO_Trace.Trace;
    Log_File  : Ada.Text_IO.File_Type;
-   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    ----------
    --  Test procedures
@@ -123,18 +119,6 @@ package body Test_Skip_To is
       Register_Routine (T, Dos_Line_Endings'Access, "Dos_Line_Endings");
       Register_Routine (T, Unix_Line_Endings'Access, "Unix_Line_Endings");
    end Register_Tests;
-
-   overriding procedure Set_Up_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Test_Skip_To_Aux.Parser,
-         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
-         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
-         Skip_To_Grammar_LALR_Main.Create_Productions,
-         User_Data'Access);
-   end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is

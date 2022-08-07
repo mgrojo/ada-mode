@@ -28,9 +28,6 @@
 
 %code actions spec post %{
    End_Name_Optional : Boolean := True;
-
-   Partial_Parse_Active    : Boolean := False;
-   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
 %code actions body context %{with SAL;}%

@@ -190,7 +190,7 @@ package body Dragon_4_45_LALR_Test is
       Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
 
       Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LALR_Generate.Generate
-        (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions);
+        (Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -253,7 +253,7 @@ package body Dragon_4_45_LALR_Test is
         (Parser,
          Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
-           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions),
          WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,

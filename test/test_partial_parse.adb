@@ -29,10 +29,15 @@ with WisiToken.Text_IO_Trace;
 package body Test_Partial_Parse is
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
-   Log_File : Ada.Text_IO.File_Type;
+   Trace     : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File  : Ada.Text_IO.File_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LALR_Main.Create_Parser
+     (Trace'Access,
+      Language_Fixes                 => null,
+      Language_Matching_Begin_Tokens => null,
+      Language_String_ID_Set         => null,
+      User_Data                      => User_Data'Access);
 
    procedure Run_Parse
      (Label              : in String;
@@ -49,10 +54,11 @@ package body Test_Partial_Parse is
       procedure Finish
       is
          use all type WisiToken.Token_ID;
-         Node  : Valid_Node_Access := Parser.Tree.Root;
+         Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
+         Node : Valid_Node_Access := Parser.Tree.Root;
       begin
          if WisiToken.Trace_Tests > WisiToken.Detail then
-            Parser.Tree.Print_Tree (Line_Numbers => True);
+            Tree.Print_Tree (Line_Numbers => True);
          end if;
 
          Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
@@ -61,30 +67,34 @@ package body Test_Partial_Parse is
             --  Only parsed comments, no user compilation units. Recover provided
             --  code to reduce to Accept.
 
-            Check (Label & ".root", Parser.Tree.ID (Node), Descriptor.Accept_ID);
+            Check (Label & ".root", Tree.ID (Node), Descriptor.Accept_ID);
 
          else
-            Check (Label & ".root", Parser.Tree.ID (Node), +compilation_unit_list_ID);
+            Check (Label & ".root", Tree.ID (Node), Descriptor.Accept_ID);
+            Check (Label & ".root.child_1", Tree.ID (Tree.Child (Node, 1)), +Wisi_SOI_ID);
+            Check (Label & ".root.child_2", Tree.ID (Tree.Child (Node, 2)), +compilation_unit_list_ID);
+            Check (Label & ".root.child_3", Tree.ID (Tree.Child (Node, 3)), +Wisi_EOI_ID);
 
-            Node := Parser.Tree.Children (Node)(2); -- First child is SOI, second is compilation_unit
-            Check (Label & ".compilation_unit", Parser.Tree.ID (Node), +compilation_unit_ID);
+            Node := Tree.Child (Node, 2);
+            Node := Tree.Child (Node, 1);
+            Check (Label & ".compilation_unit", Tree.ID (Node), +compilation_unit_ID);
 
-            Node := Parser.Tree.Children (Node)(1);
-            Check (Label & ".action ID", Parser.Tree.ID (Node), Action_ID);
+            Node := Tree.Children (Node)(1);
+            Check (Label & ".action ID", Tree.ID (Node), Action_ID);
 
             Check (Label & ".parse begin byte",
-                   Parser.Tree.Byte_Region (Node, Trailing_Non_Grammar => False).First,
+                   Tree.Byte_Region (Node, Trailing_Non_Grammar => False).First,
                    Begin_Byte_Pos);
             Check (Label & ".parse begin char",
-                   Parser.Tree.Char_Region (Node, Trailing_Non_Grammar => False).First,
+                   Tree.Char_Region (Node, Trailing_Non_Grammar => False).First,
                    Begin_Char_Pos);
             Check (Label & ".parse begin line",
-                   Parser.Tree.Line_Region (Node, Trailing_Non_Grammar => True).First,
+                   Tree.Line_Region (Node, Trailing_Non_Grammar => True).First,
                    Begin_Line);
 
             Check
               (Label & ".parse end byte",
-               Parser.Tree.Byte_Region (Parser.Tree.Last_Terminal (Node), Trailing_Non_Grammar => False).Last,
+               Tree.Byte_Region (Parser.Tree.Last_Terminal (Node), Trailing_Non_Grammar => False).Last,
                Parse_End_Byte_Pos);
          end if;
 
@@ -278,24 +288,11 @@ package body Test_Partial_Parse is
       return new String'("test_partial_parse.adb");
    end Name;
 
-   overriding procedure Set_Up_Case (T : in out Test_Case)
+   overriding procedure Tear_Down_Case (T : in out Test_Case)
    is
       pragma Unreferenced (T);
    begin
-      --  Run before all tests in register
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Ada_Lite_LALR_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_LALR_Main.Create_Parse_Table,
-         Ada_Lite_LALR_Main.Create_Productions,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null,
-         User_Data                      => User_Data'Access);
-
-      --  FIXME: should be done in Ada_Lite_LALR_Main.Create_Parser.
-      Parser.Partial_Parse_Active    := Ada_Lite_Actions.Partial_Parse_Active'Access;
-      Parser.Partial_Parse_Byte_Goal := Ada_Lite_Actions.Partial_Parse_Byte_Goal'Access;
-   end Set_Up_Case;
+      Partial_Parse_Active := False;
+   end Tear_Down_Case;
 
 end Test_Partial_Parse;

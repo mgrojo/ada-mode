@@ -13,8 +13,10 @@
 
 pragma License (GPL);
 
+with Skip_To_Grammar_LALR_Main;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
+with WisiToken.Text_IO_Trace;
 package Test_Skip_To_Aux is
 
    Enable : Boolean;
@@ -25,7 +27,10 @@ package Test_Skip_To_Aux is
 
    Test_Pass_Count : Integer := 0;
 
-   Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Trace     : aliased WisiToken.Text_IO_Trace.Trace;
+   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
+   Parser    : WisiToken.Parse.LR.Parser_No_Recover.Parser := Skip_To_Grammar_LALR_Main.Create_Parser
+     (Trace'Access, User_Data'Access, "skip_to_grammar_lalr_parse_table.txt");
 
    procedure Reset;
    --  Reset Test_Pass_Count and internal counts to 0, ready to test

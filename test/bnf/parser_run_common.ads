@@ -1,8 +1,8 @@
 --  Abstract:
 --
---  Main program to run a parser.
+--  Run a parser.
 --
---  Copyright (C) 2015, 2017, 2018, 2020 Stephe Leake
+--  Copyright (C) 2022 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -21,11 +21,4 @@
 pragma License (GPL);
 
 with WisiToken.Parse;
-with WisiToken.Syntax_Trees;
-generic
-   with function Create_Parser
-     (Trace      : in WisiToken.Trace_Access;
-      User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)
-   return WisiToken.Parse.Base_Parser'Class;
-
-procedure Gen_Packrat_Parser_Run;
+procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Base_Parser'Class);

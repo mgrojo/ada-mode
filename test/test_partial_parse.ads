@@ -29,6 +29,6 @@ package Test_Partial_Parse is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-   overriding procedure Set_Up_Case (T : in out Test_Case);
+   overriding procedure Tear_Down_Case (T : in out Test_Case);
 
 end Test_Partial_Parse;

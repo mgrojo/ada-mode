@@ -3,7 +3,7 @@
 ;; re2c lookahead.
 
 %code copyright_license %{
---  Copyright (C) 2013, 2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as

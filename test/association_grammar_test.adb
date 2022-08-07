@@ -169,7 +169,7 @@ package body Association_Grammar_Test is
         (Parser,
          Lexer.New_Lexer (Trace'Access, Token_Enum.LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
-           (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+           (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions),
          WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,

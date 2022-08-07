@@ -1,7 +1,8 @@
  5 tokens lexed
-(upper_c, (15 . 15) <= (2:(LOWER_D, (15 . 15))))
-(upper_c, (14 . 15) <= (1:(LOWER_C, (14 . 14)), (upper_c, (15 . 15))))
-(upper_c, (17 . 17) <= (4:(LOWER_D, (17 . 17))))
-(upper_c, (16 . 17) <= (3:(LOWER_C, (16 . 16)), (upper_c, (17 . 17))))
-(upper_s, (14 . 17) <= ((upper_c, (14 . 15)), (upper_c, (16 . 17))))
-(wisitoken_accept, (14 . 18) <= ((upper_s, (14 . 17)), 5:(Wisi_EOI, (19 . 18))))
+(upper_c_1, (15 . 15) <= (2:(LOWER_D, (15 . 15))))
+(upper_c_0, (14 . 15) <= (1:(LOWER_C, (14 . 14)), (upper_c_1, (15 . 15))))
+(upper_c_1, (17 . 17) <= (4:(LOWER_D, (17 . 17))))
+(upper_c_0, (16 . 17) <= (3:(LOWER_C, (16 . 16)), (upper_c_1, (17 . 17))))
+(upper_s_0, (14 . 17) <= ((upper_c_0, (14 . 15)), (upper_c_0, (16 . 17))))
+(wisitoken_accept_0, (14 . 18) <= ((upper_s_0, (14 . 17)), 5:(Wisi_EOI, (19 . 18))))
+packrat parse succeed

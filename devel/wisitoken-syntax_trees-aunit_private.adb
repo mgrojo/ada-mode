@@ -139,6 +139,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Terminal_Node_Numbers : in Boolean)
    is
       use Standard.AUnit.Checks;
+      use SAL.AUnit;
       use Parse_Stream_Lists;
 
       Computed_Stream : Parse_Stream_Lists.Cursor := Computed.Streams.First;

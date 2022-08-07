@@ -521,7 +521,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  Config stack, not a parser stack. So we duplicate part of it.
                               if Stack_Matches_Ops then
                                  if not (Nonterm = Tree.Label (Tree.Peek (Stack)) and
-                                           Op.Nonterm = Tree.ID (Parser_State.Stream, Tree.Peek (Stack)))
+                                           Op.Nonterm = Tree.ID (Tree.Peek (Stack)))
                                  then
                                     Raise_Bad_Config ("Undo_Reduce does not match stack top in apply config");
                                  end if;
@@ -541,7 +541,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  encounter an error; test_mckenzie_recover.adb Error_3.
 
                               if Stack_Matches_Ops then
-                                 if not (Op.PB_ID = Tree.ID (Parser_State.Stream, Tree.Peek (Stack))) then
+                                 if not (Op.PB_ID = Tree.ID (Tree.Peek (Stack))) then
                                     Raise_Bad_Config
                                       ("Push_Back does not match stack top in apply config: " &
                                          Image (Op, Tree.Lexer.Descriptor.all));

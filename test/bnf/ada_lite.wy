@@ -28,10 +28,6 @@
 
 %code actions spec post %{
    End_Name_Optional : Boolean := True;
-
-   --  FIXME: these should be declared by generate.
-   Partial_Parse_Active    : aliased Boolean := False;
-   Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
 ;; Declare all variants tested by wisi_wy_test.adb
@@ -41,9 +37,6 @@
 %generate Packrat_Gen  Ada re2c
 
 ;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when changed wisitoken_grammar.wy declaration
-
-;; We don't actually need this for speed here, but we do need to test it.
-%lr1_hash_table_size 200
 
 %keyword AND "and"
 %keyword BEGIN "begin"

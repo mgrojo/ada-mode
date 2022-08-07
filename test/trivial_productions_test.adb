@@ -96,7 +96,7 @@ package body Trivial_Productions_Test is
            (Parser,
             Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
-              (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+              (Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions),
             WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
             User_Data                      => null,
             Language_Fixes                 => null,
@@ -194,7 +194,7 @@ package body Trivial_Productions_Test is
            (Parser,
             Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
-              (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+              (Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions),
             WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
             User_Data                      => null,
             Language_Fixes                 => null,

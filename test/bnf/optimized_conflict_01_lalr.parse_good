@@ -240,4 +240,4 @@ tree size:  46
 (wisitoken_accept_0, (77 . 128) <= ((subtype_indication_0, (77 . 128))))
  5: terminate (4 active): zombie (5, 18:(STAR, (126 . 126), parser ERROR))
  3: terminate (3 active): zombie (3, 17:(STAR, (126 . 126), parser ERROR))
-optimized_conflict_01.input:optimized_conflict_01.input:3:1: Ambiguous parse: 5 parsers active.
+optimized_conflict_01.input:3:1: Ambiguous parse: 5 parsers active.

@@ -2,7 +2,7 @@
 --
 --  Run Test_McKenzie_Recover
 --
---  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Test_McKenzie_Recover;
 with WisiToken.BNF;
 with WisiToken;
@@ -31,7 +31,7 @@ procedure Test_McKenzie_Harness
 is
    Usage : constant String :=
      --  command line arguments (all optional, order matters):
-     "[LALR | LR1] routine_name trace_config enqueue_limit";
+     "[LALR | LR1] routine_name trace_config mckenzie_config";
    --  1           2            3            4
    --  trace_config is passed to Wisitoken.Enable_Trace
    --
@@ -42,13 +42,7 @@ is
    Alg : constant WisiToken.BNF.Generate_Algorithm :=
      (if Argument_Count >= 1 then WisiToken.BNF.Generate_Algorithm'Value (Argument (1)) else None);
 
-   Enqueue_Limit : Natural := 0;
-
-   Force_High_Cost_Solutions : constant Boolean := False;
-   --    (if Argument_Count >= 7 then 0 /= Integer'Value (Argument (7)) else False);
-
-   Force_Full_Explore : constant Boolean := False;
-   --    (if Argument_Count >= 8 then 0 /= Integer'Value (Argument (8)) else False);
+   McKenzie_Options : String_Access;
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -63,6 +57,10 @@ is
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
+   function "+" (Item : in String) return String_Access
+   is begin
+      return String_Access'(new String'(Item));
+   end "+";
 begin
    if Argument_Count >= 2 then
       Filter.Test_Name    := Ada.Strings.Unbounded.To_Unbounded_String ("test_mckenzie_recover.adb " & Alg'Image);
@@ -74,7 +72,7 @@ begin
    end if;
 
    if Argument_Count = 4 then
-      Enqueue_Limit := Integer'Value (Argument (4));
+      McKenzie_Options := +Argument (4);
    end if;
 
    if Argument_Count > 4 then
@@ -84,19 +82,11 @@ begin
    Filter.Verbose := WisiToken.Trace_Tests > 0;
 
    if Alg in None | LALR then
-      Add_Test
-        (Suite,
-         Test_Case_Access'
-           (new Test_McKenzie_Recover.Test_Case
-              (WisiToken.BNF.LALR, Enqueue_Limit, Force_Full_Explore, Force_High_Cost_Solutions)));
+      Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, McKenzie_Options)));
    end if;
 
    if Alg in None | LR1 then
-      Add_Test
-        (Suite,
-         Test_Case_Access'
-           (new Test_McKenzie_Recover.Test_Case
-              (WisiToken.BNF.LR1, Enqueue_Limit, Force_Full_Explore, Force_High_Cost_Solutions)));
+      Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, McKenzie_Options)));
    end if;
 
    Run (Suite, Options, Result, Status);

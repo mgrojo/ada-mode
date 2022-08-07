@@ -18,12 +18,9 @@
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
---  As a special exception, if other files instantiate generics from
---  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
---  executable to be covered by the GNU General Public License. This
---  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
 
@@ -386,12 +383,10 @@ package body WisiToken.Parse.LR.Parser is
                      declare
                         Current_Token : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Current_Token
                           (Parser_State.Stream);
+                        Tree_Root : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Stream_Prev (Current_Token);
                      begin
-
-                        --  Insert EOI on Shared_Stream
-                        if Shared_Parser.Tree.ID (Current_Token.Node) /=
-                          Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
-                        then
+                        if Shared_Parser.Tree.ID (Current_Token.Node) /= Shared_Parser.Tree.Lexer.Descriptor.EOI_ID then
+                           --  Insert EOI on Shared_Stream
                            declare
                               Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
                                 (Current_Token.Node, Trailing_Non_Grammar => False).Last;
@@ -415,6 +410,22 @@ package body WisiToken.Parse.LR.Parser is
                                  Terminal => EOI_Token,
                                  Before   => Shared_Parser.Tree.Stream_Next (Current_Token).Element,
                                  Errors   => Syntax_Trees.Null_Error_List);
+                           end;
+                        end if;
+
+                        if Shared_Parser.Tree.ID (Tree_Root.Node) /= Shared_Parser.Tree.Lexer.Descriptor.Accept_ID then
+                           --  Add Accept_ID node.
+                           declare
+                              Accept_Node : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
+                                (Parser_State.Stream,
+                                 Production       =>
+                                   (LHS           => Shared_Parser.Tree.Lexer.Descriptor.Accept_ID,
+                                    RHS           => 1),
+                                 Child_Count      => 1,
+                                 State            => Accept_State,
+                                 Recover_Conflict => False);
+                           begin
+                              Shared_Parser.Tree.Set_Root (Accept_Node.Node);
                            end;
                         end if;
                      end;
@@ -969,9 +980,11 @@ package body WisiToken.Parse.LR.Parser is
 
       Last_Deleted_Node_Parent : Node_Access;
    begin
+      Parser.Tree.Set_Root (Get_Node (Parser.Tree.Peek (Parser.Tree.First_Parse_Stream)));
+
       --  We need parents set in the following code.
+      Parser.Tree.Finish_Parse;
       Parser_State.Clear_Stream;
-      Parser.Tree.Clear_Parse_Streams;
 
       if Trace_Parse > Extra and then Parser_State.Recover_Insert_Delete.Length > 0 then
          Parser.Tree.Lexer.Trace.New_Line;
@@ -1743,7 +1756,7 @@ package body WisiToken.Parse.LR.Parser is
                                           Inserted  => True,
                                           Start     => True);
 
-                                       if Tree.ID (Prev_Terminal) = Tree.ID (Node) and then
+                                       if Tree.ID (Prev_Terminal.Node) = Tree.ID (Node) and then
                                          Tree.Byte_Region (Prev_Terminal, Trailing_Non_Grammar => False).Last + 1 =
                                          Node_Byte_Region.First and then
                                          Tree.Lexer.Escape_Delimiter_Doubled (Node_ID)
@@ -1862,7 +1875,7 @@ package body WisiToken.Parse.LR.Parser is
                      --  partly past or adjacent to Stable_Region.Last. Also exit when last
                      --  KMN is done.
                      exit Unchanged_Loop when
-                       Tree.ID (Terminal) /= Tree.Lexer.Descriptor.SOI_ID and then
+                       Tree.ID (Terminal.Node) /= Tree.Lexer.Descriptor.SOI_ID and then
                        (if Length (Inserted_Region) = 0 and Length (Deleted_Region) = 0
                         then Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).Last >
                           Stable_Region.Last -- Last KMN
@@ -3168,7 +3181,7 @@ package body WisiToken.Parse.LR.Parser is
                        (if Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).First <= Stable_Region.Last
                         then -KMN.Deleted_Bytes + KMN.Inserted_Bytes else 0) > Scanned_Byte_Pos;
 
-                     if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
+                     if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.SOI_ID then
                         Tree.Next_Terminal (Terminal);
 
                      else
@@ -3252,7 +3265,7 @@ package body WisiToken.Parse.LR.Parser is
                   begin
                      loop
                         if Searching_Back then
-                           if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
+                           if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.SOI_ID then
                               return Terminal;
                            end if;
 
@@ -3435,88 +3448,5 @@ package body WisiToken.Parse.LR.Parser is
       Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
       Pre_Edited       : in     Boolean        := False)
    is separate;
-
-   overriding procedure Execute_Actions
-     (Parser              : in out LR.Parser.Parser;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region)
-   is
-      use all type Syntax_Trees.Post_Parse_Action;
-      use all type Syntax_Trees.User_Data_Access;
-
-      procedure Process_Node
-        (Tree : in out Syntax_Trees.Tree;
-         Node : in     Syntax_Trees.Valid_Node_Access)
-      is
-         use all type Syntax_Trees.Node_Label;
-         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region
-           (Node, Trailing_Non_Grammar => True);
-      begin
-         if Tree.Label (Node) /= Nonterm or else
-           not (Node_Byte_Region = Null_Buffer_Region or
-                  Overlaps (Node_Byte_Region, Action_Region_Bytes))
-         then
-            return;
-         end if;
-
-         for Child of Tree.Children (Node) loop
-            if Child /= Syntax_Trees.Invalid_Node_Access then
-               --  Child can be null in an edited tree
-               Process_Node (Tree, Child);
-            end if;
-         end loop;
-
-         Parser.User_Data.Reduce (Tree, Node);
-         declare
-            Post_Parse_Action : constant Syntax_Trees.Post_Parse_Action := Parser.Get_Post_Parse_Action
-              (Tree.Production_ID (Node));
-         begin
-            if Post_Parse_Action /= null then
-               begin
-                  Post_Parse_Action (Parser.User_Data.all, Tree, Node);
-               exception
-               when E : others =>
-                  if WisiToken.Debug_Mode then
-                     Parser.Tree.Lexer.Trace.Put_Line
-                       (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-                     Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-                     Parser.Tree.Lexer.Trace.New_Line;
-                  end if;
-
-                  raise WisiToken.Parse_Error with Tree.Error_Message
-                    (Node,
-                     "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-                       Ada.Exceptions.Exception_Message (E));
-               end;
-            end if;
-         end;
-      end Process_Node;
-
-   begin
-      if Parser.User_Data = null then
-         return;
-      end if;
-
-      if Parser.Tree.Root = Syntax_Trees.Invalid_Node_Access then
-         --  No code in file, and error recovery failed to insert valid code.
-         --  Or ambiguous parse; Finish_Parse not called.
-         return;
-      end if;
-
-      Parser.User_Data.Initialize_Actions (Parser.Tree);
-
-      Process_Node (Parser.Tree, Parser.Tree.Root);
-   exception
-   when WisiToken.Parse_Error =>
-      raise;
-
-   when E : others =>
-      if Debug_Mode then
-         Parser.Tree.Lexer.Trace.Put_Line
-           (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-         Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         Parser.Tree.Lexer.Trace.New_Line;
-      end if;
-      raise;
-   end Execute_Actions;
 
 end WisiToken.Parse.LR.Parser;

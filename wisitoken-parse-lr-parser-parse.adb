@@ -84,7 +84,9 @@ begin
          if Trace_Parse > Outline then
             Trace.Put_Line ("edited tree does not need parse; no or only non_grammar changes");
          end if;
-         Shared_Parser.Tree.Clear_Parse_Streams;
+         Shared_Parser.Tree.Set_Root
+           (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream, Skip_SOI => True).Node);
+         Shared_Parser.Tree.Finish_Parse;
          Shared_Parser.Parsers.Clear;
          return;
       end if;

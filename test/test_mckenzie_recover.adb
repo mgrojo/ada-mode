@@ -30,6 +30,7 @@ with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with Ada_Lite_LR1_T1_Main;
+with SAL;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
@@ -51,7 +52,7 @@ package body Test_McKenzie_Recover is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser   : WisiToken.Parse.LR.Parser.Parser;
+   Parser   : WisiToken.Parse.LR.Parser.Parser_Access;
    Log_File : Ada.Text_IO.File_Type; -- not used
 
    Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
@@ -60,7 +61,9 @@ package body Test_McKenzie_Recover is
       First_Nonterminal => Descriptor.First_Nonterminal,
       Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
-   Orig_End_Name_Optional : Boolean;
+   Orig_Force_Full_Explore        : Boolean;
+   Orig_Force_High_Cost_Solutions : Boolean;
+   Orig_End_Name_Optional         : Boolean;
 
    Empty_Token_ID_Set : constant WisiToken.Token_ID_Set :=
      WisiToken.To_Token_ID_Set
@@ -77,7 +80,9 @@ package body Test_McKenzie_Recover is
    procedure Parse_Text
      (Text             : in String;
       Expect_Exception : in Boolean := False)
-   is begin
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
@@ -150,6 +155,7 @@ package body Test_McKenzie_Recover is
       procedure Get_Error
       --  Set Error_Ref or Stream_Error_Ref.
       is
+         use all type SAL.Base_Peek_Type;
          use all type Ada.Containers.Count_Type;
          Found_Errors : Ada.Containers.Count_Type := 0;
       begin
@@ -228,7 +234,7 @@ package body Test_McKenzie_Recover is
 
                else
                   Assert (False, Label_I & ".Code expecting Parse_Error, got " &
-                       Image (Error_Classwide, Parser.Tree, Error_Node));
+                            Image (Error_Classwide, Parser.Tree, Error_Node));
                end if;
 
             else
@@ -1821,9 +1827,6 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Test fail on Enqueue_Limit. Same input as Loop_Bounds above.
-      --
-      --  When Enqueue_Limit is hit, worker tasks stop dequeing configs, but
-      --  any active workers will finish enqueuing new ones.
 
       Parser.Table.McKenzie_Param.Enqueue_Limit := 20;
 
@@ -2542,37 +2545,40 @@ package body Test_McKenzie_Recover is
    end Name;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
-   is begin
+   is
+      use all type Ada.Strings.Unbounded.String_Access;
+   begin
       --  Run before all tests in register
       WisiToken.Test_McKenzie_Recover := True;
 
       case T.Alg is
       when WisiToken.BNF.LALR =>
-         WisiToken.Parse.LR.Parser.New_Parser
-           (Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Access), Ada_Lite_LALR_Main.Create_Parse_Table,
-            Ada_Lite_LALR_Main.Create_Productions,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            User_Data'Access);
+         Parser := new WisiToken.Parse.LR.Parser.Parser'
+           (Ada_Lite_LALR_Main.Create_Parser
+              (Trace'Access,
+               User_Data'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access));
 
       when WisiToken.BNF.LR1 =>
-         WisiToken.Parse.LR.Parser.New_Parser
-           (Parser, Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
-            Ada_Lite_LR1_T1_Main.Create_Parse_Table
-              (Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-            Ada_Lite_LR1_T1_Main.Create_Productions,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            User_Data'Access);
+         Parser := new WisiToken.Parse.LR.Parser.Parser'
+           (Ada_Lite_LR1_T1_Main.Create_Parser
+              (Trace'Access,
+               User_Data'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+               Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"));
       end case;
 
-      if T.Enqueue_Limit > 0 then
-         Parser.Table.McKenzie_Param.Enqueue_Limit := T.Enqueue_Limit;
+      if T.McKenzie_Options /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options (Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
       end if;
 
-      Orig_Params := Parser.Table.McKenzie_Param;
+      Orig_Params                    := Parser.Table.McKenzie_Param;
+      Orig_Force_Full_Explore        := WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore;
+      Orig_Force_High_Cost_Solutions := WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions;
 
       Orig_End_Name_Optional := End_Name_Optional;
    end Set_Up_Case;
@@ -2584,8 +2590,8 @@ package body Test_McKenzie_Recover is
 
       Parser.Table.McKenzie_Param := Orig_Params;
 
-      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore := T.Force_Full_Explore;
-      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := T.Force_High_Cost_Solutions;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore        := Orig_Force_Full_Explore;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := Orig_Force_High_Cost_Solutions;
    end Set_Up;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)

@@ -23,7 +23,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Dragon_4_43_Packrat_Gen_Main;
-with WisiToken.Parse.Packrat.Generated;
+with WisiToken.Parse.Packrat;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
@@ -40,7 +40,7 @@ package body Dragon_4_43_Packrat_Gen is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Parse.Packrat.Generated;
+      use WisiToken.Parse.Packrat;
 
       procedure Execute_Parse
         (Input    : in String;

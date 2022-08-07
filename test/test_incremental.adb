@@ -45,8 +45,19 @@ package body Test_Incremental is
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    package Ada_Lite is
-      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
-      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LR1_T1_Main.Create_Parser
+        (Trace'Access, User_Data'Access,
+         WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+         WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+         WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+         Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt");
+
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LR1_T1_Main.Create_Parser
+        (Trace'Access, User_Data'Access,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+         Language_Matching_Begin_Tokens => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+         Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
         (Ada_Lite_Actions.Descriptor.First_Terminal,
@@ -56,8 +67,21 @@ package body Test_Incremental is
    end Ada_Lite;
 
    package Ada_Lite_EBNF is
-      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
-      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_Ebnf_LALR_Main.Create_Parser
+        (Trace'Access,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_Ebnf_LALR_Main.Create_Parser
+        (Trace'Access,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
         (Ada_Lite_Ebnf_Actions.Descriptor.First_Terminal,
@@ -67,8 +91,23 @@ package body Test_Incremental is
    end Ada_Lite_EBNF;
 
    package Grammar is
-      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
-      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser := Grammar_Grammar_01_LR1_T1_Main.Create_Parser
+        (Trace'Access,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser := Grammar_Grammar_01_LR1_T1_Main.Create_Parser
+        (Trace'Access,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
         (Grammar_Grammar_01_Actions.Descriptor.First_Terminal,
@@ -3149,30 +3188,6 @@ package body Test_Incremental is
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
       --  Run before Register_Tests
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Ada_Lite.Full_Parser,
-         Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_LR1_T1_Main.Create_Parse_Table
-           (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-         Ada_Lite_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Ada_Lite.Incremental_Parser,
-         Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_LR1_T1_Main.Create_Parse_Table
-           (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-         Ada_Lite_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
-
       if T.McKenzie_Config /= null then
          WisiToken.Parse.LR.Set_McKenzie_Options
            (Ada_Lite.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
@@ -3180,28 +3195,6 @@ package body Test_Incremental is
       end if;
 
       Ada_Lite.Orig_McKenzie_Param := Ada_Lite.Full_Parser.Table.McKenzie_Param;
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Ada_Lite_EBNF.Full_Parser,
-         Ada_Lite_Ebnf_LALR_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_Ebnf_LALR_Main.Create_Parse_Table,
-         Ada_Lite_Ebnf_LALR_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Ada_Lite_EBNF.Incremental_Parser,
-         Ada_Lite_Ebnf_LALR_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_Ebnf_LALR_Main.Create_Parse_Table,
-         Ada_Lite_Ebnf_LALR_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
 
       if T.McKenzie_Config /= null then
          WisiToken.Parse.LR.Set_McKenzie_Options
@@ -3211,28 +3204,6 @@ package body Test_Incremental is
       end if;
 
       Ada_Lite_EBNF.Orig_McKenzie_Param := Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param;
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Grammar.Full_Parser,
-         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
-         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Grammar.Incremental_Parser,
-         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
-         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
 
       if T.McKenzie_Config /= null then
          WisiToken.Parse.LR.Set_McKenzie_Options
