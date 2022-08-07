@@ -48,11 +48,11 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_14.adb",
       "ada_mode-interactive_15.adb",
 
-      -- These have incomplete code for various reasons
       "ada_mode-incremental_01.adb",
       "ada_mode-incremental_02.adb",
       "ada_mode-indent_01.adb",
       "ada_mode-long_paren.adb",
+      "ada_mode-navigate_exception.adb",
 
       -- These have syntax errors on purpose
       "ada_mode-nested_parens.adb",
