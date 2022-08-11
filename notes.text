@@ -3,8 +3,8 @@ build/Makefile
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2; fix bugs in main
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - packrat use mckenzie error recover; o.e.a-4
-org.wisitoken.stephe-3/o.s_l.sal.stephe-1 -
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - dead (was packrat use mckenzie error recover)
+org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - error id
 
 possible branch tags:
 incremental_parse-pre-config.input_stream o.w.s-2
@@ -31,6 +31,17 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+left_breakdown can edit error nodes in parse
+    ie name error on nonterm, other error already on first terminal
+    breaks parser_state.recover_insert_delete
+    test_incremental.adb Multiple_Errors_On_One_Token_1, _2
+    test_mckenzie_recover.adb Multiple_Errors_On_One_Token
+
+        could pass recover_insert_delete to Left_Breakdown; kludge
+        need error id indirection; org.wisitoken.stephe-3
+            increment when call mckenzie recover
+            linear search of tree.errors to find it
+
 wisitoken-syntax_Trees.adb Current_Error_Ref
     if assert Result = (full aggregate), requires more than 20 parallel parsers.
     need better error message?
@@ -39,9 +50,6 @@ do_deletes called way more times than it needs to be
     move out of parse_verb
     or only do if result verb is shift
 
-
-packrat error recover
-    in o.w.s-2
 
 ediff of *.wy hangs
     mmm-mode vs wisi-parse-incremental :wait nil

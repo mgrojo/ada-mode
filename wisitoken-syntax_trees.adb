@@ -147,12 +147,6 @@ package body WisiToken.Syntax_Trees is
       Ref                  : in out Stream_Node_Parents;
       Trailing_Non_Grammar : in     Boolean);
 
-   function Prev_Source_Terminal
-     (Tree                 : in Syntax_Trees.Tree;
-      Node                 : in Node_Access;
-      Trailing_Non_Grammar : in Boolean)
-     return Node_Access;
-
    procedure Prev_Terminal
      (Tree    : in     Syntax_Trees.Tree;
       Node    : in out Node_Access;
@@ -5932,7 +5926,13 @@ package body WisiToken.Syntax_Trees is
                   end if;
                end;
                Parse_Stream.Elements.Delete (To_Delete);
-               To_Delete := Cur;
+
+               if Element (Cur).Node.Label = Nonterm then
+                  To_Delete := Cur;
+               else
+                  --  ada_mode-interactive_04.adb
+                  To_Delete := No_Element;
+               end if;
             end if;
          end if;
 
@@ -5954,7 +5954,9 @@ package body WisiToken.Syntax_Trees is
          end;
 
          if Node.Label in Terminal_Label then
-            if To_Delete /= Cur and Next_I /= First_Child then
+            if To_Delete = No_Element or else
+              (To_Delete /= Cur and Next_I /= First_Child)
+            then
                Ref.Element.Cur := Cur;
 
             else
@@ -5969,16 +5971,18 @@ package body WisiToken.Syntax_Trees is
 
             Ref.Node := Node;
 
-            declare
-               Node : constant Valid_Node_Access := Stream_Element_Lists.Element (To_Delete).Node;
-            begin
-               if Node.Error_List /= null then
-                  for Err of Tree.Error_List (Node) loop
-                     New_Errors.Append (To_Message (Err, Tree, Node));
-                  end loop;
-               end if;
-            end;
-            Parse_Stream.Elements.Delete (To_Delete);
+            if To_Delete /= No_Element then
+               declare
+                  Node : constant Valid_Node_Access := Stream_Element_Lists.Element (To_Delete).Node;
+               begin
+                  if Node.Error_List /= null then
+                     for Err of Tree.Error_List (Node) loop
+                        New_Errors.Append (To_Message (Err, Tree, Node));
+                     end loop;
+                  end if;
+               end;
+               Parse_Stream.Elements.Delete (To_Delete);
+            end if;
             exit;
          end if;
       end loop;
@@ -6144,6 +6148,77 @@ package body WisiToken.Syntax_Trees is
       return Line_At_Byte_Pos (Tree.Root, Start_Line => Tree.SOI.Non_Grammar (1).Line_Region.First);
    end Line_At_Byte_Pos;
 
+   function Line_At_Node
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Ref    : in Real_Recover_Token)
+     return Base_Line_Number_Type
+   is
+      function Find_Element return Stream_Index
+      is
+         use Stream_Element_Lists;
+         Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+         Cur : Cursor := Parse_Stream.Stack_Top;
+      begin
+         loop
+            exit when not Has_Element (Cur);
+            if Stream_Element_Lists.Element (Cur).Node = Ref.Element_Node then
+               return (Cur => Cur);
+            end if;
+            Next (Cur);
+         end loop;
+
+         --  Not found in stream input; search stack.
+         Cur := Parse_Stream.Stack_Top;
+         loop
+            Previous (Cur);
+            exit when not Has_Element (Cur);
+            if Stream_Element_Lists.Element (Cur).Node = Ref.Element_Node then
+               return (Cur => Cur);
+            end if;
+         end loop;
+         return Invalid_Stream_Index;
+      end Find_Element;
+
+      Element : constant Stream_Index := Find_Element;
+   begin
+      if Element = Invalid_Stream_Index then
+         --  Ref.Node is a child of some stream Element; too hard to find.
+         --  test_incremental.adb Lexer_Errors_05.
+         return Invalid_Line_Number;
+      else
+         return Line_At_Node (Tree, Tree.To_Stream_Node_Parents (Tree.To_Rooted_Ref (Stream, Element)), Stream);
+      end if;
+   end Line_At_Node;
+
+   function Line_At_Node
+     (Tree         : in Syntax_Trees.Tree;
+      Ref          : in Stream_Node_Parents;
+      Parse_Stream : in Stream_ID)
+     return Line_Number_Type
+   is
+      Temp           : Stream_Node_Parents   := Ref;
+      New_Line_Count : Base_Line_Number_Type := 0;
+   begin
+      loop
+         Tree.Prev_Terminal (Temp, Parse_Stream, Preceding => True);
+         exit when Temp.Ref.Node.Non_Grammar.Length > 0;
+         if Temp.Ref.Node.Label = Source_Terminal then
+            New_Line_Count := @ + Temp.Ref.Node.New_Line_Count;
+         end if;
+      end loop;
+      return Temp.Ref.Node.Non_Grammar (Temp.Ref.Node.Non_Grammar.Last_Index).Line_Region.Last + New_Line_Count;
+   end Line_At_Node;
+
+   function Line_At_Node
+     (Tree         : in Syntax_Trees.Tree;
+      Ref          : in Stream_Node_Ref;
+      Parse_Stream : in Stream_ID)
+     return Line_Number_Type
+   is begin
+      return Tree.Line_At_Node (Tree.To_Stream_Node_Parents (Ref), Parse_Stream);
+   end Line_At_Node;
+
    function Line_Begin_Char_Pos
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
@@ -6292,14 +6367,15 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Line_Begin_Token;
 
-   procedure  Line_Region_Internal_1
-     (Tree                    : in     Syntax_Trees.Tree;
-      Node                    : in     Node_Access;
-      Prev_Non_Grammar        : in     Valid_Node_Access;
-      Next_Non_Grammar        : in     Valid_Node_Access;
-      Trailing_Non_Grammar    : in     Boolean;
-      First_Non_Grammar_Token :    out WisiToken.Lexer.Token;
-      Last_Non_Grammar_Token  :    out WisiToken.Lexer.Token)
+   procedure Line_Region_Internal_1
+     (Tree                                 : in     Syntax_Trees.Tree;
+      Node                                 : in     Node_Access;
+      Prev_Non_Grammar                     : in     Valid_Node_Access;
+      Next_Non_Grammar                     : in     Valid_Node_Access;
+      Trailing_Non_Grammar                 : in     Boolean;
+      First_Non_Grammar_Token              :    out WisiToken.Lexer.Token;
+      Last_Non_Grammar_Token               :    out WisiToken.Lexer.Token;
+      Last_Non_Grammar_Is_Node_Non_Grammar :    out Boolean)
    is
       --  Since all non_grammar have line_region, we don't have to look for
       --  a new_line, just any non_grammar.
@@ -6340,6 +6416,8 @@ package body WisiToken.Syntax_Trees is
             --  want to include the leading non_grammar in SOI.
             Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index));
 
+      Last_Non_Grammar_Is_Node_Non_Grammar := Actual_Last_Non_Grammar = Last_Terminal;
+
       Last_Non_Grammar_Token := Actual_Last_Non_Grammar.Non_Grammar
         (if Trailing_Non_Grammar and Actual_Last_Non_Grammar = Last_Non_Grammar
          then Actual_Last_Non_Grammar.Non_Grammar.Last_Index
@@ -6354,16 +6432,20 @@ package body WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    is
-      First_Non_Grammar_Token : WisiToken.Lexer.Token;
-      Last_Non_Grammar_Token  : WisiToken.Lexer.Token;
+      First_Non_Grammar_Token              : WisiToken.Lexer.Token;
+      Last_Non_Grammar_Token               : WisiToken.Lexer.Token;
+      Last_Non_Grammar_Is_Node_Non_Grammar : Boolean;
    begin
       Line_Region_Internal_1
         (Tree, Node, Prev_Non_Grammar, Next_Non_Grammar, Trailing_Non_Grammar,
-         First_Non_Grammar_Token, Last_Non_Grammar_Token);
+         First_Non_Grammar_Token, Last_Non_Grammar_Token, Last_Non_Grammar_Is_Node_Non_Grammar);
 
       return
         (First => First_Non_Grammar_Token.Line_Region.Last,
-         Last => Last_Non_Grammar_Token.Line_Region.First);
+         Last =>
+           (if Trailing_Non_Grammar and Last_Non_Grammar_Is_Node_Non_Grammar
+            then Last_Non_Grammar_Token.Line_Region.Last
+            else Last_Non_Grammar_Token.Line_Region.First));
    end Line_Region_Internal;
 
    function Byte_Region_Of_Line_Region_Internal
@@ -6374,16 +6456,20 @@ package body WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in     Boolean)
      return WisiToken.Buffer_Region
    is
-      First_Non_Grammar_Token : WisiToken.Lexer.Token;
-      Last_Non_Grammar_Token  : WisiToken.Lexer.Token;
+      First_Non_Grammar_Token              : WisiToken.Lexer.Token;
+      Last_Non_Grammar_Token               : WisiToken.Lexer.Token;
+      Last_Non_Grammar_Is_Node_Non_Grammar : Boolean;
    begin
       Line_Region_Internal_1
         (Tree, Node, Prev_Non_Grammar, Next_Non_Grammar, Trailing_Non_Grammar,
-         First_Non_Grammar_Token, Last_Non_Grammar_Token);
+         First_Non_Grammar_Token, Last_Non_Grammar_Token, Last_Non_Grammar_Is_Node_Non_Grammar);
 
       return
         (First => First_Non_Grammar_Token.Byte_Region.Last,
-         Last => Last_Non_Grammar_Token.Byte_Region.First);
+         Last =>
+           (if Last_Non_Grammar_Is_Node_Non_Grammar
+            then Last_Non_Grammar_Token.Byte_Region.Last
+            else Last_Non_Grammar_Token.Byte_Region.First));
    end Byte_Region_Of_Line_Region_Internal;
 
    function Line_Region (Tree : in Syntax_Trees.Tree) return WisiToken.Line_Region
@@ -6420,20 +6506,7 @@ package body WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    is begin
-      if Tree.Parents_Set then
-         declare
-            Prev_Non_Grammar : Stream_Node_Ref := Ref;
-            Next_Non_Grammar : Stream_Node_Ref := Ref;
-         begin
-            Tree.Prev_Non_Grammar (Prev_Non_Grammar);
-            Tree.Next_Non_Grammar (Next_Non_Grammar);
-            return Line_Region_Internal
-              (Tree, Ref.Node, Prev_Non_Grammar.Node, Next_Non_Grammar.Node, Trailing_Non_Grammar);
-         end;
-
-      else
-         return Line_Region (Tree, To_Stream_Node_Parents (Tree, Ref), Ref.Stream, Trailing_Non_Grammar);
-      end if;
+      return Line_Region (Tree, To_Stream_Node_Parents (Tree, Ref), Ref.Stream, Trailing_Non_Grammar);
    end Line_Region;
 
    function Byte_Region_Of_Line_Region
@@ -7809,7 +7882,7 @@ package body WisiToken.Syntax_Trees is
 
    function Prev_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
-      Node                 : in Node_Access;
+      Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean)
      return Node_Access
    is begin
@@ -9654,6 +9727,14 @@ package body WisiToken.Syntax_Trees is
            (not Tree.Parents_Set or else
               Tree.Is_Descendant_Of (Root => Tree.Get_Node (Ref.Stream, Ref.Element), Descendant => Ref.Node)));
    end Valid_Stream_Node;
+
+   function Valid_Stream_Node_Parents
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Parents)
+     return Boolean
+   is begin
+      return Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
+   end Valid_Stream_Node_Parents;
 
    procedure Validate_Tree
      (Tree              : in out Syntax_Trees.Tree;
