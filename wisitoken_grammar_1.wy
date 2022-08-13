@@ -44,11 +44,6 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%code actions spec post %{
-   Partial_Parse_Active    : Boolean := False;
-   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
-}%
-
 %meta_syntax EBNF
 
 ;; LR1 for better error correction
@@ -57,7 +52,13 @@
 
 %language_runtime "Wisi.WisiToken_Grammar"
 
-%case_insensitive
+;; _not_ %case_insensitive; that makes ada.wy "%keyword IF" collide
+;; with this IF.
+;;
+;; 'reduce' and 'shift' are case insenstive, because error messages
+;; contain them in uppercase, and we allow people to either type them
+;; in lower case or just copy them from the error message.
+
 %keyword ACCEPT_I "accept_it"
 %keyword CODE "code"
 %keyword CONFLICT "conflict"
@@ -69,8 +70,8 @@
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
 %keyword ON "on"
-%keyword REDUCE_I "reduce"
-%keyword SHIFT_I "shift"
+%keyword REDUCE_I 'reduce'
+%keyword SHIFT_I 'shift'
 %keyword TOKEN "token"
 
 %token <delimited-text> RAW_CODE "%{" "}%"

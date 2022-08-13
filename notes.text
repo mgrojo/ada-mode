@@ -35,6 +35,8 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
+error_marks_01.wy failing
+
 editing anywhere in a comment causes comments in rest of window to flicker color.
     not in Ada; must be mmm-mode?
     same flicker in other faces?
