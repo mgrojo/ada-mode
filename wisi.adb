@@ -523,10 +523,11 @@ package body Wisi is
                --  We get here in partial_parse when there is no action to set indent
                --  for the first few lines; they are comments or low-level statements
                --  or declarations. ada_mode-recover_partial_28.adb
-               Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+               Data.Indents.Replace_Element (Line, (Int, Data.Action_Region_Lines.First, Data.Begin_Indent));
 
             when Int =>
-               Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Indent.Int_Indent + Begin_Indent));
+               Data.Indents.Replace_Element
+                 (Line, (Int, Data.Action_Region_Lines.First, Indent.Int_Indent + Begin_Indent));
 
             when Anchored =>
                declare
@@ -541,7 +542,8 @@ package body Wisi is
 
                   when Int =>
                      Data.Indents.Replace_Element
-                       (Line, (Int, Invalid_Line_Number, Anchor_Line_Indent.Int_Indent + Indent.Anchor_Delta));
+                       (Line,
+                        (Int, Data.Action_Region_Lines.First, Anchor_Line_Indent.Int_Indent + Indent.Anchor_Delta));
                   end case;
                end;
 
@@ -603,8 +605,8 @@ package body Wisi is
          Simple_Delta           =>
            (case Indent.Label is
             when Not_Set  => (None, Invalid_Line_Number),
-            when Int      => (Int, Invalid_Line_Number, Indent.Int_Indent),
-            when Anchored => (Anchored, Invalid_Line_Number, Indent.Anchor_Line, Indent.Anchor_Delta)));
+            when Int      => (Int, Indent.Controlling_Token_Line, Indent.Int_Indent),
+            when Anchored => (Anchored, Indent.Controlling_Token_Line, Indent.Anchor_Line, Indent.Anchor_Delta)));
    end To_Delta;
 
    ----------
@@ -1811,16 +1813,13 @@ package body Wisi is
                           (Data, Tree,
                            Line_Region       => Indenting.Comment,
                            Delta_Indent      => Comment_Delta,
-                           Controlling_Delta => To_Delta
-                             (Data.Indents
-                                (Line_Number_Type'
-                                   (if Params (I).Comment_Present
-                                    then -- ada_mode-conditional_expressions.adb case expression for K, if
-                                          --  expression blank line.
-                                       Tree.Line_Region (Controlling_Token, Trailing_Non_Grammar => True).Last
+                           Controlling_Delta =>
+                             (if Params (I).Comment_Present
+                              then Null_Delta --  test_select.adb accept E2
 
-                                    else --  ada_mode-conditional_expressions.adb case expression for K.
-                                       Tree.Line_Region (Controlling_Token, Trailing_Non_Grammar => True).First))),
+                              else To_Delta --  ada_mode-conditional_expressions.adb case expression for K.
+                                (Data.Indents
+                                   (Tree.Line_Region (Controlling_Token, Trailing_Non_Grammar => True).First))),
                            Indenting_Comment => (if Params (I).Comment_Present then Trailing else Leading));
                      end if;
                   end if;
@@ -2547,7 +2546,7 @@ package body Wisi is
             return
               (Simple,
                (Int,
-                Tree.Line_Region (Indenting_Token, Trailing_Non_Grammar => True).First,
+                Tree.Line_At_Node (Indenting_Token),
                 Param.Param.Int_Delta));
 
          when Simple_Param_Anchored =>

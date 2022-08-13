@@ -687,7 +687,7 @@ package body Emacs_Wisi_Common_Parse is
                   --  This command is often the first command for a source file, from
                   --  wisi-reset-parser.
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find_Create
-                    (Source_File_Name, Trace);
+                    (Source_File_Name, Factory, Trace);
                begin
                   Check_Command_Length (Command_Length, Last);
 

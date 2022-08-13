@@ -719,88 +719,91 @@ PARSER will respond with one or more Query messages."
 Source buffer is current."
   ;; sexp is [action arg ...]; an encoded instruction that we need to execute
   ;;
-  ;; Actions:
-  ;;
-  ;; [Navigate_Cache pos statement_id id length class containing_pos prev_pos next_pos end_pos]
-  ;;    Set a wisi-cache text-property.
-  ;;    *pos          : integer buffer position; -1 if nil (not set)
-  ;;    *id           : integer index into parser-token-table
-  ;;    length        : integer character count
-  ;;    class         : integer index into wisi-class-list
-  ;;
-  ;; [Name_Property first-pos last-pos]
-  ;;
-  ;; [Face_Property first-pos last-pos face-index]
-  ;;    Set a font-lock-face text-property
-  ;;    face-index: integer index into parser-elisp-face-table
-  ;;
-  ;; [Indent line-number indent]
-  ;;    Set an indent text property
-  ;;
-  ;; [Lexer_Error char-position <message> <repair-char>]
-  ;;    The lexer detected an error at char-position.
-  ;;
-  ;;    If <repair-char> is not ASCII NUL, it was inserted immediately
-  ;;    after char-position to fix the error.
-  ;;
-  ;; [Parser_Error char-position <message>]
-  ;;    The parser detected a syntax error; save information for later
-  ;;    reporting.
-  ;;
-  ;;    If error recovery is successful, there can be more than one
-  ;;    error reported during a parse.
-  ;;
-  ;; [In_Parse_Action_Error code name-1-pos name-2-pos <string>]
-  ;;    The parser detected an in-parse action error; save information
-  ;;    for later reporting. Either of the name-*-pos may be 0,
-  ;;    indicating a missing name.
-  ;;
-  ;;    If error recovery is successful, there can be more than one
-  ;;    error reported during a parse.
-  ;;
-  ;; [Recover [error-pos edit-pos [inserted] [deleted] deleted-region]...]
-  ;;    The parser finished a successful error recovery.
-  ;;
-  ;;    error-pos: Buffer position where error was detected
-  ;;
-  ;;    edit-pos: Buffer position of inserted/deleted tokens
-  ;;
-  ;;    inserted: Virtual tokens (terminal or non-terminal) inserted
-  ;;    before edit-pos.
-  ;;
-  ;;    deleted: Tokens deleted after edit-pos.
-  ;;
-  ;;    deleted-region: source buffer char region containing deleted tokens
-  ;;
-  ;;    Args are token ids; index into parser-token-table. Save the
-  ;;    information for later use by `wisi-repair-error'.
-  ;;
-  ;; [Edit begin end text]
-  ;;    Replace region BEGIN . END with TEXT; normally the result of a
-  ;;    refactor command.
-  ;;
-  ;; [Language ...]
-  ;;    Dispatch to a language-specific action, via
-  ;;    `wisi-process--parser-language-action-table'.
-  ;;
-  ;; [Query query-label ...]
-  ;;
-  ;; Numeric action codes are given in the case expression below
+  ;; Numeric action codes are given in the case expression below; must
+  ;; match list of *_Code in wisi.ads.
 
   (condition-case err
       (cl-ecase (aref sexp 0)
 	(1  (wisi-process-parse--Navigate_Cache parser sexp))
+	;; [Navigate_Cache pos statement_id id length class containing_pos prev_pos next_pos end_pos]
+	;;    Set a wisi-cache text-property.
+	;;    *pos          : integer buffer position; -1 if nil (not set)
+	;;    *id           : integer index into parser-token-table
+	;;    length        : integer character count
+	;;    class         : integer index into wisi-class-list
+
 	(2  (wisi-process-parse--Face_Property parser sexp))
+	;; [Face_Property first-pos last-pos face-index]
+	;;    Set a font-lock-face text-property
+	;;    face-index: integer index into parser-elisp-face-table
+
 	(3  (wisi-process-parse--Indent parser sexp))
+	;; [Indent line-number indent]
+	;;    Set an indent text property
+
 	(4  (wisi-process-parse--Lexer_Error parser sexp))
+	;; [Lexer_Error char-position <message> <repair-char>]
+	;;    The lexer detected an error at char-position.
+	;;
+	;;    If <repair-char> is not ASCII NUL, it was inserted immediately
+	;;    after char-position to fix the error.
+
 	(5  (wisi-process-parse--Parser_Error parser sexp))
+	;; [Parser_Error char-position <message>]
+	;;    The parser detected a syntax error; save information for later
+	;;    reporting.
+	;;
+	;;    If error recovery is successful, there can be more than one
+	;;    error reported during a parse.
+
 	(6  (wisi-process-parse--In_Parse_Action_Error parser sexp))
+	;; [In_Parse_Action_Error code name-1-pos name-2-pos <string>]
+	;;    The parser detected an in-parse action error; save information
+	;;    for later reporting. Either of the name-*-pos may be 0,
+	;;    indicating a missing name.
+	;;
+	;;    If error recovery is successful, there can be more than one
+	;;    error reported during a parse.
+
 	(7  (wisi-process-parse--Recover parser sexp))
+	;; [Recover [error-pos edit-pos [inserted] [deleted] deleted-region]...]
+	;;    The parser finished a successful error recovery.
+	;;
+	;;    error-pos: Buffer position where error was detected
+	;;
+	;;    edit-pos: Buffer position of inserted/deleted tokens
+	;;
+	;;    inserted: Virtual tokens (terminal or non-terminal) inserted
+	;;    before edit-pos.
+	;;
+	;;    deleted: Tokens deleted after edit-pos.
+	;;
+	;;    deleted-region: source buffer char region containing deleted tokens
+	;;
+	;;    Args are token ids; index into parser-token-table. Save the
+	;;    information for later use by `wisi-repair-error'.
+
 	(8  (wisi-process-parse--End parser sexp))
+	;; [End pos]
+	;;    Record last buffer position parsed.
+
 	(9  (wisi-process-parse--Name_Property parser sexp))
+	;; [Name_Property first-pos last-pos]
+
 	(10 (wisi-process-parse--Edit parser sexp))
+	;; [Edit begin end text]
+	;;    Replace region BEGIN . END with TEXT; normally the result of a
+	;;    refactor command.
+
 	(11 (wisi-process-parse--Language parser sexp))
+	;; [Language ...]
+	;;    Dispatch to a language-specific action, via
+	;;    `wisi-process--parser-language-action-table'.
+
 	(12 (wisi-process-parse--Query parser sexp))
+	;; [Query query-label ...]
+	;;    Query result.
+
 	)
     (error
      (when (< 0 wisi-debug)

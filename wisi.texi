@@ -828,10 +828,10 @@ indenting the comment with the last line of the expression.
 
 @item statements: [(wisi-block ada-indent) ada-indent]
 Applies a delta indent of 3 to the code and comment on lines 5 thru
-10, and 3 to the trailing comment on lines 11 and
-12. @code{wisi-block} says to ignore the controlling token line; that
-is 5, so this would be ignored for line 6; this is why we need
-@code{wisi-block}. The delta is ignored for the Anchored line 7.
+10, and 3 to the trailing comment on lines 11 and 12. The controlling
+token line is 5, so this delta would be ignored for line 6; this is
+why we need @code{wisi-block}, which sets controlling token line to
+invalid. The delta is ignored for the Anchored line 7.
 
 Note that the indent for comments after statements is given here, not
 at a lower level; it would be tedious to add it to each statement.

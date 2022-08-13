@@ -34,7 +34,7 @@ package Wisi.Parse_Context is
       --  For Incremental parse; after editing, there may be empty space at
       --  the end of Text_Buffer.
 
-      Parser : access WisiToken.Parse.Base_Parser'Class;
+      Parser : WisiToken.Parse.Base_Parser_Access;
 
       Prev_Tree : WisiToken.Syntax_Trees.Tree;
       --  Copy of Parser.Tree before edits applied; useful for debugging.
