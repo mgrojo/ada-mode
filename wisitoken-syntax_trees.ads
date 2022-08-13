@@ -1693,6 +1693,13 @@ package WisiToken.Syntax_Trees is
    --  Return line at first byte of Ref.Node; Invalid_Line_Number if too hard to find.
 
    function Line_At_Node
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Line_Number_Type
+   with Pre => Tree.Parents_Set;
+   --  Return line at first byte of Node.
+
+   function Line_At_Node
      (Tree         : in Syntax_Trees.Tree;
       Ref          : in Stream_Node_Ref;
       Parse_Stream : in Stream_ID)

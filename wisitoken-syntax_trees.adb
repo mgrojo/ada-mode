@@ -6192,6 +6192,24 @@ package body WisiToken.Syntax_Trees is
    end Line_At_Node;
 
    function Line_At_Node
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Line_Number_Type
+   is
+      Temp           : Valid_Node_Access   := Node;
+      New_Line_Count : Base_Line_Number_Type := 0;
+   begin
+      loop
+         Temp := Tree.Prev_Terminal (Temp);
+         exit when Temp.Non_Grammar.Length > 0;
+         if Temp.Label = Source_Terminal then
+            New_Line_Count := @ + Temp.New_Line_Count;
+         end if;
+      end loop;
+      return Temp.Non_Grammar (Temp.Non_Grammar.Last_Index).Line_Region.Last + New_Line_Count;
+   end Line_At_Node;
+
+   function Line_At_Node
      (Tree         : in Syntax_Trees.Tree;
       Ref          : in Stream_Node_Parents;
       Parse_Stream : in Stream_ID)

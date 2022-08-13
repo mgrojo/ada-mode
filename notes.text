@@ -42,6 +42,11 @@ left_breakdown can edit error nodes in parse
             increment when call mckenzie recover
             linear search of tree.errors to find it
 
+previous fix is in tree; apply again?
+    but only have insert/delete, not other ops.
+        unless test_mckenzie; then have full ops in Recover_test
+        shades of Volkswagen deiselgate :(.
+
 wisitoken-syntax_Trees.adb Current_Error_Ref
     if assert Result = (full aggregate), requires more than 20 parallel parsers.
     need better error message?
