@@ -14,8 +14,6 @@
 ;; FIXME: improve
 %no_error_recover
 
-%generate LR1 Ada_Emacs text_rep re2c Process
-;; %generate Packrat_Gen Ada_Emacs re2c Process
 %generate Packrat_Proc Ada_Emacs re2c Process
 
 %case_insensitive
