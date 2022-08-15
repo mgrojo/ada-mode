@@ -1611,7 +1611,7 @@ command_file command in the kill ring."
        (setq begin (match-beginning 0))
        (search-forward-regexp "\")) ") ;; avoid matching 'is (Float (A));'
        (setq cmd (concat "parse_incremental "
-			 (string-replace "\n" "\\n"
+			 (replace-regexp-in-string "\n" "\\n"
 					 (buffer-substring begin (match-end 0)))))
        (kill-new cmd)))
 
