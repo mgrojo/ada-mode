@@ -164,15 +164,18 @@ three : run_libadalang.exe
 # interaction with gpr project files.
 ifeq ($(shell uname),Linux)
 export WISITOKEN ?= /Projects/org.wisitoken
+export WISI      ?= /Projects/org.emacs.wisi
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else ifeq ($(shell uname),Darwin)
 export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
+export WISI      ?= /home/Projects/org.emacs.wisi
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else
 # windows
 export WISITOKEN ?= c:/Projects/org.wisitoken
+export WISI      ?= c:/Projects/org.emacs.wisi
 export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
