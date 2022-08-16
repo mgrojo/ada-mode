@@ -7,9 +7,9 @@ o.e.a: release, in use
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (?): eglot/ada_language_server
+o.e.a.stephe-4 (?): alire
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat
+o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat; dead
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
