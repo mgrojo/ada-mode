@@ -2,14 +2,11 @@ gpr_project_path=..
 gpr_project_path=$WISI
 gpr_project_path=$WISITOKEN/build
 gpr_project_path=$SAL/build
+gpr_project_path=../../org.stephe_leake.aunit_ext/build
 gpr_project_path=../../org.stephe_leake.makerules
 
---  for building dump_*_ada_lite*
-gpr_project_path=../../org.stephe_leake.aunit_ext/build
+gpr_file=gpr_mode_wisi_parse.gpr
 
-gpr_file=ada_mode_wisi_parse.gpr
-
-casing=ada-mode.casing
 casing=$WISITOKEN/build/emacs_case_exceptions
 casing=$SAL/build/sal.casing
 casing=$SAL/../org.stephe_leake.aunit_ext/build/aunit.casing
