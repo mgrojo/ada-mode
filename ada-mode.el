@@ -479,34 +479,30 @@ Runs `ada-syntax-propertize-hook'."
   ;; (info "(elisp)Syntax Properties")
   ;;
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
-    (goto-char start)
-    (save-match-data
-      (while (re-search-forward
-	      (concat
-	       "[^[:alnum:])]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
-	       "\\|[^[:alnum:])]\\('''\\)"; 3: character literal '''
-	       )
-	      end t)
-	;; syntax-propertize-extend-region-functions is set to
-	;; syntax-propertize-wholelines by default. We assume no
-	;; coding standard will permit a character literal at the
-	;; start of a line (not preceded by whitespace).
-	(cond
-	 ((match-beginning 1)
-	  (put-text-property
-	   (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
-	  (put-text-property
-	   (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
-	 ((match-beginning 3)
-	  (put-text-property
-	   (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
-	  (put-text-property
-	   (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
-	 )))
-    (run-hook-with-args 'ada-syntax-propertize-hook start end))
-  )
+  (goto-char start)
+  (while (re-search-forward
+	  (concat
+	   "[^[:alnum:])]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
+	   "\\|[^[:alnum:])]\\('''\\)"; 3: character literal '''
+	   )
+	  end t)
+    ;; syntax-propertize-extend-region-functions is set to
+    ;; syntax-propertize-wholelines by default. We assume no
+    ;; coding standard will permit a character literal at the
+    ;; start of a line (not preceded by whitespace).
+    (cond
+     ((match-beginning 1)
+      (put-text-property
+       (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
+      (put-text-property
+       (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+     ((match-beginning 3)
+      (put-text-property
+       (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
+      (put-text-property
+       (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
+     ))
+  (run-hook-with-args 'ada-syntax-propertize-hook start end))
 
 ;;;; navigation within and between files
 
@@ -1611,7 +1607,6 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   :group 'ada
 
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
-  (syntax-ppss-flush-cache (point-min));; reparse with new function
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)

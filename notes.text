@@ -10,6 +10,7 @@ o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): alire
 o.e.a.stephe-5 (?): libadalang backend
 o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat; dead
+o.e.a.stephe-7: delete stuff that is in gnat-compiler package; it's a minor mode. change stuff that conflicts with eglot into minor modes, instead of ada-lite
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
