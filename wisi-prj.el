@@ -81,6 +81,35 @@
   ;; if the file should be included in `project-files'.
   )
 
+;;;###autoload
+(cl-defun create-wisi-prj
+    (&key
+     name
+     compile-env
+     file-env
+     compiler
+     xref
+     case-exception-files
+     (case-full-exceptions '())
+     (case-partial-exceptions '())
+     source-path
+     file-pred)
+  ;; We declare and autoload this because we can't autoload
+  ;; make-wisi-prj in emacs < 27. We can't use '(defalias
+  ;; 'create-wisi-prj 'make-wisi-prj); then make-wisi-prj is not defined
+  ;; by autoload.
+  (make-wisi-prj
+   :name name
+   :compile-env compile-env
+   :file-env file-env
+   :compiler compiler
+   :xref xref
+   :case-exception-files case-exception-files
+   :case-full-exceptions case-full-exceptions
+   :case-partial-exceptions case-partial-exceptions
+   :source-path source-path
+   :file-pred file-pred))
+
 (defun wisi-prj-require-prj ()
   "Return current `wisi-prj' object.
 Throw an error if current project is not an wisi-prj."
@@ -105,9 +134,10 @@ Used when searching for project files.")
   "Alist holding currently parsed project objects.
 Indexed by absolute project file name.")
 
-(cl-defgeneric wisi-prj-default (prj)
+(cl-defgeneric wisi-prj-default (_prj)
   "Return a project with default values.
-Used to reset a project before refreshing it.")
+Used to reset a project before refreshing it."
+  (make-wisi-prj))
 
 (cl-defgeneric wisi-prj-parse-one (_project _name _value)
   "If recognized by PROJECT, set NAME, VALUE in PROJECT, return non-nil.
@@ -160,6 +190,9 @@ after the project file PRJ-FILE-NAME is parsed."
   "Attempt to fix a compilation error, return non-nil if fixed.
 Current buffer is compilation buffer; point is at an error message.
 SOURCE-BUFFER contains the source code referenced in the error message.")
+
+(cl-defgeneric wisi-compiler-root-dir (compiler)
+  "Return a meaningful root directory; nil if none.")
 
 (cl-defgeneric wisi-xref-parse-one (_xref _project _name _value)
   "If recognized by XREF, set NAME, VALUE in XREF, return non-nil.
@@ -339,7 +372,7 @@ If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
 	    ;; WORKAROUND: xref 1.3.2 xref-location changed from
 	    ;; defclass to cl-defstruct. If drop emacs 26, use
 	    ;; 'with-suppressed-warnings'.
-	    (with-no-warnings ;; "unknown slot"
+	    (with-no-warnings ;; "unknown slot summary"
 	      (let ((summary (if (functionp 'xref-item-summary) (xref-item-summary item) (oref item summary)))
 		    (location (if (functionp 'xref-item-location) (xref-item-location item) (oref item location)))
 		    (eieio-skip-typecheck t)) ;; 'location' may have line, column nil
@@ -563,8 +596,13 @@ COLUMN - Emacs column of the start of the identifier")
 ;;;; wisi-prj specific methods
 
 (cl-defmethod project-root ((project wisi-prj))
-   ;; Not meaningful, but some project functions insist on a valid directory
-   (car (wisi-prj-source-path project)))
+  ;; Some project functions insist on a valid directory. eglot starts
+  ;; language server in this directory; for ada_language_server it
+  ;; must be the directory containing the gnat project file.
+  (or
+   (and (wisi-prj-compiler project)
+	(wisi-compiler-root-dir (wisi-prj-compiler project)))
+   (car (wisi-prj-source-path project))))
 
 (cl-defmethod project-files ((project wisi-prj) &optional dirs)
   (let (result)
@@ -723,9 +761,11 @@ Called with three args: PROJECT NAME VALUE.")
 	      result)
 
 	  ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
-	  (when (wisi-compiler-parse-one (wisi-prj-compiler project) project name value)
+	  (when (and (wisi-prj-compiler project)
+		     (wisi-compiler-parse-one (wisi-prj-compiler project) project name value))
 	    (setq result t))
-	  (when (wisi-xref-parse-one (wisi-prj-xref project) project name value)
+	  (when (and (wisi-prj-xref project)
+		     (wisi-xref-parse-one (wisi-prj-xref project) project name value))
 	    (setq result t))
 
 	  (unless result
@@ -1506,10 +1546,11 @@ not the current project."
 	  (unless new-prj
 	    ;; User may have used `wisi-prj-set-dominating' instead of
 	    ;; `wisi-prj-cache-dominating'; parse the project file now.
-	    (wisi-prj-parse-file
-	     :prj-file prj-file
-	     :init-prj (cdr (assoc-string prj-file wisi-prj--default))
-	     :cache t))
+	    (when (assoc-string prj-file wisi-prj--default)
+	      (wisi-prj-parse-file
+	       :prj-file prj-file
+	       :init-prj (cdr (assoc-string prj-file wisi-prj--default))
+	       :cache t)))
 	  (when new-prj (wisi-prj-select new-prj))))
       new-prj)))
 
