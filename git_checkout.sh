@@ -1,8 +1,10 @@
-# This checks out all the dependencies for building ada-mode and
-# running tests (after doing "git clone" to get this file). It assumes
-# your upstream repository is named "origin" (which is the default).
+# This checks out all the dependencies and related modes for building
+# ada-mode and running tests (after doing "git clone" to get this
+# file). It assumes your upstream repository is named "origin" (which
+# is the default).
 
 git worktree add -b org.emacs.wisi             ../org.emacs.wisi             origin/org.emacs.wisi
+git worktree add -b org.emacs.gpr-mode         ../org.emacs.gpr-mode         origin/org.emacs.gpr-mode
 git worktree add -b org.wisitoken              ../org.wisitoken              origin/org.wisitoken
 git worktree add -b org.stephe_leake.sal       ../org.stephe_leake.sal       origin/org.stephe_leake.sal
 git worktree add -b org.stephe_leake.makerules ../org.stephe_leake.makerules origin/org.stephe_leake.makerules
