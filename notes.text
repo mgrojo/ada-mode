@@ -1,0 +1,9 @@
+General notes on Emacs gnat-compiler
+
+build/Makefile
+
+o.e.g-c: release, in use; minor-modes for eglot
+o.e.g.stephe-1: work
+o.e.a.stephe-2 (o.s_l.sal.s_2, o.w.s_3, o.e.w.s_2): alire
+
+;; end of file
