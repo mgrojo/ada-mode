@@ -38,3 +38,5 @@ build/*.errors
 build/devel_obj/
 build/Makefile.conf
 build/*.tree_text
+alire/
+config/
