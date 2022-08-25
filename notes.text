@@ -2,9 +2,10 @@ General notes on Emacs gpr mode
 
 build/Makefile
 
-o.e.g: release, in use
-o.e.g.stephe-1: work
-o.e.a.stephe-2 (o.e.w.stephe-2/o.w.s-3/o.s_l.sal.s-2): alire
+o.e.g-m: release, in use
+o.e.g-m.stephe-1 (o.e.w.stephe-1/o.w.s-1/o.s_l.sal.s-1): work
+o.e.g-m.stephe-2 (o.e.w.stephe-2/o.w.s-3/o.s_l.sal.s-2): alire
+o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): eglot
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -35,10 +36,11 @@ o.e.a.stephe-2 (o.e.w.stephe-2/o.w.s-3/o.s_l.sal.s-2): alire
    ("../org.emacs.gpr-mode.stephe-2"   . "../org.emacs.gpr-mode")))
 
  current work
-build
-    wisi-prj-current-cached and project-try-vc both in project-find-functions doesn't work
-    want wisi prj for *.gpr - gpr-mode, o.e.g-m/build/Makefile - wisi-dominating?
-    want eglot for *.ad? - ada-eglot-mode
+bug in gpr parser/navigate
+    gnatcoll.gpr via /Projects/org.wisitoken.stephe-3/Makefile
+    point on 'case OS'
+    M-C-left => wisi-tree-node nil
+
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.gpr-mode -type f -print | \"xargs\" grep  -nH --null FIXME:")
 
