@@ -33,7 +33,17 @@ update-wisitoken_grammar
 
  current work
 build with alire/wisi/eglot
-    gnat-compiler use same compiler as alire
+    build/wisitoken_alire.gpr
+        instead of standard_common, edit [build-switches] in alire.toml
+            yuck! but at least try to use that.
+
+    wisitoken-parse-tree_sitter.ads failing
+        because not used; add to exclude?
+            keep for now; investigate eglot issues
+
+
+     M-d on Token_ID works via eglot
+     C-c C-d on Token_ID fails; (wisi-proj-xref project) is nil
 
 left_breakdown can edit error nodes in parse
     ie name error on nonterm, other error already on first terminal

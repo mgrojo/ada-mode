@@ -1,6 +1,7 @@
+--  For building WisiToken using Alire
+
 with "../config/wisitoken_config.gpr";
 with "gnatcoll";
--- with "stephes_ada_library";
 with "standard_common";
 project Wisitoken_Alire is
 
