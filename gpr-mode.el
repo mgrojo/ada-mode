@@ -1,9 +1,12 @@
 ;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017 - 2020, 2022  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Version: 1.0.0
+;; package-requires: ((wisi "4.0.1") (gnat-compiler "1.0.0") (emacs "25.3"))
+;; url: http://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +38,7 @@
 ;;;;; Code:
 
 (require 'cl-lib)
-(require 'gnat-core)
+(require 'gnat-compiler)
 (require 'gpr-indent-user-options)
 (require 'gpr-process)
 (require 'gpr-skel)

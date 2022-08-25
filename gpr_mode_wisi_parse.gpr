@@ -20,6 +20,8 @@ with "standard_common";
 with "wisi";
 project gpr_Mode_Wisi_Parse is
 
+   for Create_Missing_Dirs use "True";
+
    for Main use
      ("gpr_mode_wisi_parse.ads",
       "run_gpr_parse.ads"
