@@ -25,7 +25,7 @@ is
    Last   : constant Base_Peek_Type := Item.Count;
 begin
    for I in 1 .. Last loop
-      Result := Result & Element_Image (Item.Peek (I), Aux);
+      Result := Result & Element_Image (Item.Data.Peek (I), Aux);
       if I /= Last then
          Result := Result & ", ";
       end if;
