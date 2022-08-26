@@ -617,26 +617,6 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
     (user-error "wisi-parse-incremental-none with wisi-incremental-parse-enable nil"))
   (save-excursion (wisi-parse-incremental wisi-parser-shared 'none)))
 
-(defun wisi-replay-kbd-macro (macro)
-  "Replay keyboard macro MACRO into current buffer,
-with incremental parse after each key event."
-  (unless wisi-incremental-parse-enable
-    (user-error "wisi-incremental-parse-enable nil; use EMACS_SKIP_UNLESS"))
-  (let ((i 0))
-    (while (< i  (length macro))
-      (execute-kbd-macro (make-vector 1 (aref macro i)))
-      (save-excursion
-	(condition-case err
-	    (progn
-	      (wisi--check-change)
-	      (when wisi--changes
-		(wisi-parse-incremental wisi-parser-shared 'none)))
-	  (wisi-parse-error
-	   (when (< 0 wisi-debug)
-	     ;; allow continuing when parser throws parse-error
-	     (signal (car err) (cdr err))))))
-      (setq i (1+ i)))))
-
 (defun wisi-replay-undo (count)
   "Execute `undo' COUNT times, delaying in between each."
   (let ((i 0))
