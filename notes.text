@@ -5,6 +5,7 @@ build/Makefile
 o.e.g: release, in use
 o.e.g.stephe-1: work
 o.e.a.stephe-2 (o.e.w.stephe-2/o.w.s-3/o.s_l.sal.s-2): alire
+o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): eglot
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")

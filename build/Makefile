@@ -53,7 +53,8 @@ install : install_executables
 # loading new source on old .elc.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -l build/exclude-elpa.el --eval '(progn (batch-byte-compile))' *.el
+	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (batch-byte-compile))' *.el
 #(setq byte-compile-error-on-warn t)
 
 byte-compile-clean :
@@ -115,32 +116,15 @@ three : run_libadalang.exe
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
 # external environment variable.
-#
-# ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
-# interaction with gpr project files.
-ifeq ($(shell uname),Linux)
-export WISITOKEN ?= /Projects/org.wisitoken
-export WISI      ?= /Projects/org.emacs.wisi
-export ADA_PROJECT_PATH=../test/:../test/subdir
 
-else ifeq ($(shell uname),Darwin)
-export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
-export WISI      ?= /home/Projects/org.emacs.wisi
-export ADA_PROJECT_PATH=../test/:../test/subdir
-
-else
-# windows
-export WISITOKEN ?= c:/Projects/org.wisitoken
-export WISI      ?= c:/Projects/org.emacs.wisi
-export ADA_PROJECT_PATH=../test/;../test/subdir
-
-INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
-endif
+export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
+export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
+export GNAT_COMPILER ?= $(shell cd ../../org.emacs.gnat-compiler; pwd)
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -L $(WISI) -l autoloads.el -l build/exclude-elpa.el
+ADA_MODE_DIR := -L .. -L $(WISI) -L $(GNAT_COMPILER) -l autoloads.el -l build/exclude-elpa.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
