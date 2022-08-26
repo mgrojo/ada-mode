@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 generic
    type Element_Type (<>) is private;
 package SAL.Gen_Unbounded_Indefinite_Queues is
@@ -81,7 +81,7 @@ package SAL.Gen_Unbounded_Indefinite_Queues is
 
 private
 
-   package Element_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Element_Type);
+   package Element_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Element_Type);
 
    --  We don't provide cursors, so we don't need any tampering checks.
    --

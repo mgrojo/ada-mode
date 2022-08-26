@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -26,13 +26,11 @@ package body SAL.Gen_Unbounded_Indefinite_Queues is
 
    function Count (Queue : in Queue_Type) return Base_Peek_Type
    is begin
-      return Base_Peek_Type (Queue.Data.Length);
+      return Queue.Data.Length;
    end Count;
 
    function Is_Empty (Queue : in Queue_Type) return Boolean
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
+   is begin
       return Queue.Data.Length = 0;
    end Is_Empty;
 
@@ -52,11 +50,10 @@ package body SAL.Gen_Unbounded_Indefinite_Queues is
 
    function Peek (Queue : in Queue_Type; N : Peek_Type := 1) return Constant_Reference_Type
    is
-      use Ada.Containers;
       use Element_Lists;
       I : Cursor := Queue.Data.First;
    begin
-      if Count_Type (N) > Queue.Data.Length then
+      if N > Queue.Data.Length then
          raise Parameter_Error;
       end if;
 
@@ -64,16 +61,15 @@ package body SAL.Gen_Unbounded_Indefinite_Queues is
          Next (I);
       end loop;
 
-      return (Element => Element_Lists.Constant_Reference (Queue.Data, I).Element, Dummy => 1);
+      return (Element => Element_Lists.Unchecked_Ref (I), Dummy => 1);
    end Peek;
 
    function Variable_Peek (Queue : in out Queue_Type; N : Peek_Type := 1) return Variable_Reference_Type
    is
-      use Ada.Containers;
       use Element_Lists;
       I : Cursor := Queue.Data.First;
    begin
-      if Count_Type (N) > Queue.Data.Length then
+      if N > Queue.Data.Length then
          raise Parameter_Error;
       end if;
 
@@ -81,7 +77,7 @@ package body SAL.Gen_Unbounded_Indefinite_Queues is
          Next (I);
       end loop;
 
-      return (Element => Element_Lists.Reference (Queue.Data, I).Element, Dummy => 1);
+      return (Element => Element_Lists.Unchecked_Ref (I), Dummy => 1);
    end Variable_Peek;
 
    procedure Add (Queue : in out Queue_Type; Item : in Element_Type)
