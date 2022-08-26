@@ -3,17 +3,6 @@
 # The gprbuild commands depend on the GPR_PROJECT_PATH environment
 # variable, that is set in the project files loaded in the file local
 # variables below.
-#
-# Ideally we'd have 5 elpa packages with dependencies:
-#
-# ada-mode  => gnat-core, wisi, gpr-query
-# gpr-mode  => gnat-core, wisi
-# gnat-core =>
-# gpr_query => gnat-core
-# wisi 	    =>
-#
-# but currently the code is not that clean; gpr-mode and gpr-query
-# require ada-mode. And it's not worth making gnat-core a package.
 
 export ADA_MODE_VERSION       := 7.3beta1.0.20220711.185004
 export ADA_REF_MAN_VERSION    := 2012.5
@@ -91,8 +80,6 @@ endif
 test : test-ada-lalr-partial-process-gpr_query.stamp
 test : test-ada-lalr-incremental-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
-test : gpr-skel.gpr.diff
-test : test-gpr-lalr-process.stamp
 test : summarize
 
 summarize :
@@ -138,9 +125,6 @@ two : ../run_ada_lalr_parse.exe
 two-lr1 : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0"
 two-lr1 : ../run_ada_lr1_parse.exe
 	cd ../; ./run_ada_lr1_parse.exe $(RUN_ARGS)
-
-two-gpr : ../run_gpr_parse.exe
-	cd ../; ./run_gpr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -227,16 +211,6 @@ test-ada-lalr-incremental-process-gpr_query.stamp : force
 	$(MAKE) test-ada-lalr-incremental-process-gpr_query
 	touch $@
 	echo "test-ada-lalr-incremental-process-gpr_query" >> test.log
-	find . -name "*.diff" -not -size 0 >> test.log
-
-test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
-test-gpr-lalr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
-
-test-gpr-lalr-process.stamp : force
-	rm -f *.diff *.tmp
-	$(MAKE) test-gpr-lalr-process
-	touch $@
-	echo "test-gpr-lalr-process" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 ifeq ($(shell uname),Linux)
@@ -373,7 +347,7 @@ ada-mode-elpa-archive-$(DATE).tar.bz2 : $(ELPA_ROOT)/archive/packages/archive-co
 tag :
 	mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-$(ADA_MODE_VERSION)
 
-MANUALS := ada-mode gpr-mode
+MANUALS := ada-mode
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
 info : ../dir-ada-mode
@@ -397,8 +371,7 @@ pub-ada : force
 	cp ../ada_mode.prj ../prj.el $(ELPA_ROOT)/packages/ada-mode/
 	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
-	cp ../gpr*.el ../gpr-mode.texi $(ELPA_ROOT)/packages/ada-mode
-	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.wy ../ada*.ad? ../run_ada*.ad? ../wisi-ada*.ad? $(ELPA_ROOT)/packages/ada-mode
 	cd $(ELPA_ROOT)/packages/ada-mode; rm ada-ref-man.el ada_annex_p_bnf.wy ada_annex_p_txt.wy autoloads.el
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
@@ -463,7 +436,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 %$(EXE_EXT) : %.adb force
 	cd ..; gprbuild -p -j8 -P ada_mode_wisi_parse.gpr $*.adb
 
-build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
+build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
