@@ -1,0 +1,15 @@
+name = "emacs_ada_mode"
+description = "Shiny new project"
+version = "0.1.0-dev"
+
+authors = ["Stephen Leake"]
+maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
+maintainers-logins = ["stephe-ada-guru"]
+
+executables = ["emacs_ada_mode"]
+[[depends-on]]
+gnatcoll = "^22.0.0"
+[[depends-on]]
+gnatcoll_sqlite = "^22.0.0"
+[[depends-on]]
+gnatcoll_xref = "^22.0.0"

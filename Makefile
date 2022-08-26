@@ -1,4 +1,4 @@
-# For compiling ada-mode Ada code in elpa worktree
+# For compiling ada-mode Ada code in elpa worktree, or with Alire
 
 #export Standard_Common_Build := Debug
 
@@ -10,6 +10,7 @@ Makefile.conf : create_makefile_conf.sh
 	$(SHELL) -c ./create_makefile_conf.sh
 
 include Makefile.conf
+include ../org.stephe_leake.makerules/alire_rules.make
 
 build_executables : ada_mode_wisi_parse.gpr gpr_re2c.c ada_annex_p_re2c.c force
 	gprbuild -p -j8 ada_mode_wisi_parse.gpr
