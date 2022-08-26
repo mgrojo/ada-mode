@@ -1,22 +1,6 @@
 ;; set up eglot for the emacs ada-mode project
 
-(require 'ada-eglot-mode)
-
-;; Don't use ada-mode for Ada buffers; pure eglot.
-(if (assoc "\\.ad[abs]\\'" auto-mode-alist)
-    (setcdr (assoc "\\.ad[abs]\\'" auto-mode-alist) #'ada-eglot-mode)
-  (setq auto-mode-alist (append auto-mode-alist (list (cons "\\.ad[sb]" #'ada-eglot-mode)))))
-
-(setq ada-eglot-gnat-prj-file "/Projects/org.emacs.ada-mode/ada_mode_wisi_parse.gpr")
-
-(setq-default
- eglot-workspace-configuration
- ;; FIXME: how do we do this in a .dir-local.el or let-binding? post
- ;; answer in an eglot discussion
- ;;
- ;; This is sent in a workspace/didChangeConfiguration message.
- `((ada (projectFile . ,ada-eglot-gnat-prj-file))))
-
+;; FIXME: merge this into ada-eglot-setup
 (let ((process-environment
        (copy-sequence
 	(append
@@ -27,10 +11,13 @@
 		       ":/Projects/org.stephe_leake.sal/build"
 		       ":/Projects/org.stephe_leake.makerules"
 		       ":/Projects/org.stephe_leake.aunit_ext/build"))
-	 process-environment))))
+	 process-environment)))
+      (eglot-workspace-configuration
+       ;; This is sent in a workspace/didChangeConfiguration message.
+       `((ada (projectFile . ,(expand-file-name "../ada_mode_wisi_parse.gpr"))))))
 
-  (eglot 'ada-eglot-mode ;; managed-major-mode
-	 'ada-eglot-project ;; project; project-root is server process directory
+  (eglot 'ada-mode ;; managed-major-mode
+	 (project-current) ;; project; project-root is server process directory
 	 'eglot-lsp-server ;; class
 	 'ada-eglot-find-server ;; contact
 	 "Ada" ;; language-id

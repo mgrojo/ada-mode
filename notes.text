@@ -5,12 +5,12 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
+o.e.a.stephe-2 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (?): alire
+o.e.a.stephe-4 (o.s_l.sal.s_2, o.w.s_3, o.e.w.s_3): alire
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat; dead
-o.e.a.stephe-7: delete stuff that is in gnat-compiler package; it's a minor mode. change stuff that conflicts with eglot into minor modes, instead of ada-lite
+o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead
+o.e.a.stephe-7 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-4): minor modes for use with eglot
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -51,6 +51,120 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+bug in gpr parser/navigate
+    gnatcoll.gpr via /Projects/org.wisitoken.stephe-3/Makefile
+    point on 'case OS'
+    M-C-left => wisi-tree-node nil
+    fix in /Projects/org.emacs.gpr-mode/notes.text
+
+delete stuff that is in gnat-compiler package
+    not yet a minor mode; are there key bindings specific to it?
+        gnat-fix-compiler-error?
+
+change stuff that conflicts with eglot into options/minor modes
+    ada-eglot.el
+    testing with /Projects/org.wisitoken.stephe-3/Makefile alire-build
+
+    wisitoken-parse-tree-sitter.ads not fontified properly
+        because parser exec not found (duh)
+        but parser process created; should respect wisi-disable-parser
+            but that's nil. sigh.
+
+    ada-find-other-file with no wisi parser
+        ff-pre-load-hook has ada-which-function
+        ada-which-function uses wisi-parse-tree-query, which fails on no parser
+            don't set ff-pre-load-hook if no wisi parser?
+            or assume it will get eglot/als support at some point?
+
+        ada-find-other-file calls ada-on-context-clause; fails with no parser
+            there's stuff like that everywhere.
+            fix all occurences of
+                wisi-validate-cache
+                    ada-mode.el - done
+                    ada-core.el - done
+
+                ada-validate-enclosing-declaration done
+                ada-goto-declarative-region-start done
+                ada-fix-add-use-type done
+                ada-fix-add-use done
+                ada-fix-add-with-clause done
+                ada-goto-declaration-start done
+                ada-fix-context-clause - rename, don't call if no parser
+                ada-refactor - remove from menu, keymap; wisi-parser-mode
+                ada-in-paramlist-p, ada-format-paramlist - remove from menu; wisi-parser-mode
+
+    wisi/gnat/gpr-query vs eglot/als capabilities:
+        auto-case      - onTypeFormatting, except that seems more oriented towards indent? als does not provide it.
+        font-lock/face - semanticTokens
+        indent         - :documentFormattingProvider
+
+        completion-at-point gpr-query - completionProvider
+            eglot also supports company
+
+        <none>  - :hoverProvider
+        <none>  - :signatureHelpProvider
+            handled by eldoc
+
+        gpr-query    - :declarationProvider
+        gpr-query    - :definitionProvider
+        gpr-query    - :typeDefinitionProvider
+        gpr-query    - :implementationProvider
+        gpr-query    - :referencesProvider
+        <none>       - :documentHighlightProvider (highlight references in current scope to symbol under point)
+        gpr-query    - :documentSymbolProvider    (wisi does flat only; lsp single file)
+
+        fix-error    - :codeActionProvider      (gnat does some quickfix, ada-mode does some refactor)
+                                              als does ["quickfix" "refactor.rewrite"]
+
+        wisi-fringe  - eglot sends diagnostics to flymake
+            wisi could also
+
+        <none>    - :renameProvider           workspace-wide rename of symbol
+                  - :foldingRangeProvider      hide statement_sequences in if-then-else etc.
+                  - :executeCommandProvider    perform code actions
+                        als does (:commands ["als-other-file" "als-named-parameters" "als-refactor-imports" "als-refactor-remove-parameters" "als-refactor-move-parameter" "als-refactor-change-parameter-mode" "als-suppress-separate"])
+
+        gpr-query - :workspaceSymbolProvider    all symbols in workspace
+
+        wisi tree query - als extension :alsReferenceKinds "parent" "child"
+                            also "reference" "access" "write" "call" "dispatching call"
+
+                        - als extensions: :alsShowDepsProvider
+
+        wisi-disable-face; enables semanticTokens when implemented.
+
+        wisi-disable-indent; don't set indent-region-function, indent-line-function.
+            eglot does not set indent-region-function or indent-line-function!?
+            defines eglot-format function
+                set that as indent-region-function in ada-eglot-setup
+                    also wrap for indent-line-function as wisi does
+                provides no options
+
+
+        need lsp backend for wisi-xref; another setting for ada-xref-tool
+            eglot only provides xref.el functions; not as fine-grained as lsp features.
+            add 'xref to eglot--stay-out-of-p
+                otherwise eglot sets local xref-backend-functions to eglot-xref-backend
+
+        eglot--managed-mode has list of hooks that eglot sets
+            run by find-file-hook, after-change-major-mode-hook
+            which run after ada-mode-hook
+
+        in wisi but not LSP/als
+            context-clause
+            enclosing-declaration; goto-declaration-start, goto-declarative-region-start
+            in-paramlist-p, format-paramlist
+            refactor
+                add package-level use clause
+                add local 'use type'
+            arbitrary tree query; many tree nonterms have elisp symbols
+
+support als LSP extensions
+    https://github.com/AdaCore/ada_language_server/tree/master/doc
+
+process coding for line-ending bug:
+    eglot uses :coding 'utf-8-emacs-unix
+
 GNAT Community going away
     https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
     get gnat fsf from alire https://alire.ada.dev/

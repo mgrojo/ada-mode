@@ -1,4 +1,4 @@
-;; Emacs wisi project definitions for compiling ada-mode in ELPA workspace
+;; Emacs wisi project definitions for compiling ada-mode in ELPA workspace -*- no-byte-compile: t; -*-
 ;;
 ;; Copyright (C) 2021, 2022  Free Software Foundation, Inc.
 

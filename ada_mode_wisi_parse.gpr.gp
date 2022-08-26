@@ -31,8 +31,6 @@ project Ada_Mode_Wisi_Parse is
       "ada_mode_wisi_lr1_parse.ads",
       "run_ada_lalr_parse.ads",
       "run_ada_lr1_parse.ads",
-      "gpr_mode_wisi_parse.ads",
-      "run_gpr_parse.ads",
       "gpr_query.adb"
      );
 
@@ -70,11 +68,6 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
-         for Switches ("gpr_process_main.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
-
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
 
          for Switches ("gpr_query.adb") use
@@ -95,11 +88,6 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Switches ("ada_process_main.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
-
-         for Switches ("gpr_process.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");

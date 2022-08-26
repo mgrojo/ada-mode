@@ -8,10 +8,6 @@ ADA_TEST_FILES := $(filter-out mixed_unix_dos_line_ends.adb, $(ADA_TEST_FILES))
 
 GNATXREF_TEST_FILES := $(shell cd ../test; grep -l wisi-prj-select-cache *.ad[sb])
 
-GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
-GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
-GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
-
 RECOVER_TEST_FILES := $(shell cd ../test/correct; ls *.ad?)
 
 .PRECIOUS : %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff wisitoken-ada_lite-tokens/%.tokens ada_lite-correct-tokens/%.tokens
@@ -20,14 +16,10 @@ RECOVER_TEST_FILES := $(shell cd ../test/correct; ls *.ad?)
 
 vpath %.adb   ../test ../test/subdir
 vpath %.ads   ../test ../test/subdir
-vpath %.gpr   ../test/gpr
 vpath %.wy    ../
 
 test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
-
-gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn $(ELISP)(setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	-diff -u $< $(*F).tmp > $(*F).diff
@@ -49,9 +41,6 @@ gpr-skel.gpr.tmp :
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
 ../run_ada_annex_p_lr1_parse.exe : ../run_ada_annex_p_lr1_parse.ads ../ada_annex_p_re2c.c force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
-
-../run_gpr_parse.exe : ../run_gpr_parse.ads ../gpr_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
 elisp-clean :
@@ -83,6 +72,7 @@ $(WISITOKEN)/build/wisitoken-followed_by.exe : force
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"../autoloads.el\"))(update-directory-autoloads \"../\"))"
+	$(MAKE) -C $(WISI)/build autoloads
 
 # load path rationale:
 #    . for run-*.el
@@ -148,10 +138,8 @@ exe-clean ::
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
 	rm -rf ../ada_mode_wisi_*_parse$(EXE_EXT)
-	rm -rf ../gpr_mode_wisi_parse$(EXE_EXT)
 	rm -f ../ada_mode_wisi_parse.gpr ../wisi.gpr
 	rm -rf ../run_ada_*_parse$(EXE_EXT)
-	rm -rf ../run_gpr_parse$(EXE_EXT)
 	rm -rf ../dump_*_corrected$(EXE_EXT)
 
 profile-clean ::

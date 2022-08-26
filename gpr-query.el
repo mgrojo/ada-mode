@@ -29,7 +29,7 @@
 
 (require 'cl-lib)
 (require 'compile)
-(require 'gnat-core)
+(require 'gnat-compiler)
 (require 'xref)
 (require 'wisi-prj)
 
