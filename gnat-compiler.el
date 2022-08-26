@@ -80,6 +80,13 @@ command.  This applies e.g. to *gnatfind* buffers."
    :gnat-stub-cargs gnat-stub-cargs
    ))
 
+(defun gnat-run-buffer-name (prj-file-name &optional prefix)
+  ;; We don't use (gnat-compiler-gpr-file compiler), because multiple
+  ;; wisi-prj files can use one gpr-file.
+  (concat (or prefix " *gnat-run-")
+	  prj-file-name
+	  "*"))
+
 (defun gnat-compiler-require-prj ()
   "Return current `gnat-compiler' object from current project compiler.
 Throw an error if current project does not have a gnat-compiler."
@@ -103,14 +110,11 @@ Throw an error if current project does not have a gnat-compiler."
     (setf (wisi-prj-file-env project) (copy-sequence process-environment))
     ))
 
-;; We need a dynamic variable for 'add-to-list
-(defvar gnat--src-dirs)
-
 (defun gnat-get-paths (project)
-  "Add project and/or compiler source, project paths to PROJECT source-path"
+  "Set source and project paths in PROJECT from \"gnat list\"."
   (let* ((compiler (wisi-prj-compiler project))
-	 (gnat--src-dirs (wisi-prj-source-path project))
-	 (prj-dirs (cl-copy-list (gnat-compiler-project-path compiler))))
+	 (src-dirs nil)
+	 (prj-dirs nil))
 
     ;; Don't need project plist obj_dirs if using a project file, so
     ;; not setting obj-dirs.
@@ -131,35 +135,37 @@ Throw an error if current project does not have a gnat-compiler."
 	  (while (not (looking-at "^$")) ;; terminate on blank line
 	    (back-to-indentation) ;; skip whitespace forward
 
-	    ;; we use 'add-to-list here, not 'cl-pushnew, because we
-	    ;; want to use append to preserve the directory
-	    ;; order. Directory order matters for extension projects,
-	    ;; which can have duplicate file names.
-            (add-to-list
-	     'gnat--src-dirs
+	    ;; we use 'cl-pushnew here, and nreverse later, to
+	    ;; preserve the directory order. Directory order matters
+	    ;; for extension projects, which can have duplicate file
+	    ;; names, and for project paths, which can contain two
+	    ;; compiler libraries (ie Alire and system).
+            (cl-pushnew
 	     (if (looking-at "<Current_Directory>")
 		 (directory-file-name default-directory)
 	       (expand-file-name ; Canonicalize path part.
 		(directory-file-name
 		 (buffer-substring-no-properties (point) (point-at-eol)))))
-	     t ;; append
+	     src-dirs
+	     :test
 	     #'string-equal)
 	    (forward-line 1))
 
           ;; Project path
 	  ;;
-	  ;; These are also added to src_dir, so compilation errors
+	  ;; These are also added to src-dirs, so compilation errors
 	  ;; reported in project files are found.
 	  (search-forward "Project Search Path:")
 	  (forward-line 1)
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
-	    (if (looking-at "<Current_Directory>")
-                (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'string-equal)
-	      (let ((f (expand-file-name
-                        (buffer-substring-no-properties (point) (point-at-eol)))))
-                (cl-pushnew f prj-dirs :test #'string-equal)
-                (cl-pushnew f gnat--src-dirs :test #'string-equal)))
+	    (let ((f
+		   (if (looking-at "<Current_Directory>")
+                       (directory-file-name default-directory)
+		     (expand-file-name
+                      (buffer-substring-no-properties (point) (point-at-eol))))))
+	      (cl-pushnew f src-dirs :test 'string-equal)
+	      (cl-pushnew f prj-dirs :test 'string-equal))
 	    (forward-line 1))
 
 	  )
@@ -178,10 +184,10 @@ Throw an error if current project does not have a gnat-compiler."
        (message "parse gpr failed")
        ))
 
-    (setf (wisi-prj-source-path project) (delete-dups gnat--src-dirs))
+    (setf (wisi-prj-source-path project) (nreverse src-dirs))
     (setf (gnat-compiler-project-path compiler) nil)
     (mapc (lambda (dir) (gnat-prj-add-prj-dir project compiler dir))
-	  prj-dirs)
+	  (nreverse prj-dirs))
     ))
 
 (defun gnat-parse-gpr (gpr-file project)
@@ -202,17 +208,10 @@ source-path will include compiler runtime."
 
 (defun gnat-parse-gpr-1 (gpr-file compiler)
   "For `wisi-prj-parser-alist'."
-  (setf (gnat-compiler-run-buffer-name compiler) gpr-file)
+  (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name gpr-file))
   (gnat-parse-gpr gpr-file compiler))
 
 ;;;; command line tool interface
-
-(defun gnat-run-buffer-name (prj-file-name &optional prefix)
-  ;; We don't use (gnat-compiler-gpr-file compiler), because multiple
-  ;; wisi-prj files can use one gpr-file.
-  (concat (or prefix " *gnat-run-")
-	  prj-file-name
-	  "*"))
 
 (defun gnat-run-buffer (compiler name)
   "Return a buffer suitable for running gnat command line tools for PROJECT"
@@ -258,7 +257,7 @@ Assumes current buffer is (gnat-run-buffer)"
       (mapc (lambda (str) (insert (concat str " "))) command)
       (newline))
 
-    (let ((exec-path (string-split (getenv "PATH") path-separator)))
+    (let ((exec-path (split-string (getenv "PATH") path-separator)))
       (setq status (apply 'call-process exec nil t nil command)))
     (cond
      ((memq status (or expected-status '(0))); success

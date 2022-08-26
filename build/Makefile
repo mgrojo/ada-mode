@@ -11,6 +11,9 @@ byte-compile : byte-compile-clean
 byte-compile-clean :
 	cd ..; rm -f *.elc
 
+autoloads : force
+	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
+
 ifeq ($(shell uname),Linux)
 EMACS_EXE ?= emacs
 else ifeq ($(shell uname),Darwin)
@@ -59,6 +62,8 @@ uninstall-elpa :
 # We don't kill emacs here, so we can check for compilation errors/warnings
 install-elpa :
 	emacs -Q --eval '(load-file "install-elpa.el")'
+
+.PHONY : force
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))

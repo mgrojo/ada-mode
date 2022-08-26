@@ -33,7 +33,8 @@
   ;; wrong. So empty it here.
   (let ((process-environment (copy-sequence process-environment))
 	(compiler (wisi-prj-compiler project))
-	value-string local-exec-path)
+	value-string
+	(local-exec-path exec-path))
     (setenv "GPR_PROJECT_PATH" "")
 
     (with-temp-buffer
@@ -53,8 +54,6 @@
       (goto-char (point-min))
       (search-forward "GNAT_NATIVE_ALIRE_PREFIX=")
       (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
-
-      (setq local-exec-pathexec-path (delete (executable-find "gnat") exec-path))
       (push (concat value-string "/bin") local-exec-path)
       (push (concat "PATH=" (mapconcat 'identity local-exec-path  path-separator))
 	    (wisi-prj-file-env project))
@@ -74,7 +73,7 @@
 	   :compiler
 	   (create-gnat-compiler
 	    :gpr-file abs-gpr-file
-	    :run-buffer-name abs-gpr-file))))
+	    :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))))
 
     (alire-get-env project)
     (gnat-get-paths project)
