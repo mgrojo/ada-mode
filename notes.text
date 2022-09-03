@@ -5,7 +5,7 @@ branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2; fix bugs in main
 org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - dead (was packrat use mckenzie error recover)
-org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - error id
+org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - alire
 
 possible branch tags:
 incremental_parse-pre-config.input_stream o.w.s-2
@@ -33,17 +33,19 @@ update-wisitoken_grammar
 
  current work
 build with alire/wisi/eglot
-    build/wisitoken_alire.gpr
-        instead of standard_common, edit [build-switches] in alire.toml
-            yuck! but at least try to use that.
 
-    wisitoken-parse-tree_sitter.ads failing
-        because not used; add to exclude?
-            keep for now; investigate eglot issues
+    wisitoken-syntax_trees.ads function New_Stream
+        on a subprogram spec, gpr-query M-d puts up an *xref* buffer giving the spec and body (and overridden bodies?)
+        eglot just goes to the body, and back to spec.
+        C-c C-d just goes to the body
+        so just bind C-c C-d to xref-find-definitions; minor-mode
+
+    M-d on "" => No applicable method: wisi-xref-definitions
+        xref-backend-functions is (t eglot-xref-backend)
+        xref-backend-definitions calls wisi-xref-definitions because 't' first means 'do global functions first'
+        now (wisi-find-backend) returns etags; delete that in ada-eglot-setup
 
 
-     M-d on Token_ID works via eglot
-     C-c C-d on Token_ID fails; (wisi-proj-xref project) is nil
 
 left_breakdown can edit error nodes in parse
     ie name error on nonterm, other error already on first terminal

@@ -1,0 +1,5 @@
+-- only casing can be set here.
+
+-- Found in GPR_PROJECT_PATH
+casing=wisitoken.casing
+casing=sal.casing
