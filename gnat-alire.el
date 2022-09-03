@@ -32,7 +32,6 @@
   ;; WORKAROUND: alire 1.2.0 inherits GPR_PROJECT_PATH, which is just
   ;; wrong. So empty it here.
   (let ((process-environment (copy-sequence process-environment))
-	(compiler (wisi-prj-compiler project))
 	value-string
 	(local-exec-path exec-path))
     (setenv "GPR_PROJECT_PATH" "")
@@ -47,9 +46,6 @@
       (setf (wisi-prj-file-env project)
 	    (list (concat "GPR_PROJECT_PATH=" value-string)))
 
-      (setf (gnat-compiler-project-path compiler)
-	    (split-string value-string path-separator))
-
       ;; gnat-compiler use same compiler as Alire
       (goto-char (point-min))
       (search-forward "GNAT_NATIVE_ALIRE_PREFIX=")
@@ -60,24 +56,34 @@
       )))
 
 ;;;###autoload
-(cl-defun create-alire-project (&key prj-name gpr-file)
+(cl-defun create-alire-project (&key prj-name prj-file gpr-file)
   ;; WORKAROUND: there is no way to get the gpr-file named in
   ;; alire.toml, so we require it as an argument; must be absolute or
   ;; relative to Alire root directory.
+  ;;
+  ;; prj-file should _not_ specify the gpr-file or gpr-project-path;
+  ;; it is only used for casing. We get GPR_PROJECT_PATH from the
+  ;; Alire environment.
   "Return a wisi project for the Alire workspace containing `default-directory'"
   (let* ((default-directory (locate-dominating-file default-directory "alire.toml"))
 	 (abs-gpr-file (expand-file-name gpr-file))
-	 (project
-	  (make-wisi-prj
-	   :name prj-name
-	   :compiler
-	   (create-gnat-compiler
-	    :gpr-file abs-gpr-file
-	    :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))))
+	 (project (make-wisi-prj :name prj-name))
+	 )
 
     (alire-get-env project)
+
+    ;; We use a gnat-compiler to set compilation-search-path.
+    (setf (wisi-prj-compiler project)
+	  (create-gnat-compiler
+	   :gpr-file abs-gpr-file
+	   :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
     (gnat-get-paths project)
-    project))
+
+    ;; Now we parse prj-file; casing can use (wisi-prGPR_PROJECT_PATH
+    (wisi-prj-parse-file
+     :prj-file prj-file
+     :init-prj project
+     :cache t)))
 
 (provide 'gnat-alire)
 ;;; gnat-alire.el ends here

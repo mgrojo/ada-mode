@@ -896,15 +896,9 @@ installation found in `exec-path'."
   (remove-hook 'ada-syntax-propertize-hook #'gnat-syntax-propertize)
   (remove-hook 'compilation-filter-hook #'gnat-compilation-filter))
 
-(cl-defmethod wisi-compiler-show-prj-path ((compiler gnat-compiler))
-    (if (gnat-compiler-project-path compiler)
-      (progn
-	(pop-to-buffer (get-buffer-create "*project file search path*"))
-	(erase-buffer)
-	(dolist (file (gnat-compiler-project-path compiler))
-	  (insert (format "%s\n" file))))
-    (message "no project file search path set")
-    ))
+(cl-defmethod wisi-compiler-prj-path ((compiler gnat-compiler))
+    (gnat-compiler-project-path compiler)
+    )
 
 (cl-defmethod wisi-compiler-fix-error ((_compiler gnat-compiler) source-buffer)
   (let ((start-pos (point))
