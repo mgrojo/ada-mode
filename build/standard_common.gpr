@@ -1,6 +1,11 @@
 --  Abstract :
 --
---  Standard settings for all of Stephe's Ada projects.
+--  Standard settings for all of Stephe's Alire projects.
+--  For non-Alire builds, use org.stephe-leake.makerules/standard_common.gpr.
+--
+--  Alire provides a mechanism to set custom values for
+--  [build-switches] in alire.toml. That is harder to maintain than
+--  this file.
 --
 --  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
