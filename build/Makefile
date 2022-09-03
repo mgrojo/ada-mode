@@ -69,8 +69,7 @@ install : install_executables
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (package-initialize)(batch-byte-compile))' *.el
-# (setq byte-compile-error-on-warn t)
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -161,7 +160,7 @@ ifeq ($(TEST_DIR),source)
 ADA_MODE_DIR := -L .. -L $(WISI) -L $(GNAT_COMPILER) -l autoloads.el -l build/exclude-elpa.el
 
 # ".exe", not $(EXE_EXT); wisitoken hard-codes .exe
-WISITOKEN_GENERATE := $(CURDIR)/$(WISITOKEN)/build/wisitoken-bnf-generate.exe
+WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
 # test with installed elpa package; don't rebuild grammars

@@ -51,6 +51,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+tolerate no parser
+    use eglot
+    Could store alist in wisi-prj.parser-enabled; ((ada-mode . disabled) (gpr-mode . enabled)) but that's tedious
+
+build.sh don't build gpr_query if gnatcoll-xref not found - just use gnat xref or eglot
+
 bug in gpr parser/navigate
     gnatcoll.gpr via /Projects/org.wisitoken.stephe-3/Makefile
     point on 'case OS'
@@ -1337,6 +1343,8 @@ add wisitoken grammar doc to wisi package
 find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 (dvc-status ".")
+
+drop emacs 26 - not tested? at least drop emacs 25
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")

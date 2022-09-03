@@ -1,5 +1,4 @@
 ;; Project definitions for compiling ada-mode
-(require 'wisi-prj)
 
 (wisi-prj-select-cache
  "ada_mode_wisi_parse.prj"

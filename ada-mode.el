@@ -162,6 +162,12 @@ slower to load on first use, but gives better error recovery."
   :type 'string
   :group 'ada)
 
+(defcustom ada-suppress-exec-warn nil
+  "When non-nil, don't warn when `ada-process-parse-exec' not found."
+  :group 'ada
+  :type 'boolean
+  :safe #'booleanp)
+
 (defcustom ada-xref-full-path nil
   "If t, cross-references show the full path to source files; if
 nil, only the file name."
@@ -1682,23 +1688,36 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
   (setq wisi-xref-full-path ada-xref-full-path)
 
-  (let (parser)
-    ;; wisi-disable-parser should be set in a find-file-hook such as
-    ;; ada-eglot-setup, not a local variable
-    (unless wisi-disable-parser
-      (condition-case err
-	  (setq parser (ada-parse-require-process))
-	(user-error
-	 ;; Probably the parser executable not found; continue with no
-	 ;; parser. Abort for other errors.
-	 (display-warning 'ada (cadr err) :warning))))
+  ;; We can't set buffer-local wisi-disable-parser before this,
+  ;; because this is the first function run with major-mode set to
+  ;; ada-mode. We don't encourage setting global wisi-disable-parser
+  ;; because other modes may need a wisi parser (gpr-mode,
+  ;; wisitoken-grammar-mode).
+  ;;
+  ;; We don't allow setting wisi-disable-* in a local
+  ;; variable. FIXME: why not? 1. allow user to type ada-mode again
+  ;; to reset stuff? 2. Could set in dir-locals.el, but can't fully configure eglot there.
+  ;;
+  ;; We want at least one warning for missing
+  ;; ada-process-parse-exec, to give users a reminder to
+  ;; build/install it. But also allow suppressing that warning for
+  ;; users using eglot.
+  ;;
+  ;; FIXME: do this for gpr-mode, wisitoken-grammar-mode, ... . Move to wisi-setup?
+  (unless wisi-disable-parser
+    (unless (executable-find ada-process-parse-exec)
+      (unless ada-suppress-exec-warn
+	(display-warning
+	 'ada
+	 (format "Ada parser exec '%s' not found; install it, or set `ada-suppress-exec-warn'."
+		 ada-process-parse-exec)))
+      (setq-local wisi-disable-parser t)))
 
-    ;; wisi-setup tolerates parser nil.
-    (wisi-setup
-     :indent-calculate '(ada-wisi-comment)
-     :post-indent-fail 'ada-wisi-post-indent-fail
-     :parser parser)
-    )
+  ;; wisi-setup tolerates parser nil.
+  (wisi-setup
+   :indent-calculate '(ada-wisi-comment)
+   :post-indent-fail 'ada-wisi-post-indent-fail
+   :parser (unless wisi-disable-parser (ada-parse-require-process)))
 
   (when wisi-parser-shared
     (set (make-local-variable 'beginning-of-defun-function) #'ada-goto-declaration-start)
@@ -1723,7 +1742,7 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   ;; set it per-file.
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
-  (cl-case ada-language-version
+  (cl-case ada-language-version ;; FIXME: delete this
    (ada83
     (setq ada-keywords ada-83-keywords))
 
