@@ -74,3 +74,5 @@ dir-ada-mode
 bin/
 alire/
 config/
+check.gpr
+src/
