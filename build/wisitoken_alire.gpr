@@ -20,7 +20,6 @@ project Wisitoken_Alire is
    for Library_Kind use Library_Type;
 
    package Compiler is
-      Overrides := "-gnat2022";
 
       case Wisitoken_Config.Build_Profile is
       when "release" =>

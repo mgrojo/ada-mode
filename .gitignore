@@ -40,3 +40,4 @@ build/Makefile.conf
 build/*.tree_text
 alire/
 config/
+build/lib/
