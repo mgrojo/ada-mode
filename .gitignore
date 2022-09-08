@@ -76,3 +76,7 @@ test/subdir/gpr_query.db
 wisi.gpr
 test_all_harness
 autoloads.el~
+obj/
+lib/
+alire/
+config/
