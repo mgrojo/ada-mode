@@ -1,4 +1,7 @@
---  For building WisiToken using Alire
+--  For building WisiToken crate using Alire.
+--
+--  Because library project files cannot build executables, use
+--  wisitoken_alire_mains.gpr to build wisitoken-bnf-generate.exe.
 
 with "../config/wisitoken_config.gpr";
 with "gnatcoll";
@@ -7,8 +10,6 @@ project Wisitoken_Alire is
 
    for Library_Name use "Wisitoken";
    for Library_Version use Project'Library_Name & ".so." & Wisitoken_Config.Crate_Version;
-
-   for Languages use ("Ada", "C");
 
    for Source_Dirs use ("..", "../config/", "../memory");
    for Object_Dir use "obj/" & Wisitoken_Config.Build_Profile;
@@ -25,11 +26,7 @@ project Wisitoken_Alire is
       when "release" =>
          for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
 
-      when "validation" =>
-         -- FIXME: what is this for?
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
-
-      when "development" =>
+      when "validation" | "development" =>
          for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
 
       end case;
@@ -39,18 +36,8 @@ project Wisitoken_Alire is
 
    end Compiler;
 
-   package Builder is
-      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
-      for Executable_Suffix use ".exe";
-
-   end Builder;
-
    package Binder is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback
    end Binder;
-
-   package Install is
-      for Artifacts (".") use ("share");
-   end Install;
 
 end Wisitoken_Alire;
