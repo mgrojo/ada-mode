@@ -1,0 +1,37 @@
+--  Abstract :
+--
+--  Alire project file for SAL AUnit utilities
+--
+--  Copyright (C) 2022 Stephen Leake All Rights Reserved.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version. This program is distributed in the
+--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+--  PURPOSE. See the GNU General Public License for more details. You
+--  should have received a copy of the GNU General Public License
+--  distributed with this program; see file COPYING. If not, write to
+--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
+--  MA 02110-1335, USA.
+
+with "stephes_ada_library"
+with "../config/stephes_ada_library_config";
+project Stephes_Ada_Library_Test is
+
+   for Source_Dirs use ("../source_devel");
+
+   for Object_Dir use "obj_devel/" & Stephes_Ada_Library_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Exec_Dir use "bin";
+
+   package Compiler is
+      for Default_Switches ("Ada") use Stephes_Ada_Library_Config.Ada_Compiler_Switches;
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+end Stephes_Ada_Library;

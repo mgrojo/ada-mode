@@ -60,6 +60,6 @@ tag :
 
 #
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (wisi-prj-select-cache "sal.prj" (create-ada-prj :name "sal main") "Makefile"))
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
 # End:
 # end of file

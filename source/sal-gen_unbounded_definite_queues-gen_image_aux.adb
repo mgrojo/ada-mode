@@ -21,14 +21,17 @@ with Ada.Strings.Unbounded;
 function SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux (Item : in Queue; Aux : in Aux_Data) return String
 is
    use Ada.Strings.Unbounded;
+   use Element_Lists;
    Result : Unbounded_String        := To_Unbounded_String ("(");
    Last   : constant Base_Peek_Type := Item.Count;
+   Cur    : Element_Lists.Cursor    := Item.Data.First;
 begin
    for I in 1 .. Last loop
-      Result := Result & Element_Image (Item.Data.Peek (I), Aux);
+      Result := Result & Element_Image (Item.Data (Cur), Aux);
       if I /= Last then
          Result := Result & ", ";
       end if;
+      Next (Cur);
    end loop;
    Result := Result & ")";
    return To_String (Result);

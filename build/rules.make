@@ -1,7 +1,8 @@
 # common parts of makefiles for SAL
 
-include ../../org.stephe_leake.makerules/gprbuild_rules.make
+include ../../org.stephe_leake.makerules/alire_rules.make
 include ../../org.stephe_leake.makerules/common_rules.make
+include ../../org.stephe_leake.makerules/gprbuild_rules.make
 
 # ignore whitespace in diff, so we can ignore Unix vs DOS line endings
 # in test output files. Note that this has to come _after_

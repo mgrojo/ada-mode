@@ -8,3 +8,5 @@ build/*.bz2
 build/obj_pro/
 build/*.sig
 build/devel_obj/
+alire/
+config/
