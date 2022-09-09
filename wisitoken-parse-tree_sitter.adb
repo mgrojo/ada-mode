@@ -2,7 +2,7 @@
 --
 --  Ada binding to tree-sitter runtime.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2022 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -131,12 +131,20 @@ package body WisiToken.Parse.Tree_Sitter is
 
    function ID (Node : in Syntax_Tree_Node) return Token_ID
    is
+      use all type Interfaces.Unsigned_16;
+
       function TS_Node_Symbol (Node : in Syntax_Tree_Node) return Interfaces.Unsigned_16
       with Import     => True,
         External_Name => "ts_node_symbol",
         Convention    => C;
+
+      TS_Symbol : constant Interfaces.Unsigned_16 := TS_Node_Symbol (Node);
    begin
-      return Token_ID (TS_Node_Symbol (Node));
+      if TS_Symbol = C_Error_Token_ID then
+         return Error_Token_ID;
+      else
+         return Token_ID (TS_Symbol);
+      end if;
    end ID;
 
    function Byte_Region (Node : in Syntax_Tree_Node) return Buffer_Region

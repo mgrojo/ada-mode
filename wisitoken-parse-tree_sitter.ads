@@ -2,7 +2,7 @@
 --
 --  Ada binding to tree-sitter runtime.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2022 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -24,8 +24,11 @@ package WisiToken.Parse.Tree_Sitter is
    type Syntax_Tree_Node is private;
    --  Can't be tagged because it is a C type.
 
-   Error_Token_ID  : constant Token_ID := 16#ffff#; --  parser.h ts_builtin_sym_error
-   Tree_Sitter_EOI : constant Token_ID := 0;
+   C_Error_Token_ID : constant Interfaces.Unsigned_16  := 16#ffff#;
+   --  parser.h ts_builtin_sym_error; not in Token_ID range.
+
+   Error_Token_ID   : constant Token_ID := Invalid_Token_ID - 1;
+   Tree_Sitter_EOI  : constant Token_ID := 0;
 
    function ID (Node : in Syntax_Tree_Node) return Token_ID;
    function Byte_Region (Node : in Syntax_Tree_Node) return Buffer_Region;
@@ -41,7 +44,6 @@ package WisiToken.Parse.Tree_Sitter is
    --  Tagged for Object.Method notation.
 
    function Root (Tree : in Syntax_Tree) return Syntax_Tree_Node;
-
    type Parser (Language : Language_Function) is new Ada.Finalization.Limited_Controlled with private;
 
    overriding procedure Initialize (Parser : in out Tree_Sitter.Parser);

@@ -1,0 +1,43 @@
+--  For building WisiToken crate using Alire.
+--
+--  Because library project files cannot build executables, use
+--  wisitoken_alire_mains.gpr to build wisitoken-bnf-generate.exe.
+
+with "../config/wisitoken_config.gpr";
+with "gnatcoll";
+with "standard_common";
+project Wisitoken_Alire is
+
+   for Library_Name use "Wisitoken";
+   for Library_Version use Project'Library_Name & ".so." & Wisitoken_Config.Crate_Version;
+
+   for Source_Dirs use ("..", "../config/", "../memory");
+   for Object_Dir use "obj/" & Wisitoken_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Library_Dir use "lib";
+
+   type Library_Type_Type is ("relocatable", "static", "static-pic");
+   Library_Type : Library_Type_Type := external ("WISITOKEN_LIBRARY_TYPE", external ("LIBRARY_TYPE", "static"));
+   for Library_Kind use Library_Type;
+
+   package Compiler is
+
+      case Wisitoken_Config.Build_Profile is
+      when "release" =>
+         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+
+      when "validation" | "development" =>
+         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+
+      end case;
+
+      for Switches ("s-memory.adb") use Standard_Common.Release_Switches & ("-gnatg", "-gnata");
+      --  See comment in gnatcoll-memory.ads
+
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+end Wisitoken_Alire;
