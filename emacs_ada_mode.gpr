@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Alire project file for Emacs ada-mode executables
+--  GNAT project file for building Emacs ada-mode executables with Alire
 --
 --  Copyright (C) 2022 Free Software Foundation, Inc.
 --
@@ -17,13 +17,16 @@
 --  MA 02110-1335, USA.
 
 with "config/emacs_ada_mode_config.gpr";
-with "gnatcoll"; -- alr with gnatcoll
-with "gnatcoll_sqlite"; -- alr with gnatcoll_sqlite
-with "gnatcoll_xref";   -- alr with gnatcoll_xref
-with "wisi";
+with "gnatcoll";
+with "gnatcoll_sqlite";
+with "gnatcoll_xref";
+with "standard_common";
+with "wisi_alire";
 project Emacs_Ada_Mode is
 
    for Source_Dirs use (".", "config/");
+   for Languages use ("Ada", "C");
+
    for Object_Dir use "obj/" & Emacs_Ada_Mode_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
@@ -35,7 +38,14 @@ project Emacs_Ada_Mode is
      );
 
    package Compiler is
-      for Default_Switches ("Ada") use Emacs_Ada_Mode_Config.Ada_Compiler_Switches;
+      case Emacs_Ada_Mode_Config.Build_Profile is
+      when "release" =>
+         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+
+      when "validation" | "development" =>
+         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+
+      end case;
    end Compiler;
 
    package Binder is
@@ -43,7 +53,8 @@ project Emacs_Ada_Mode is
    end Binder;
 
    package Install is
-      for Artifacts (".") use ("share");
+      for Required_Artifacts ("bin") use
+        ("ada_annex_p_lr1_parse_table.txt");
    end Install;
 
 end Emacs_Ada_Mode;

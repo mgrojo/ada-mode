@@ -6,10 +6,28 @@ authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
 maintainers-logins = ["stephe-ada-guru"]
 
-executables = ["emacs_ada_mode"]
+project-files = ["emacs_ada_mode.gpr"]
+
+# These are for gpr_query. FIXME: factor out to its own crate.
 [[depends-on]]
 gnatcoll = "^22.0.0"
-[[depends-on]]
 gnatcoll_sqlite = "^22.0.0"
-[[depends-on]]
 gnatcoll_xref = "^22.0.0"
+
+[[depends-on]]
+stephes_ada_library = "~0.1.0-dev"
+wisitoken = "~0.1.0-dev"
+emacs_wisi = "~0.1.0-dev"
+re2c = "2.9"
+
+[[pins]]
+stephes_ada_library  = { path='../org.stephe_leake.sal.stephe-2' }
+wisitoken            = { path='../org.wisitoken.stephe-3' }
+emacs_wisi           = { path='../org.emacs.wisi.stephe-3' }
+re2c                 = { path='../re2c_alire' }
+
+[[actions]]
+type = "pre-build"
+# FIXME: gpr_re2c.c is for gpr-mode; move to a separate crate
+command = ["make", "-f", "Alire.make", "ada_annex_p_re2c.c", "gpr_re2c.c"]
+

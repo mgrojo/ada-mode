@@ -76,3 +76,8 @@ alire/
 config/
 check.gpr
 src/
+/obj/
+/bin/
+/alire/
+/config/
+Makefile.conf
