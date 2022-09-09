@@ -1,16 +1,18 @@
 General notes on Emacs Ada mode
 
-build/Makefile
+build/Makefile   wisi
+Alire.make       Alire
+ELPA.make        elpa
 (load-file "build/prj-eglot.el")
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (?): alire
+o.e.a.stephe-4 (o.e.w.s-3/o.w.s-3/o.s_l.sal.stephe-2): Alire
 o.e.a.stephe-5 (?): libadalang backend
 o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat; dead
-o.e.a.stephe-7: delete stuff that is in gnat-compiler package; it's a minor mode. change stuff that conflicts with eglot into minor modes, instead of ada-lite
+o.e.a.stephe-7: eglot
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -51,11 +53,20 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-GNAT Community going away
-    https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
-    get gnat fsf from alire https://alire.ada.dev/
-    simplest way is to package ada-mode code as Alire crates
-    use tarball from savannah
+build with alire
+    /Projects/alire_mosteo/bin/alr
+        described in https://github.com/alire-project/alire/pull/1146
+        alr install --prefix=~/alire_install/
+            seems to work
+
+    recommended install location:
+        https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+        $HOME/.local/bin; --prefix=$HOME/.local
+
+    when publish to alire, use tarballs on savannah
+
+    add badge to websites:
+[![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/YOUR_CRATE.json)](https://alire.ada.dev/crates/YOUR_CRATE.html)
 
 fix/use tree-sitter
     o.e.a.s-7/o.e.w.s-1
