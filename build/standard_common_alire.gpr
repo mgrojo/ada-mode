@@ -21,7 +21,7 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
-project Standard_Common is
+project Standard_Common_Alire is
    for Source_Dirs use ();
    for Create_Missing_Dirs use "True";
 
@@ -92,4 +92,4 @@ project Standard_Common is
    --     Standard_Common.Compiler.Style_Checks;
    --  end Compiler;
 
-end Standard_Common;
+end Standard_Common_Alire;

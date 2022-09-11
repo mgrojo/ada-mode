@@ -1,6 +1,6 @@
 ;; assumes wisi autoloads are defined.
 
-(wisi-prj-select-cache "sal.prj" (create-ada-prj :name "sal stephe-2") "Makefile")
+(wisi-prj-select-cache "sal.prj" (create-ada-prj :name "sal main") "Makefile")
 
 ;; FIXME: use ada-eglot
 ;; (setq-default

@@ -17,7 +17,7 @@
 --  MA 02110-1335, USA.
 
 with "../config/stephes_ada_library_config";
-with "standard_common";
+with "standard_common_alire";
 project Stephes_Ada_Library is
 
    for Source_Dirs use
@@ -38,14 +38,15 @@ project Stephes_Ada_Library is
 
       case Stephes_Ada_Library_Config.Build_Profile is
       when "release" =>
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches &
+           Standard_Common_Alire.Style_Checks;
 
       when "validation" =>
          -- FIXME: what is this for?
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
 
       when "development" =>
-         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
 
       end case;
    end Compiler;
