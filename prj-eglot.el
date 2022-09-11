@@ -1,3 +1,6 @@
+;; project settings for ada-mode with eglot -*- no-byte-compile : t -*-
+
+;; FIXME: use ada-eglot
 (setq eglot-extend-to-xref t)
 
 (let ((dir (file-name-directory (or load-file-name (buffer-file-name)))))

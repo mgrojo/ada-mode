@@ -21,13 +21,12 @@ emacs_wisi = "~0.1.0-dev"
 re2c = "2.9"
 
 [[pins]]
-stephes_ada_library  = { path='../org.stephe_leake.sal.stephe-2' }
-wisitoken            = { path='../org.wisitoken.stephe-3' }
-emacs_wisi           = { path='../org.emacs.wisi.stephe-3' }
+stephes_ada_library  = { path='../org.stephe_leake.sal' }
+wisitoken            = { path='../org.wisitoken' }
+emacs_wisi           = { path='../org.emacs.wisi' }
 re2c                 = { path='../re2c_alire' }
 
 [[actions]]
 type = "pre-build"
-# FIXME: gpr_re2c.c is for gpr-mode; move to a separate crate
-command = ["make", "-f", "Alire.make", "ada_annex_p_re2c.c", "gpr_re2c.c"]
+command = ["make", "-f", "Alire.make", "ada_annex_p_re2c.c"]
 

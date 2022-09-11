@@ -20,7 +20,7 @@ with "config/emacs_ada_mode_config.gpr";
 with "gnatcoll";
 with "gnatcoll_sqlite";
 with "gnatcoll_xref";
-with "standard_common";
+with "standard_common_alire";
 with "wisi_alire";
 project Emacs_Ada_Mode is
 
@@ -33,17 +33,16 @@ project Emacs_Ada_Mode is
    for Main use
      ("ada_mode_wisi_lalr_parse.ads",
       "ada_mode_wisi_lr1_parse.ads",
-      "gpr_mode_wisi_parse.ads",
       "gpr_query.adb"
      );
 
    package Compiler is
       case Emacs_Ada_Mode_Config.Build_Profile is
       when "release" =>
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
 
       when "validation" | "development" =>
-         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
 
       end case;
    end Compiler;

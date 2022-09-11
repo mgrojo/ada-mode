@@ -867,14 +867,14 @@ compiler-specific compilation filters."
   (let ((start-buffer (current-buffer))
 	pos item file)
     (when (eq major-mode 'compilation-mode)
-      (setq compilation-last-buffer (current-buffer)))
+      (setq next-error-last-buffer (current-buffer)))
     ;; We use `pop-to-buffer', not `set-buffer', so point is correct
-    ;; for the current window showing compilation-last-buffer, and
+    ;; for the current window showing next-error-last-buffer, and
     ;; moving point in that window works. But that might eat an
     ;; `other-frame-window-mode' prefix, which the user means to apply
     ;; to ’ada-goto-source’ below; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
-      (pop-to-buffer compilation-last-buffer nil t)
+      (pop-to-buffer next-error-last-buffer nil t)
       (setq pos (next-single-property-change (point) 'ada-secondary-error))
       (unless pos
 	;; probably at end of compilation-buffer, in new compile

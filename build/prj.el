@@ -5,9 +5,9 @@
   :name "ada_mode_wisi_parse main"
   :compile-env
   (list
-   (concat "SAL="       (expand-file-name "../../org.stephe_leake.sal.stephe-2"))
-   (concat "WISITOKEN=" (expand-file-name "../../org.wisitoken.stephe-3"))
-   (concat "WISI="      (expand-file-name "../../org.emacs.wisi.stephe-3"))
+   (concat "SAL="       (expand-file-name "../../org.stephe_leake.sal"))
+   (concat "WISITOKEN=" (expand-file-name "../../org.wisitoken"))
+   (concat "WISI="      (expand-file-name "../../org.emacs.wisi"))
    ))
  "Makefile"
  )
