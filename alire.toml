@@ -1,0 +1,15 @@
+name = "emacs_wisi"
+description = "Shiny new project"
+version = "0.1.0-dev"
+
+authors = ["Stephen Leake"]
+maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
+maintainers-logins = ["stephe-ada-guru"]
+
+project-files = ["wisi_alire.gpr"]
+[[depends-on]]
+stephes_ada_library = "~0.1.0-dev"
+wisitoken = "~0.1.0-dev"
+[[pins]]
+stephes_ada_library = { path='../org.stephe_leake.sal' }
+wisitoken = { path='../org.wisitoken' }

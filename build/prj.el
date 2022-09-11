@@ -1,23 +1,15 @@
-;; Project definitions for working on wisi
+;; Project definitions for working on wisi with Alire or in ELPA
 
-(let ((wisitoken-core "/Projects/org.wisitoken"))
-
-  (wisi-prj-select-cache
-   "wisi.prj"
-   (create-ada-prj
-    :name "wisi main"
-    :compile-env
-    (append
-     (list "SAL=../../org.stephe_leake.sal")
-     (cl-ecase system-type
-      (gnu/linux
-       (list
-	(concat "WISITOKEN=" wisitoken-core)))
-      (windows-nt
-       (list
-	(concat "WISITOKEN=c:" wisitoken-core))))
-      ))
-   "Makefile"
+(wisi-prj-select-cache
+ "wisi.prj"
+ (create-ada-prj
+  :name "wisi main
+  :compile-env
+  (list
+   (concat "SAL="       (expand-file-name "../../org.stephe_leake.sal"))
+   (concat "WISITOKEN=" (expand-file-name "../../org.wisitoken"))
    ))
+ "Makefile"
+ )
 
 ;; end of file

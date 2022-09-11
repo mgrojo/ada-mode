@@ -1,0 +1,50 @@
+with "config/emacs_wisi_config.gpr";
+with "standard_common_alire";
+with "wisitoken_alire";
+project Wisi_Alire is
+
+   for Library_Name use "Emacs_Wisi";
+   for Library_Version use Project'Library_Name & ".so." & Emacs_Wisi_Config.Crate_Version;
+
+   for Source_Dirs use (".", "config/");
+   for Excluded_Source_Files use
+     ("libadalang-analysis-more.adb",
+      "libadalang-analysis-more.ads",
+      "libadalang-analysis-implementation-more.adb",
+      "libadalang-analysis-implementation-more.ads",
+      "wisi-libadalang.adb",
+      "wisi-libadalang.ads",
+      "gen_run_wisi_libadalang_parse.adb",
+      "gen_run_wisi_libadalang_parse.ads",
+
+      -- FIXME: run tests if "validation" build? requires sal_aunit_ext crate
+      "test_all_harness.adb",
+      "test_edit_source.adb",
+      "test_edit_source.ads"
+   );
+
+   for Object_Dir use "obj/" & Emacs_Wisi_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Library_Dir use "lib";
+
+   type Library_Type_Type is ("relocatable", "static", "static-pic");
+   Library_Type : Library_Type_Type :=
+     external ("EMACS_WISI_LIBRARY_TYPE", external ("LIBRARY_TYPE", "static"));
+   for Library_Kind use Library_Type;
+
+   package Compiler is
+      case Emacs_Wisi_Config.Build_Profile is
+      when "release" =>
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
+
+      when "validation" | "development" =>
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
+
+      end case;
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+end Wisi_Alire;

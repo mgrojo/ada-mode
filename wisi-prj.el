@@ -855,26 +855,26 @@ case, return the project."
 (defun wisi-fix-compiler-error ()
   "Attempt to fix the current compiler error.
 Point must be at the source location referenced in a compiler error.
-In `compilation-last-buffer', point must be at the compiler error.
+In `next-error-last-buffer', point must be at the compiler error.
 Leave point at fixed code."
   (interactive)
   (let ((source-buffer (current-buffer))
 	(line-move-visual nil)); screws up next-line otherwise
 
     (cond
-     ((equal compilation-last-buffer wisi-error-buffer)
+     ((equal next-error-last-buffer wisi-error-buffer)
       (set-buffer source-buffer)
       (wisi-repair-error))
 
      (t
-      (with-current-buffer compilation-last-buffer
+      (with-current-buffer next-error-last-buffer
 	(let ((comp-buf-pt (point))
 	      (success
 	       (wisi-compiler-fix-error
 		(wisi-prj-compiler (wisi-prj-require-prj))
 		source-buffer)))
 	  ;; restore compilation buffer point
-	  (set-buffer compilation-last-buffer)
+	  (set-buffer next-error-last-buffer)
 	  (goto-char comp-buf-pt)
 
 	  (unless success
