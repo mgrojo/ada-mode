@@ -11,5 +11,5 @@ project-files = ["wisi_alire.gpr"]
 stephes_ada_library = "~0.1.0-dev"
 wisitoken = "~0.1.0-dev"
 [[pins]]
-stephes_ada_library = { path='../org.stephe_leake.sal.stephe-2' }
-wisitoken = { path='../org.wisitoken.stephe-3' }
+stephes_ada_library = { path='../org.stephe_leake.sal' }
+wisitoken = { path='../org.wisitoken' }

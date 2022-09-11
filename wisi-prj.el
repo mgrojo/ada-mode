@@ -347,12 +347,25 @@ user arg limits completion to current file."
 	      id))))
      (t def))))
 
+(eval-and-compile
+  (when (version< emacs-version "28.0.60")
+    ;; WORKAROUND: in emacs 28 xref-location changed from defclass to
+    ;; cl-defstruct.
+    (require 'eieio)
+    (with-suppressed-warnings ;; "unknown slot" in emacs 28
+	(progn
+	  (defun xref-item-summary (item) (oref item summary))
+	  (defun xref-item-location (item) (oref item location))
+	  (defun xref-file-location-file (location) (oref location file))
+	  (defun xref-file-location-line (location) (oref location line))
+	  (defun xref-file-location-column (location) (oref location column))
+	  ))))
+
 (defun wisi-goto-spec/body (identifier)
   "Goto declaration or body for IDENTIFIER (default symbol at point).
 If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
   (interactive (list (wisi-get-identifier "Goto spec/body of: ")))
-  (let ((prj (project-current))
-	desired-loc)
+  (let (desired-loc)
     (cond
      ((consp identifier)
       ;; alist element from wisi-xref-completion-table; desired
@@ -367,49 +380,40 @@ If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
 
      ((stringp identifier)
       ;; from xref-backend-identifier-at-point; desired location is 'other'
-      (let ((item (wisi-xref-item identifier prj)))
-	(condition-case err
-	    ;; WORKAROUND: xref 1.3.2 xref-location changed from
-	    ;; defclass to cl-defstruct. If drop emacs 26, use
-	    ;; 'with-suppressed-warnings'.
-	    (with-no-warnings ;; "unknown slot summary"
-	      (let ((summary (if (functionp 'xref-item-summary) (xref-item-summary item) (oref item summary)))
-		    (location (if (functionp 'xref-item-location) (xref-item-location item) (oref item location)))
-		    (eieio-skip-typecheck t)) ;; 'location' may have line, column nil
-		(let ((file (if (functionp 'xref-file-location-file)
-				(xref-file-location-file location)
-			      (oref location file)))
-		      (line (if (functionp 'xref-file-location-line)
-				(xref-file-location-line location)
-			      (oref location line)))
-		      (column (if (functionp 'xref-file-location-column)
-				  (xref-file-location-column location)
-				(oref location column))))
-		  (let ((target
-			 (wisi-xref-other
-			  (wisi-prj-xref prj) prj
-			  :identifier summary
-			  :filename file
-			  :line line
-			  :column column)))
-		    (setq desired-loc
-			  (xref-make summary
-				     (xref-make-file-location
-				      (nth 0 target) ;; file
-				      (nth 1 target) ;; line
-				      (nth 2 target))) ;; column
-			  )))))
-	  (user-error ;; from gpr-query; current file might be new to project, so try wisi-names
-	   (let ((item (assoc identifier (wisi-names nil t))))
-	     (if item
-		 (setq desired-loc
-		       (xref-make identifier
-				  (xref-make-file-location
-				   (nth 1 item) ;; file
-				   (nth 2 item) ;; line
-				   (nth 3 item))))
-	       (signal (car err) (cdr err)))))
-	  )))
+      (condition-case err
+	  (let* ((prj (project-current))
+		 (item (wisi-xref-item identifier prj)))
+	    (let ((summary (xref-item-summary item))
+		  (location (xref-item-location item))
+		  (eieio-skip-typecheck t)) ;; 'location' may have line, column nil
+	      (let ((file (xref-file-location-file location))
+		    (line (xref-file-location-line location))
+		    (column (xref-file-location-column location)))
+		(let ((target
+		       (wisi-xref-other
+			(wisi-prj-xref prj) prj
+			:identifier summary
+			:filename file
+			:line line
+			:column column)))
+		  (setq desired-loc
+			(xref-make summary
+				   (xref-make-file-location
+				    (nth 0 target) ;; file
+				    (nth 1 target) ;; line
+				    (nth 2 target))) ;; column
+			)))))
+	(user-error ;; from gpr-query; current file might be new to project, so try wisi-names
+	 (let ((item (assoc identifier (wisi-names nil t))))
+	   (if item
+	       (setq desired-loc
+		     (xref-make identifier
+				(xref-make-file-location
+				 (nth 1 item) ;; file
+				 (nth 2 item) ;; line
+				 (nth 3 item))))
+	     (signal (car err) (cdr err)))))
+	))
 
      (t ;; something else
       (error "unknown case in wisi-goto-spec/body")))
@@ -832,26 +836,26 @@ case, return the project."
 (defun wisi-fix-compiler-error ()
   "Attempt to fix the current compiler error.
 Point must be at the source location referenced in a compiler error.
-In `compilation-last-buffer', point must be at the compiler error.
+In `next-error-last-buffer', point must be at the compiler error.
 Leave point at fixed code."
   (interactive)
   (let ((source-buffer (current-buffer))
 	(line-move-visual nil)); screws up next-line otherwise
 
     (cond
-     ((equal compilation-last-buffer wisi-error-buffer)
+     ((equal next-error-last-buffer wisi-error-buffer)
       (set-buffer source-buffer)
       (wisi-repair-error))
 
      (t
-      (with-current-buffer compilation-last-buffer
+      (with-current-buffer next-error-last-buffer
 	(let ((comp-buf-pt (point))
 	      (success
 	       (wisi-compiler-fix-error
 		(wisi-prj-compiler (wisi-prj-require-prj))
 		source-buffer)))
 	  ;; restore compilation buffer point
-	  (set-buffer compilation-last-buffer)
+	  (set-buffer next-error-last-buffer)
 	  (goto-char comp-buf-pt)
 
 	  (unless success

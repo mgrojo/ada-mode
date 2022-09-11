@@ -121,7 +121,7 @@ in the window."
   (let* ((scale (/ window-lines (float buffer-lines)))
 	 (line (floor (* scale error-line)))
 	 (rem (- error-line (floor (/ line scale)))))
-    (cons (+ window-line-first line) (lsh 1 (min 5 (floor (* rem (* 6 scale))))))))
+    (cons (+ window-line-first line) (ash 1 (min 5 (floor (* rem (* 6 scale))))))))
 
 (defun wisi-fringe-clean ()
   "Remove all wisi-fringe marks."

@@ -1,5 +1,5 @@
 with "config/emacs_wisi_config.gpr";
-with "standard_common";
+with "standard_common_alire";
 with "wisitoken_alire";
 project Wisi_Alire is
 
@@ -35,10 +35,10 @@ project Wisi_Alire is
    package Compiler is
       case Emacs_Wisi_Config.Build_Profile is
       when "release" =>
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
 
       when "validation" | "development" =>
-         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
 
       end case;
    end Compiler;

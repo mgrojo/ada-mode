@@ -132,7 +132,7 @@ Throw an error if current project does not have a gnat-compiler."
 		 (directory-file-name default-directory)
 	       (expand-file-name ; Canonicalize path part.
 		(directory-file-name
-		 (buffer-substring-no-properties (point) (point-at-eol)))))
+		 (buffer-substring-no-properties (point) (line-end-position)))))
 	     t ;; append
 	     #'string-equal)
 	    (forward-line 1))
@@ -148,7 +148,7 @@ Throw an error if current project does not have a gnat-compiler."
 	    (if (looking-at "<Current_Directory>")
                 (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'string-equal)
 	      (let ((f (expand-file-name
-                        (buffer-substring-no-properties (point) (point-at-eol)))))
+                        (buffer-substring-no-properties (point) (line-end-position)))))
                 (cl-pushnew f prj-dirs :test #'string-equal)
                 (cl-pushnew f gnat--src-dirs :test #'string-equal)))
 	    (forward-line 1))

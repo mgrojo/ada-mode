@@ -1,4 +1,4 @@
-;; Set up building with Alire, editing with mixed ada-mode and eglot.
+;; Set up building with Alire, editing with mixed ada-mode and eglot. -*- no-byte-compile : t -*-
 ;;
 ;; No language server for gpr, so use wisi parser for that.
 ;; For Ada, use as many eglot features as possible
