@@ -74,7 +74,7 @@ This should be added to `ada-mode-hook' when using ada-mode with eglot."
        (setq-local wisi-disable-indent nil))
 
       (eglot
-       (setq wisi-disable-indent t)
+       (setq-local wisi-disable-indent t)
 
        ;; :documentFormattingProvider does the whole file at once; not
        ;; useful for indent-region

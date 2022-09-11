@@ -51,6 +51,28 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+Gnat-compiler-fix-hook for ada fixes. Or wisi-goto-declar*
+
+wisitoken-syntax_trees.ads function New_Stream
+    on a subprogram spec, gpr-query M-d puts up an *xref* buffer giving the spec and body (and overridden bodies?)
+    eglot just goes to the body, and back to spec.
+    C-c C-d just goes to the body
+    so just bind C-c C-d to xref-find-definitions; minor-mode
+
+M-d on "" => No applicable method: wisi-xref-definitions
+    xref-backend-functions is (t eglot-xref-backend)
+    xref-backend-definitions calls wisi-xref-definitions because 't' first means 'do global functions first'
+    now (wisi-find-backend) returns etags; delete that in ada-eglot-setup
+
+
+in Ediff; 't' does not insert type name in *xgit-log-edit*
+    (add-log-current-defun) returns nil
+    add-log-current-defun-function is ada-add-log-current-function
+        which calls ada-which-function
+        which only supports wisi-parser-shared
+        add eglot?
+        or add ada-eglot-log-current-function?
+
 tolerate no parser
     use eglot
     Could store alist in wisi-prj.parser-enabled; ((ada-mode . disabled) (gpr-mode . enabled)) but that's tedious
