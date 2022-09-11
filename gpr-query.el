@@ -507,7 +507,7 @@ Uses `gpr_query'. Returns new list."
 	(cl-pushnew
 	 (expand-file-name ; Canonicalize path part.
 	  (directory-file-name
-	   (buffer-substring-no-properties (point) (point-at-eol))))
+	   (buffer-substring-no-properties (point) (line-end-position))))
 	 src-dirs :test #'equal)
 	(forward-line 1))
       ))
@@ -522,7 +522,7 @@ Uses `gpr_query'. Returns new list."
       (goto-char (point-min))
       (while (not (looking-at gpr-query-prompt))
 	(cl-pushnew
-	 (let ((dir (buffer-substring-no-properties (point) (point-at-eol))))
+	 (let ((dir (buffer-substring-no-properties (point) (line-end-position))))
 	   (if (string= dir ".")
 	       (directory-file-name default-directory)
 	     (expand-file-name dir))) ; Canonicalize path part.

@@ -69,6 +69,7 @@ install : install_executables
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
+	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile
 	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
@@ -146,13 +147,10 @@ three : run_libadalang.exe
 #
 # ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
 # interaction with gpr project files.
-export WISITOKEN     ?= $(CURDIR)/../../org.wisitoken
-export WISI          ?= $(CURDIR)/../../org.emacs.wisi
+export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
+export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
 export GNAT_COMPILER ?= $(shell cd ../../org.emacs.gnat-compiler; pwd)
 export ADA_PROJECT_PATH=../test/:../test/subdir
-
-foo :
-	echo $(GNAT_COMPILER)
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)

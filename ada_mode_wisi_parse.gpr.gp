@@ -31,7 +31,7 @@ project Ada_Mode_Wisi_Parse is
       "ada_mode_wisi_lr1_parse.ads",
       "run_ada_lalr_parse.ads",
       "run_ada_lr1_parse.ads",
-      "gpr_query.adb"
+      "gpr_query.adb"  --  FIXME: move gpr-query to a separate package
      );
 
    for Source_Dirs use (".");

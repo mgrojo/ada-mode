@@ -7,7 +7,7 @@
 ;; Keywords: languages
 ;;  ada
 ;; Version: 7.3.beta1
-;; package-requires: ((uniquify-files "1.0.1") (wisi "4.0.beta") (emacs "25.3"))
+;; package-requires: ((uniquify-files "1.0.1") (wisi "4.0") (gnat-compiler "1.0.0") (emacs "25.3"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; This file is part of GNU Emacs.
@@ -874,14 +874,14 @@ compiler-specific compilation filters."
   (let ((start-buffer (current-buffer))
 	pos item file)
     (when (eq major-mode 'compilation-mode)
-      (setq compilation-last-buffer (current-buffer)))
+      (setq next-error-last-buffer (current-buffer)))
     ;; We use `pop-to-buffer', not `set-buffer', so point is correct
-    ;; for the current window showing compilation-last-buffer, and
+    ;; for the current window showing next-error-last-buffer, and
     ;; moving point in that window works. But that might eat an
     ;; `other-frame-window-mode' prefix, which the user means to apply
     ;; to ’ada-goto-source’ below; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
-      (pop-to-buffer compilation-last-buffer nil t)
+      (pop-to-buffer next-error-last-buffer nil t)
       (setq pos (next-single-property-change (point) 'ada-secondary-error))
       (unless pos
 	;; probably at end of compilation-buffer, in new compile
