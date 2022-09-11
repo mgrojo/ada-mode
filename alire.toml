@@ -10,6 +10,6 @@ project-files = ["build/wisitoken_alire.gpr"]
 [[depends-on]]
 stephes_ada_library = "~0.1.0-dev"
 [[pins]]
-stephes_ada_library = { path='../org.stephe_leake.sal.stephe-2' }
+stephes_ada_library = { path='../org.stephe_leake.sal' }
 [[depends-on]]
 gnatcoll = "^22.0.0"

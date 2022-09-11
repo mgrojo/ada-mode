@@ -6,7 +6,7 @@
   :name "wisitoken main"
   :compile-env
   (list
-   (concat "SAL=" (expand-file-name "../../org.stephe_leake.sal.stephe-2" (file-name-directory load-file-name)))))
+   (concat "SAL=" (expand-file-name "../../org.stephe_leake.sal" (file-name-directory load-file-name)))))
   "Makefile")
 
 ;; Separate so can be updated in CM

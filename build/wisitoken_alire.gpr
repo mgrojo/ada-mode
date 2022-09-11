@@ -5,7 +5,7 @@
 
 with "../config/wisitoken_config.gpr";
 with "gnatcoll";
-with "standard_common";
+with "standard_common_alire";
 project Wisitoken_Alire is
 
    for Library_Name use "Wisitoken";
@@ -24,14 +24,14 @@ project Wisitoken_Alire is
 
       case Wisitoken_Config.Build_Profile is
       when "release" =>
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
 
       when "validation" | "development" =>
-         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
 
       end case;
 
-      for Switches ("s-memory.adb") use Standard_Common.Release_Switches & ("-gnatg", "-gnata");
+      for Switches ("s-memory.adb") use Standard_Common_Alire.Release_Switches & ("-gnatg", "-gnata");
       --  See comment in gnatcoll-memory.ads
 
    end Compiler;
