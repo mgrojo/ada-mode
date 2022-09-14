@@ -183,8 +183,10 @@ after the project file PRJ-FILE-NAME is parsed."
   "PROJECT has been de-selected; undo any compiler-specific select actions."
   nil)
 
-(cl-defgeneric wisi-compiler-show-prj-path (compiler)
-  "Display buffer listing project file search path.")
+(cl-defgeneric wisi-compiler-prj-path (_compiler)
+  "Return the project file search path.
+Returns a list of directories, for us with `locate-file'."
+  nil)
 
 (cl-defgeneric wisi-compiler-fix-error (compiler source-buffer)
   "Attempt to fix a compilation error, return non-nil if fixed.
@@ -239,7 +241,7 @@ Group 1 must be the simple symbol; the rest of the item may be
 annotations.")
 
 (cl-defgeneric wisi-xref-completion-at-point-table (xref project)
-  "Return a completion table of names defined in PROJECT.
+  "Return a completion table of names in PROJECT that are relevant at point.
 The table is a simple list of symbols.")
 
 (cl-defgeneric wisi-xref-definitions (xref project item)
@@ -250,15 +252,17 @@ The table is a simple list of symbols.")
 
 (cl-defgeneric wisi-xref-other (project &key identifier filename line column)
   "Return cross reference information.
-PROJECT - dispatching object, normally a `wisi-prj' object.
-IDENTIFIER - an identifier or operator_symbol
+PROJECT - a `wisi-prj' object.
+IDENTIFIER - string; an identifier or operator_symbol
 FILENAME - absolute filename containing the identifier
 LINE - line number containing the identifier (may be nil)
 COLUMN - Emacs column of the start of the identifier (may be nil)
 Point is on the start of the identifier.
-Returns a list (FILE LINE COLUMN) giving the corresponding location;
-FILE is an absolute file name.  If point is at the specification, the
-corresponding location is the
+
+Returns a list (FILE LINE COLUMN) giving the corresponding
+location; FILE is an absolute file name.  If point is on a
+reference, the corresponding location is the specification. If
+point is at the specification, the corresponding location is the
 body, and vice versa.")
 
 (defvar-local wisi-xref-full-path nil
@@ -724,10 +728,17 @@ a project. Parser should update the project with values from the file.")
 Else return nil."
   (cond
    ((string= name "casing")
-    (cl-pushnew (expand-file-name
-                 (substitute-in-file-name value))
-                (wisi-prj-case-exception-files project)
-		:test #'string-equal)
+    (let ((exp-value (substitute-in-file-name value)))
+      (if (and (wisi-prj-compiler project)
+	       (not (file-name-absolute-p exp-value)))
+	  (let ((found (locate-file exp-value (wisi-compiler-prj-path (wisi-prj-compiler project)))))
+	    (setq exp-value (if found found (expand-file-name exp-value))))
+
+	(setq exp-value (expand-file-name exp-value)))
+
+      (cl-pushnew exp-value
+                  (wisi-prj-case-exception-files project)
+		  :test #'string-equal))
     t)
 
    ((string= name "src_dir")
@@ -819,7 +830,15 @@ case, return the project."
 (defun wisi-prj-show-prj-path ()
   "Show the compiler project file search path."
   (interactive)
-  (wisi-compiler-show-prj-path (wisi-prj-compiler (wisi-prj-require-prj))))
+  (let ((path (wisi-compiler-prj-path (wisi-prj-compiler (wisi-prj-require-prj)))))
+    (if path
+	(progn
+	  (pop-to-buffer (get-buffer-create "*project file search path*"))
+	  (erase-buffer)
+	  (dolist (file path)
+	    (insert (format "%s\n" file))))
+      (message "no project file search path set")
+      )))
 
 (defun wisi-prj-show-src-path ()
   "Show the project source file search path."
@@ -1390,11 +1409,13 @@ IDENTIFIER is from a user prompt with completion, or from
 
 ;;;###autoload
 (defun wisi-prj-xref-backend ()
-  "For `xref-backend-functions'; return the current wisi project."
+  "Return the current wisi project if it has an xref backend.
+For `xref-backend-functions'."
   ;; We return the project, not the xref object, because the
   ;; wisi-xref-* functions need the project.
   (let ((prj (project-current)))
-    (when (wisi-prj-p prj)
+    (when (and (wisi-prj-p prj)
+	       (wisi-prj-xref prj))
       prj)))
 
 ;;;; project-find-functions alternatives

@@ -957,7 +957,9 @@ add more.
 
 @table @asis
 @item @code{casing}         [slot: @code{case-exception-files}]
-List of files containing casing exceptions. @xref{Casing exception files}.
+List of files containing casing exceptions, either absolute, relative
+to the project file directory, or found on the project file
+path. @xref{Casing exception files}.
 
 @item @code{src_dir}        [slot: @code{source-path}]
 A list of directories to search for source files.
