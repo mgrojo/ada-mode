@@ -14,12 +14,8 @@ package Ada_Mode.Generic_Instantiation is
 
    --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
-   --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
-   --EMACSCMD:(test-face "Generic_Parent" 'font-lock-function-name-face)
    package Instance is new Ada_Mode.Generic_Parent;
 
-   --EMACSCMD:(test-face "Instance" 'font-lock-function-name-face)
-   --EMACSCMD:(test-face "Generic_Function" 'font-lock-function-name-face)
    function Function_1 is new Instance.Generic_Function
      (Param_Type  => Integer,
       Result_Type => Boolean,
@@ -28,13 +24,9 @@ package Ada_Mode.Generic_Instantiation is
    --EMACSCMD:(progn (forward-line -2)(ada-goto-declarative-region-start)(looking-back "package Ada_Mode.Generic_Instantiation is"))
    --EMACSRESULT:t
 
-   --EMACSCMD:(test-face "Instance" 'font-lock-function-name-face)
-   --EMACSCMD:(test-face "Generic_Procedure" 'font-lock-function-name-face)
    procedure Procedure_2 is new Instance.Generic_Procedure (Integer,
                                                             Function_1);
 
-   --EMACSCMD:(test-face "Instance" 'font-lock-function-name-face)
-   --EMACSCMD:(test-face "Generic_Procedure" 'font-lock-function-name-face)
    procedure Procedure_3 is new Instance.Generic_Procedure
      (Integer, Function_1);
 

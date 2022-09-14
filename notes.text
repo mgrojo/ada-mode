@@ -40,38 +40,10 @@ o.e.a.stephe-7 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-4): minor modes for use with egl
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.emacs.wisi.stephe-4"       . "../org.emacs.wisi")
+   ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
 
-(setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
-
-for test/subdir/ada_mode_parent.gpr
-(setenv "GPR_PROJECT_PATH" "C:\\Projects\\org.emacs.ada_mode\\test;C:\\Projects\\org.emacs.ada_mode\\test\\subdir")
-
-for ada_mode_wisi_parse.gpr:
-(setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode;c:/Projects/org.emacs.ada-mode;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
-
-(setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-propagate to o.e.a.s-7
-    that correctly eliminates gnat-core, ada-compiler-gnat
-    run all tests there.
-    then propagate back to main
-
-run all tests
-    M-x byte-compile-file gives different results than 'make byte-compile'
-        runs different emacs!
-        because exec-path doesn't have current emacs dir
-        on windows, can use (getenv "EMACS_BIN") for that, but apparently not on Debian.
-
-    test/ada_mode-spec.ads
-        prompts for confirmation to create other file; hangs test
-            because previous step failed ; ada-make-package-body
-            calls ada-compiler-make-package-body
-                which still has gnat-core!?
-
-        can't find gnatstub
-
 build with alire
     /Projects/alire_mosteo/bin/alr
         described in https://github.com/alire-project/alire/pull/1146

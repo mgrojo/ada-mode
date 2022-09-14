@@ -204,8 +204,7 @@ declarative region start, goto containing region start."
 
 (defun ada-make-package-body (body-file-name)
   (let ((prj (ada-prj-require-prj)))
-    (gnat-make-package-body (wisi-prj-compiler prj)
-			    (expand-file-name body-file-name))))
+    (gnat-make-package-body prj (expand-file-name body-file-name))))
 
 ;;;; refactor
 

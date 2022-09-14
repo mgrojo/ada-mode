@@ -81,3 +81,4 @@ src/
 /alire/
 /config/
 Makefile.conf
+autoloads.el~

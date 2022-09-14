@@ -107,6 +107,7 @@ one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 one :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
 one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+#one-debug :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 one-debug :: force
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
@@ -155,7 +156,7 @@ export ADA_PROJECT_PATH=../test/:../test/subdir
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -L $(WISI) -L $(GNAT_COMPILER) -l autoloads.el -l build/exclude-elpa.el
+ADA_MODE_DIR := -L .. -l ../autoloads.el -L $(WISI) -L $(GNAT_COMPILER) -l $(GNAT_COMPILER)/autoloads.el -l exclude-elpa.el
 
 # ".exe", not $(EXE_EXT); wisitoken hard-codes .exe
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
