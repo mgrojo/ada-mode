@@ -241,7 +241,7 @@ Group 1 must be the simple symbol; the rest of the item may be
 annotations.")
 
 (cl-defgeneric wisi-xref-completion-at-point-table (xref project)
-  "Return a completion table of names defined in PROJECT that are relevant at point.
+  "Return a completion table of names in PROJECT that are relevant at point.
 The table is a simple list of symbols.")
 
 (cl-defgeneric wisi-xref-definitions (xref project item)
