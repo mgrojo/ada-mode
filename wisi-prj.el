@@ -719,7 +719,7 @@ absolute file name.")
 Parser is called with two arguments; the project file name and
 a project. Parser should update the project with values from the file.")
 
-(cl-defmethod wisi-prj-parse-one (project name value)
+(cl-defmethod wisi-prj-parse-one ((project wisi-prj) name value)
   "If NAME is a wisi-prj slot, set it to VALUE, return t.
 Else return nil."
   (cond
