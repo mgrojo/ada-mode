@@ -27,6 +27,8 @@
 ;; this (they use 'make' or similar tool), so it would just get in the
 ;; way, particularly for fixing bugs in the core capabilities of
 ;; ada-mode.
+;;
+;; IMPROVME: move to wisi or gnat-compiler so gpr-mode can share *-build.
 
 ;;; History:
 ;;
@@ -110,7 +112,7 @@ buffer file name including the directory and extension."
 
        ((string= name "gpr_file")
 	(when (gnat-compiler-gpr-file (ada-prj-compiler project))
-	  (setq value (file-name-nondirectory (gnat-compiler-gpr-file (ada-prj-compiler project))))))
+	  (setq value (gnat-compiler-gpr-file (ada-prj-compiler project)))))
 
        )
 

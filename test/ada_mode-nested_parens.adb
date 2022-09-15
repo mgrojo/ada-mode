@@ -9,10 +9,10 @@
 --EMACS_SKIP_UNLESS: nil
 procedure Ada_Mode.Nested_Parens
 is
-  Headers : aliased constant Headers_T
-    := ((new String'("ARCID"), ((Field_T'Pos (Aircraft),      Text_Kind), others => None_Column), True),
-        (new String'("Aty"),   ((Field_T'Pos (Aircraft_Type), Text_Kind), others => None_Column), True),
-        (new String'("Aty"),   ((Field_T'Pos (Aircraft_Type), Text_Kind), others => None_Column), True));
+   Headers : aliased constant Headers_T
+     := ((new String'("ARCID"), ((Field_T'Pos (Aircraft),      Text_Kind), others => None_Column), True),
+         (new String'("Aty"),   ((Field_T'Pos (Aircraft_Type), Text_Kind), others => None_Column), True),
+         (new String'("Aty"),   ((Field_T'Pos (Aircraft_Type), Text_Kind), others => None_Column), True));
 begin
-  null;
+   null;
 end Ada_Mode.Nested_Parens;

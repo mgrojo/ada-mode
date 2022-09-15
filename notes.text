@@ -9,10 +9,10 @@ o.e.a: release, in use
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (o.s_l.sal.s_2, o.w.s_3, o.e.w.s_3): alire
-o.e.a.stephe-5 (?): libadalang backend
+o.e.a.stephe-4 (): available
+o.e.a.stephe-5 (?): libadalang backend; dead
 o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead
-o.e.a.stephe-7 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-4): minor modes for use with eglot
+o.e.a.stephe-7 (): available
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
