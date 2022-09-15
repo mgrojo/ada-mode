@@ -118,24 +118,9 @@ three : run_libadalang.exe
 #
 # ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
 # interaction with gpr project files.
-ifeq ($(shell uname),Linux)
-export WISITOKEN ?= /Projects/org.wisitoken
-export WISI      ?= /Projects/org.emacs.wisi
+export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
+export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
 export ADA_PROJECT_PATH=../test/:../test/subdir
-
-else ifeq ($(shell uname),Darwin)
-export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
-export WISI      ?= /home/Projects/org.emacs.wisi
-export ADA_PROJECT_PATH=../test/:../test/subdir
-
-else
-# windows
-export WISITOKEN ?= c:/Projects/org.wisitoken
-export WISI      ?= c:/Projects/org.emacs.wisi
-export ADA_PROJECT_PATH=../test/;../test/subdir
-
-INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
-endif
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
