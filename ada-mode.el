@@ -479,34 +479,30 @@ Runs `ada-syntax-propertize-hook'."
   ;; (info "(elisp)Syntax Properties")
   ;;
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
-    (goto-char start)
-    (save-match-data
-      (while (re-search-forward
-	      (concat
-	       "[^[:alnum:])]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
-	       "\\|[^[:alnum:])]\\('''\\)"; 3: character literal '''
-	       )
-	      end t)
-	;; syntax-propertize-extend-region-functions is set to
-	;; syntax-propertize-wholelines by default. We assume no
-	;; coding standard will permit a character literal at the
-	;; start of a line (not preceded by whitespace).
-	(cond
-	 ((match-beginning 1)
-	  (put-text-property
-	   (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
-	  (put-text-property
-	   (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
-	 ((match-beginning 3)
-	  (put-text-property
-	   (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
-	  (put-text-property
-	   (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
-	 )))
-    (run-hook-with-args 'ada-syntax-propertize-hook start end))
-  )
+  (goto-char start)
+  (while (re-search-forward
+	  (concat
+	   "[^[:alnum:])]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
+	   "\\|[^[:alnum:])]\\('''\\)"; 3: character literal '''
+	   )
+	  end t)
+    ;; syntax-propertize-extend-region-functions is set to
+    ;; syntax-propertize-wholelines by default. We assume no
+    ;; coding standard will permit a character literal at the
+    ;; start of a line (not preceded by whitespace).
+    (cond
+     ((match-beginning 1)
+      (put-text-property
+       (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
+      (put-text-property
+       (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+     ((match-beginning 3)
+      (put-text-property
+       (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
+      (put-text-property
+       (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
+     ))
+  (run-hook-with-args 'ada-syntax-propertize-hook start end))
 
 ;;;; navigation within and between files
 
@@ -1064,35 +1060,28 @@ The ident for the paragraph is taken from the first line."
 
 ;;;; support for font-lock.el
 
-(defconst ada-83-keywords
-  '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
+(defconst ada-keywords
+  '(;; Ada 83:
+    "abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
     "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
     "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
     "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
     "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
     "procedure" "raise" "range" "record" "rem" "renames" "return"
     "reverse" "select" "separate" "subtype" "task" "terminate" "then"
-    "type" "use" "when" "while" "with" "xor")
-  "List of Ada 83 keywords.")
-
-(defconst ada-95-keywords
-  '("abstract" "aliased" "protected" "requeue" "tagged" "until")
-  "List of keywords new in Ada 95.")
-
-(defconst ada-2005-keywords
-  '("interface" "overriding" "synchronized")
-  "List of keywords new in Ada 2005.")
-
-(defconst ada-2012-keywords
-  '("some")
-  "List of keywords new in Ada 2012.")
-
-(defvar ada-keywords nil
-  "List of Ada keywords for current `ada-language-version'.")
+    "type" "use" "when" "while" "with" "xor"
+    ;; Ada 95:
+    "abstract" "aliased" "protected" "requeue" "tagged" "until"
+    ;; Ada 2001
+    "interface" "overriding" "synchronized"
+    ;; Ada 2012:
+    "some"
+    ;; Ada 2022:
+    "parallel")
+  "List of Ada keywords.")
 
 (defun ada-font-lock-keywords ()
-  "Return Ada mode value for `font-lock-keywords',
-Depends on `ada-language-version'."
+  "Return Ada mode value for `font-lock-keywords'."
    ;; Grammar actions set `font-lock-face' property for all
    ;; non-keyword tokens that need it.
   (list
@@ -1710,27 +1699,6 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   ;; ada-fill-comment-prefix. In post-local because user may want to
   ;; set it per-file.
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
-
-  (cl-case ada-language-version
-   (ada83
-    (setq ada-keywords ada-83-keywords))
-
-   (ada95
-    (setq ada-keywords
-	  (append ada-83-keywords
-		  ada-95-keywords)))
-
-   (ada2005
-    (setq ada-keywords
-	  (append ada-83-keywords
-		  ada-95-keywords
-		  ada-2005-keywords)))
-   (ada2012
-    (setq ada-keywords
-	  (append ada-83-keywords
-		  ada-95-keywords
-		  ada-2005-keywords
-		  ada-2012-keywords))))
 
   (when global-font-lock-mode
     ;; This calls ada-font-lock-keywords, which depends on

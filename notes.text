@@ -18,6 +18,8 @@ o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat
   (xgit . "/Projects/org.wisitoken")
 ;;  (xgit . "/Projects/elpa/packages/uniquify-files")
   (xgit . "/Projects/org.emacs.wisi/")
+  (xgit . "/Projects/org.emacs.gnat-compiler/")
+  (xgit . "/Projects/org.emacs.gpr-mode/")
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple

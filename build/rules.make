@@ -82,7 +82,7 @@ $(WISITOKEN)/build/wisitoken-followed_by.exe : force
 	cd $(WISITOKEN)/build; make -r wisitoken-followed_by.exe
 
 autoloads : force
-	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"../autoloads.el\"))(update-directory-autoloads \"../\"))"
+	$(EMACS_EXE) -Q -batch --eval "(progn (setq generated-autoload-file (expand-file-name \"../autoloads.el\"))(update-directory-autoloads \"../\"))"
 
 # load path rationale:
 #    . for run-*.el

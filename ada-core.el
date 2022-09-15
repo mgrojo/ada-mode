@@ -262,18 +262,6 @@ Point must be in Object"
 
 ;; refactor-5 in ada-format-paramlist below
 
-(defcustom ada-language-version 'ada2012
-  ;; ada-fix-error.el needs this.
-  "Ada language version; one of `ada83', `ada95', `ada2005', `ada2012'.
-Only affects the keywords to highlight, not which version the
-parser accepts; the parser always accepts a superset of ada2012."
-  :type '(choice (const ada83)
-		 (const ada95)
-		 (const ada2005)
-		 (const ada2012))
-  :safe  #'symbolp)
-(make-variable-buffer-local 'ada-language-version)
-
 (defun ada-in-case-expression (parse-result)
   "Return non-nil if point is in a case expression."
   (when (wisi-in-paren-p parse-result)
@@ -506,14 +494,10 @@ extend a with_clause to include CHILD-NAME."
     (delete-char 1)))
 
 (defun ada-fix-add-use-type (type)
-  "Insert `use type' clause for TYPE."
+  "Insert `use all type' clause for TYPE."
   (ada-goto-declarative-region-start); leaves point after 'is'
   (newline-and-indent)
-  (cl-ecase ada-language-version
-    (ada2012
-     (insert "use all type "))
-    ((ada83 ada95 ada2005)
-     (insert "use type ")))
+  (insert "use all type ")
   (let ((begin (point))
 	end)
     (insert type ";")
