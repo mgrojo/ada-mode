@@ -1,15 +1,18 @@
 General notes on Emacs Ada mode
 
-build/Makefile
+build/Makefile   wisi
+Alire.make       Alire
+ELPA.make        elpa
 (load-file "build/prj-eglot.el")
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
+o.e.a.stephe-2 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (?): eglot/ada_language_server
+o.e.a.stephe-4 (o.s_l.sal.s_2, o.w.s_3, o.e.w.s_3): alire
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat
+o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead
+o.e.a.stephe-7 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-4): minor modes for use with eglot
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -25,8 +28,8 @@ o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-4")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-7")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -39,24 +42,166 @@ o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.emacs.wisi.stephe-4"       . "../org.emacs.wisi")
+   ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
 
-(setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
-
-for test/subdir/ada_mode_parent.gpr
-(setenv "GPR_PROJECT_PATH" "C:\\Projects\\org.emacs.ada_mode\\test;C:\\Projects\\org.emacs.ada_mode\\test\\subdir")
-
-for ada_mode_wisi_parse.gpr:
-(setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode;c:/Projects/org.emacs.ada-mode;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
-
-(setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-GNAT Community going away
-    https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
-    get gnat fsf from alire https://alire.ada.dev/
-    simplest way is to package ada-mode code as Alire crates
-    use tarball from savannah
+build with alire
+    /Projects/alire_mosteo/bin/alr
+        described in https://github.com/alire-project/alire/pull/1146
+        alr install --prefix=~/alire_install/
+            seems to work
+
+    recommended install location:
+        https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+        $HOME/.local/bin; --prefix=$HOME/.local
+
+Gnat-compiler-fix-hook for ada fixes. Or wisi-goto-declar*
+
+wisitoken-syntax_trees.ads function New_Stream
+    on a subprogram spec, gpr-query M-d puts up an *xref* buffer giving the spec and body (and overridden bodies?)
+    eglot just goes to the body, and back to spec.
+    C-c C-d just goes to the body
+    so just bind C-c C-d to xref-find-definitions; minor-mode
+
+M-d on "" => No applicable method: wisi-xref-definitions
+    xref-backend-functions is (t eglot-xref-backend)
+    xref-backend-definitions calls wisi-xref-definitions because 't' first means 'do global functions first'
+    now (wisi-find-backend) returns etags; delete that in ada-eglot-setup
+
+
+in Ediff; 't' does not insert type name in *xgit-log-edit*
+    (add-log-current-defun) returns nil
+    add-log-current-defun-function is ada-add-log-current-function
+        which calls ada-which-function
+        which only supports wisi-parser-shared
+        add eglot?
+        or add ada-eglot-log-current-function?
+
+tolerate no parser
+    use eglot
+    Could store alist in wisi-prj.parser-enabled; ((ada-mode . disabled) (gpr-mode . enabled)) but that's tedious
+
+build.sh don't build gpr_query if gnatcoll-xref not found - just use gnat xref or eglot
+
+bug in gpr parser/navigate
+    gnatcoll.gpr via /Projects/org.wisitoken.stephe-3/Makefile
+    point on 'case OS'
+    M-C-left => wisi-tree-node nil
+    fix in /Projects/org.emacs.gpr-mode/notes.text
+
+delete stuff that is in gnat-compiler package
+    not yet a minor mode; are there key bindings specific to it?
+        gnat-fix-compiler-error?
+
+change stuff that conflicts with eglot into options/minor modes
+    ada-eglot.el
+    testing with /Projects/org.wisitoken.stephe-3/Makefile alire-build
+
+    wisitoken-parse-tree-sitter.ads not fontified properly
+        because parser exec not found (duh)
+        but parser process created; should respect wisi-disable-parser
+            but that's nil. sigh.
+
+    ada-find-other-file with no wisi parser
+        ff-pre-load-hook has ada-which-function
+        ada-which-function uses wisi-parse-tree-query, which fails on no parser
+            don't set ff-pre-load-hook if no wisi parser?
+            or assume it will get eglot/als support at some point?
+
+        ada-find-other-file calls ada-on-context-clause; fails with no parser
+            there's stuff like that everywhere.
+            fix all occurences of
+                wisi-validate-cache
+                    ada-mode.el - done
+                    ada-core.el - done
+
+                ada-validate-enclosing-declaration done
+                ada-goto-declarative-region-start done
+                ada-fix-add-use-type done
+                ada-fix-add-use done
+                ada-fix-add-with-clause done
+                ada-goto-declaration-start done
+                ada-fix-context-clause - rename, don't call if no parser
+                ada-refactor - remove from menu, keymap; wisi-parser-mode
+                ada-in-paramlist-p, ada-format-paramlist - remove from menu; wisi-parser-mode
+
+    wisi/gnat/gpr-query vs eglot/als capabilities:
+        auto-case      - onTypeFormatting, except that seems more oriented towards indent? als does not provide it.
+        font-lock/face - semanticTokens
+        indent         - :documentFormattingProvider
+
+        completion-at-point gpr-query - completionProvider
+            eglot also supports company
+
+        <none>  - :hoverProvider
+        <none>  - :signatureHelpProvider
+            handled by eldoc
+
+        gpr-query    - :declarationProvider
+        gpr-query    - :definitionProvider
+        gpr-query    - :typeDefinitionProvider
+        gpr-query    - :implementationProvider
+        gpr-query    - :referencesProvider
+        <none>       - :documentHighlightProvider (highlight references in current scope to symbol under point)
+        gpr-query    - :documentSymbolProvider    (wisi does flat only; lsp single file)
+
+        fix-error    - :codeActionProvider      (gnat does some quickfix, ada-mode does some refactor)
+                                              als does ["quickfix" "refactor.rewrite"]
+
+        wisi-fringe  - eglot sends diagnostics to flymake
+            wisi could also
+
+        <none>    - :renameProvider           workspace-wide rename of symbol
+                  - :foldingRangeProvider      hide statement_sequences in if-then-else etc.
+                  - :executeCommandProvider    perform code actions
+                        als does (:commands ["als-other-file" "als-named-parameters" "als-refactor-imports" "als-refactor-remove-parameters" "als-refactor-move-parameter" "als-refactor-change-parameter-mode" "als-suppress-separate"])
+
+        gpr-query - :workspaceSymbolProvider    all symbols in workspace
+
+        wisi tree query - als extension :alsReferenceKinds "parent" "child"
+                            also "reference" "access" "write" "call" "dispatching call"
+
+                        - als extensions: :alsShowDepsProvider
+
+        wisi-disable-face; enables semanticTokens when implemented.
+
+        wisi-disable-indent; don't set indent-region-function, indent-line-function.
+            eglot does not set indent-region-function or indent-line-function!?
+            defines eglot-format function
+                set that as indent-region-function in ada-eglot-setup
+                    also wrap for indent-line-function as wisi does
+                provides no options
+
+
+        need lsp backend for wisi-xref; another setting for ada-xref-tool
+            eglot only provides xref.el functions; not as fine-grained as lsp features.
+            add 'xref to eglot--stay-out-of-p
+                otherwise eglot sets local xref-backend-functions to eglot-xref-backend
+
+        eglot--managed-mode has list of hooks that eglot sets
+            run by find-file-hook, after-change-major-mode-hook
+            which run after ada-mode-hook
+
+        in wisi but not LSP/als
+            context-clause
+            enclosing-declaration; goto-declaration-start, goto-declarative-region-start
+            in-paramlist-p, format-paramlist
+            refactor
+                add package-level use clause
+                add local 'use type'
+            arbitrary tree query; many tree nonterms have elisp symbols
+
+    when publish to alire, use tarballs on savannah
+
+    add badge to websites:
+[![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/YOUR_CRATE.json)](https://alire.ada.dev/crates/YOUR_CRATE.html)
+
+support als LSP extensions
+    https://github.com/AdaCore/ada_language_server/tree/master/doc
+
+process coding for line-ending bug:
+    eglot uses :coding 'utf-8-emacs-unix
 
 fix/use tree-sitter
     o.e.a.s-7/o.e.w.s-1
@@ -1224,6 +1369,8 @@ add wisitoken grammar doc to wisi package
 find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 (dvc-status ".")
+
+drop emacs 26 - not tested? at least drop emacs 25
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")

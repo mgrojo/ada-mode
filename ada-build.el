@@ -35,7 +35,7 @@
 ;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
 (require 'ada-core)
-(require 'gnat-core)
+(require 'gnat-compiler)
 (require 'cl-lib)
 
 ;;;; User customization
