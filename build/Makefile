@@ -5,6 +5,20 @@
 
 export WISI_VERSION := 3.1.3
 
+# emacs to test with
+#
+# This can be overridden on the 'make' command line or by an external
+# environment variable.
+ifeq ($(shell uname),Linux)
+EMACS_EXE ?= emacs
+else ifeq ($(shell uname),Darwin)
+EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
+else
+# windows
+# specify uniscribe to workaround weird Windows harfbuzz bug
+EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+endif
+
 all : byte-compile-clean update test-clean test
 
 pub : pub-wisi
@@ -21,7 +35,7 @@ update : byte-compile
 #
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	cd ../; emacs -Q -batch -L . -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
