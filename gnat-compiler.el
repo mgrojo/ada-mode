@@ -110,17 +110,14 @@ Throw an error if current project does not have a gnat-compiler."
     (setf (wisi-prj-file-env project) (copy-sequence process-environment))
     ))
 
-(defun gnat-get-paths (project)
+(defun gnat-get-paths (project &key ignore-prj-paths)
   "Set source and project paths in PROJECT from \"gnat list\"."
   (let* ((compiler (wisi-prj-compiler project))
-	 (src-dirs nil)
+	 (src-dirs (unless ignore-prj-paths (wisi-prj-source-path project)))
 	 (prj-dirs nil))
 
     ;; Don't need project plist obj_dirs if using a project file, so
     ;; not setting obj-dirs.
-    ;;
-    ;; We only need to update prj-dirs if the gpr-file is an aggregate
-    ;; project that sets the project path.
 
     (condition-case-unless-debug nil
 	(with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name compiler))
@@ -145,7 +142,7 @@ Throw an error if current project does not have a gnat-compiler."
 		 (directory-file-name default-directory)
 	       (expand-file-name ; Canonicalize path part.
 		(directory-file-name
-		 (buffer-substring-no-properties (point) (point-at-eol)))))
+		 (buffer-substring-no-properties (point) (line-end-position)))))
 	     src-dirs
 	     :test
 	     #'string-equal)
@@ -163,7 +160,7 @@ Throw an error if current project does not have a gnat-compiler."
 		   (if (looking-at "<Current_Directory>")
                        (directory-file-name default-directory)
 		     (expand-file-name
-                      (buffer-substring-no-properties (point) (point-at-eol))))))
+                      (buffer-substring-no-properties (point) (line-end-position))))))
 	      (cl-pushnew f src-dirs :test 'string-equal)
 	      (cl-pushnew f prj-dirs :test 'string-equal))
 	    (forward-line 1))
@@ -204,18 +201,19 @@ source-path will include compiler runtime."
 
       (setf (gnat-compiler-gpr-file compiler) gpr-file)))
 
-  (gnat-get-paths project))
+  (gnat-get-paths project :ignore-project-paths t))
 
-(defun gnat-parse-gpr-1 (gpr-file compiler)
+(defun gnat-parse-gpr-1 (gpr-file project)
   "For `wisi-prj-parser-alist'."
-  (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name gpr-file))
-  (gnat-parse-gpr gpr-file compiler))
+  (let ((compiler (wisi-prj-compiler project)))
+    (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name gpr-file))
+    (gnat-parse-gpr gpr-file project)))
 
 ;;;; command line tool interface
 
 (defun gnat-run-buffer (compiler name)
-  "Return a buffer suitable for running gnat command line tools for PROJECT"
-  (let* ((buffer (get-buffer name)))
+  "Return a buffer suitable for running gnat command line tools for COMPILER."
+  (let ((buffer (get-buffer name)))
 
     (unless (buffer-live-p buffer)
       (setq buffer (get-buffer-create name))
@@ -480,14 +478,14 @@ property `gnat-secondary-error', set by
   (let ((start-buffer (current-buffer))
 	pos item file)
     (when (eq major-mode 'compilation-mode)
-      (setq compilation-last-buffer (current-buffer)))
+      (setq next-error-last-buffer (current-buffer)))
     ;; We use `pop-to-buffer', not `set-buffer', so point is correct
     ;; for the current window showing compilation-last-buffer, and
     ;; moving point in that window works. But that might eat an
     ;; `other-frame-window-mode' prefix, which the user means to apply
     ;; to ’ada-goto-source’ below; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
-      (pop-to-buffer compilation-last-buffer nil t)
+      (pop-to-buffer next-error-last-buffer nil t)
       (setq pos (next-single-property-change (point) 'gnat-secondary-error))
       (unless pos
 	;; probably at end of compilation-buffer, in new compile
@@ -867,7 +865,7 @@ installation found in `exec-path'."
 	  )
 
     ;; else add the compiler libraries to project.source-path
-    (gnat-get-paths project)
+    (gnat-get-paths project :ignore-prj-paths nil)
     )))
 
 (defvar ada-syntax-propertize-hook) ;; actually declared in ada-core.el in ada-mode package
@@ -1434,7 +1432,7 @@ installation found in `exec-path'."
    ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
-(eval-after-load 'ada-mode (add-hook 'ada-mode-hook #'gnatprep-setup))
+(eval-after-load 'ada-mode '(add-hook 'ada-mode-hook #'gnatprep-setup))
 
 (provide 'gnat-compiler)
 ;; end of file

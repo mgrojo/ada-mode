@@ -150,8 +150,9 @@ elements of the result may be nil."
 		      (oref location column))))
 	(let* ((wisi-xref-full-path t)
 	       (args (cons "-r" (gnat-xref-common-args project summary file line column)))
+	       (prj-xref (wisi-prj-xref project))
 	       (result nil))
-	  (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
+	  (with-current-buffer (gnat-run-buffer prj-xref (gnat-compiler-run-buffer-name prj-xref))
 	    (gnat-run project (gnat-xref-common-cmd project) args)
 
 	    (goto-char (point-min))
@@ -189,11 +190,12 @@ elements of the result may be nil."
   (gnat-xref-refs project item t))
 
 (cl-defmethod wisi-xref-other ((_xref gnat-xref) project &key identifier filename line column)
-  (let* ((wisi-xref-full-path t)
+  (let* ((prj-xref (wisi-prj-xref project))
+         (wisi-xref-full-path t)
 	 (cmd (gnat-xref-common-cmd project))
 	 (args (gnat-xref-common-args project identifier filename line column))
 	 (result nil))
-    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
+    (with-current-buffer (gnat-run-buffer prj-xref (gnat-compiler-run-buffer-name prj-xref))
       (gnat-run project cmd args)
 
       (goto-char (point-min))

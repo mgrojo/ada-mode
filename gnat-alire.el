@@ -77,7 +77,7 @@
 	  (create-gnat-compiler
 	   :gpr-file abs-gpr-file
 	   :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
-    (gnat-get-paths project)
+    (gnat-get-paths project :ignore-prj-paths nil)
 
     ;; Now we parse prj-file; casing can use (wisi-prGPR_PROJECT_PATH
     (wisi-prj-parse-file
