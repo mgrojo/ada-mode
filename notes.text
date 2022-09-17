@@ -36,6 +36,10 @@ Makefile
 (setq wisi-disable-face t)
 
 error_marks_01.wy failing
+    race condition before first test
+    on incremental parse after edit lexer error, lexer error still reported
+        wisi-reset-parser fixes it.
+        incremental parse must be confused, as in incremental_05.wy
 
 editing anywhere in a comment causes comments in rest of window to flicker color.
     not in Ada; must be mmm-mode?
