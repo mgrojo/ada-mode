@@ -6,9 +6,9 @@
   :compile-env
   (list
    (concat "GPR_COMPILER=" (expand-file-name "../../org.emacs.gpr-compiler"))
-   (concat "SAL=" 	   (expand-file-name "../../org.stephe_leake.sal.stephe-1"))
-   (concat "WISITOKEN="    (expand-file-name "../../org.wisitoken.stephe-1"))
-   (concat "WISI=" 	   (expand-file-name "../../org.emacs.wisi.stephe-4"))
+   (concat "SAL=" 	   (expand-file-name "../../org.stephe_leake.sal"))
+   (concat "WISITOKEN="    (expand-file-name "../../org.wisitoken"))
+   (concat "WISI=" 	   (expand-file-name "../../org.emacs.wisi"))
    ))
  "Makefile")
 

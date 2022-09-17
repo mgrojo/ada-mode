@@ -42,6 +42,8 @@ This should be added to `ada-mode-hook' when using ada-mode with eglot."
   ;;         but we need to start eglot where we know the gpr file, to bind eglot-workspace-configuration
   ;;         so that's done in the per-project prj-eglot.el
   ;;         Which is also where the wisi parser is configured
+  ;;         if eglot is already running a session for this root directory,
+  ;;            eglot--maybe-activate-editing-mode just connects to it.
   ;; then runs find-file-hook
   ;;     which runs eglot--maybe-activate-editing-mode again
 
@@ -58,7 +60,7 @@ This should be added to `ada-mode-hook' when using ada-mode with eglot."
 
     ;; IMPROVEME: LSP defines Semantic Tokens for syntactic
     ;; highlighting/font-lock. Not supported in eglot.el 1.8,
-    ;; ada_language_server 22.0; supported in devel versions;
+    ;; ada_language_server 22.0. Supported in devel versions;
     ;; https://github.com/joaotavora/eglot/issues/615
     ;; https://github.com/AkibAzmain/eglot/tree/semantic-tokens
     ;; https://github.com/AdaCore/ada_language_server/issues/879

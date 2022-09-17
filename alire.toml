@@ -8,6 +8,11 @@ maintainers-logins = ["stephe-ada-guru"]
 
 project-files = ["emacs_ada_mode.gpr"]
 
+executables = ["ada_mode_wisi_lalr_parse.ads",
+               "ada_mode_wisi_lr1_parse.ads",
+               "gpr_query.adb"
+              ]
+
 # These are for gpr_query. FIXME: factor out to its own crate.
 [[depends-on]]
 gnatcoll = "^22.0.0"

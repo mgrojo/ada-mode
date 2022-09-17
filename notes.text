@@ -46,16 +46,6 @@ o.e.a.stephe-7 (): available
    ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
 
  current work
-build with alire
-    /Projects/alire_mosteo/bin/alr
-        described in https://github.com/alire-project/alire/pull/1146
-        alr install --prefix=~/alire_install/
-            seems to work
-
-    recommended install location:
-        https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-        $HOME/.local/bin; --prefix=$HOME/.local
-
 Gnat-compiler-fix-hook for ada fixes. Or wisi-goto-declar*
 
 wisitoken-syntax_trees.ads function New_Stream

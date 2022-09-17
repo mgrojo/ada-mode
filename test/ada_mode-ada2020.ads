@@ -1,4 +1,5 @@
 --  Testing Ada 2020 features currently supported by GNAT Community
+--  FIXME: update to released Ada 2022
 --
 --  [1] http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/
 --  [2] http://www.ada-auth.org/standards/ada2x.html
