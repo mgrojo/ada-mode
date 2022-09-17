@@ -53,7 +53,8 @@ install : install_executables
 # loading new source on old .elc.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -l build/exclude-elpa.el --eval '(progn (batch-byte-compile))' *.el
+	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (batch-byte-compile))' *.el
 #(setq byte-compile-error-on-warn t)
 
 byte-compile-clean :
@@ -120,12 +121,13 @@ three : run_libadalang.exe
 # interaction with gpr project files.
 export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
 export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
+export GNAT_COMPILER ?= $(shell cd ../../org.emacs.gnat-compiler; pwd)
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -L $(WISI) -l autoloads.el -l build/exclude-elpa.el
+GPR_MODE_DIR := -L .. -l ../autoloads.el -L $(WISI) -L $(GNAT_COMPILER) -l $(GNAT_COMPILER)/autoloads.el -l build/exclude-elpa.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else

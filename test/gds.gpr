@@ -8,7 +8,7 @@ with "sal";
 with "standard_common";
 --EMACSCMD:(progn (forward-line 2)(ff-find-other-file)(looking-at "-- for testing"))
 --EMACSRESULT:t
-with "../common_text_io";
+with "common_text_io";
 --EMACSCMD:(test-face "project" font-lock-keyword-face)
 --EMACSCMD:(test-face "GDS" font-lock-function-name-face)
 project GDS is

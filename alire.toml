@@ -1,0 +1,35 @@
+name = "emacs_gpr_mode"
+description = "wisi parser for Emacs gpr mode"
+version = "0.1.0-dev"
+
+authors = ["Stephen Leake"]
+maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
+maintainers-logins = ["stephe-ada-guru"]
+
+long-description = """
+Generalized LR error-correcting parser generated using WisiToken,
+interfaced to Emacs via the wisi package.
+
+Provides semantic highlighting, indent, single-file navigation. 
+"""
+
+project-files = ["emacs_gpr_mode.gpr"]
+
+executables = ["gpr_mode_wisi_parse"]
+
+[[depends-on]]
+stephes_ada_library = "~0.1.0-dev"
+wisitoken = "~0.1.0-dev"
+emacs_wisi = "~0.1.0-dev"
+re2c = "2.9"
+
+[[pins]]
+stephes_ada_library  = { path='../org.stephe_leake.sal' }
+wisitoken            = { path='../org.wisitoken' }
+emacs_wisi           = { path='../org.emacs.wisi' }
+re2c                 = { path='../re2c_alire' }
+
+[[actions]]
+type = "pre-build"
+command = ["make", "-f", "Alire.make", "gpr_re2c.c"]
+

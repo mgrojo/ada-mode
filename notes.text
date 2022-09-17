@@ -1,6 +1,9 @@
 General notes on Emacs gpr mode
 
-build/Makefile
+build/Makefile   wisi
+Alire.make       Alire
+ELPA.make        elpa
+(load-file "build/prj-eglot.el")
 
 o.e.g-m: release, in use
 o.e.g-m.stephe-1 (o.e.w.stephe-1/o.w.s-1/o.s_l.sal.s-1): work
