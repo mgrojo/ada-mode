@@ -7,7 +7,7 @@
 ;; This require is not needed for the following code, but is needed to
 ;; ensure ada-mode-hook has sal-ada-mode-setup.
 
-(setq ada-indent-engine 'eglot) ;; testing eglot indent
+(setq ada-indent-engine 'wisi) ;; ada_language_server 22.0 doesn't support RangeFormatting
 
 (setq ada-xref-tool 'eglot) ;; testing wisi-xref lsp backend
 

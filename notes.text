@@ -5,8 +5,8 @@ build/Makefile
 org.emacs.wisi: release, in use
 org.emacs.wisi.stephe-1 (o.w.s-1): work
 org.emacs.wisi.stephe-2 (o.w.s-2): packrat error correction via lr; dead
-org.emacs.wisi.stephe-3 (o.w.s-3/o.s_l.s-2): Alire
-org.emacs.wisi.stephe-4 (o.w.s-1/o.s_l.s-1): minor modes for use with eglot
+org.emacs.wisi.stephe-3 (): available
+org.emacs.wisi.stephe-4 (): available
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
