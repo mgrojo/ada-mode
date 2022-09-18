@@ -30,6 +30,11 @@ package body Wisi.Gpr is
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
       Data.Left_Paren_ID    := WisiToken.Invalid_Token_ID;
       Data.Right_Paren_ID   := WisiToken.Invalid_Token_ID;
+
+      Data.Statement_IDs.Append (+compilation_unit_ID);
+      Data.Statement_IDs.Append (+with_clause_ID);
+      Data.Statement_IDs.Append (+declarative_item_ID);
+      Data.Statement_IDs.Append (+wisitoken_accept_ID);
    end Initialize;
 
    overriding

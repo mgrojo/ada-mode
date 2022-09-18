@@ -18,7 +18,7 @@ gpr-skel.gpr.tmp :
 	-diff -u $< $(*F).tmp > $(*F).diff
 
 ../run_gpr_parse.exe : ../run_gpr_parse.ads ../gpr_re2c.c force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+	gprbuild -p -j8 ../gpr_mode_wisi_parse.gpr $(<F)
 
 elisp-clean :
 	rm -f ../autoloads.el

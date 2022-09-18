@@ -83,35 +83,14 @@ one :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
 one-debug :: RUNTEST := run-indent-test.el
 one-debug :: force
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
+	$(EMACS_EXE) -Q -L . $(GPR_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
 two : RUN_ARGS ?= command_file debug.cmd
 two : LOG_ARGS ?= > debug.log 2>&1
 #two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
-two : ../run_ada_lalr_parse.exe
-	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS) $(LOG_ARGS)
-
-two-lr1 : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0"
-two-lr1 : ../run_ada_lr1_parse.exe
-	cd ../; ./run_ada_lr1_parse.exe $(RUN_ARGS)
-
-two-gpr : ../run_gpr_parse.exe
-	cd ../; ./run_gpr_parse.exe $(RUN_ARGS)
-
-two_mem : export Standard_Common_Mem_Check := On
-two_mem : build_executables
-	../exec_mem/run_ada_lalr_parse.exe c:/tmp/regulation-iflight.adb Face
-	gnatmem ../exec_mem/run_ada_lalr_parse.exe > regulation_iflight.memory
-
-two_pro : export Standard_Common_Profile := On
-two_pro : build_executables
-	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
-	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
-
-three : RUN_ARGS := c:/Eurocontrol 10
-three : run_libadalang.exe
-	cd ..; ./run_libadalang.exe $(RUN_ARGS)
+two : ../run_gpr_parse.exe
+	cd ../; ./run_gpr_parse$(EXE_EXT) $(RUN_ARGS) $(LOG_ARGS)
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -132,7 +111,7 @@ WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
 # test with installed elpa package; don't rebuild grammars
-ADA_MODE_DIR :=
+GPR_MODE_DIR :=
 WISITOKEN_GENERATE :=
 endif
 
@@ -176,7 +155,7 @@ endif
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
-ifeq ($(BRANCH),org.emacs.ada-mode)
+ifeq ($(BRANCH),org.emacs.gpr-mode)
   TAR_FILE := org.emacs.gpr-mode-$(GPR_MODE_VERSION)
 else
   TAR_FILE := $(BRANCH)

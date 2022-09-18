@@ -37,6 +37,8 @@ project GDS is
 
    for Languages use ("Ada", "C");
 
+   --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-sexp)(looking-at "; -- target 1"))
+   --EMACSRESULT: t
    package Compiler is
       for Default_Switches ("Ada") use
         Standard_Common.Compiler.Release_Switches &
@@ -48,7 +50,9 @@ project GDS is
       for Default_Switches
        ("C") use Standard_Common.Compiler.Release_Switches_C;
 
-   end Compiler;
+   end Compiler; -- target 1
+   --EMACSCMD:(progn (forward-line -1)(forward-word 2)(backward-sexp)(looking-at "package Compiler is"))
+   --EMACSRESULT: t
 
    package Binder is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
