@@ -2,15 +2,9 @@
 ;;
 ;; Copyright (C) 2021, 2022  Free Software Foundation, Inc.
 
-(let ((wisi-core (expand-file-name "../wisi")))
-
-  (wisi-prj-select-cache
-   "ada_mode.prj"
-   (create-ada-prj
-    :name "ada_mode elpa"
-    :compile-env
-    (list
-     (concat "WISI=" wisi-core)))
+(wisi-prj-select-cache
+   "gpr-query.prj"
+   (create-ada-prj :name "gpr-query elpa")
    "Makefile"
    ))
 

@@ -1,0 +1,49 @@
+--  Abstract :
+--
+--  GNAT project file for building Emacs gpr-query executables with Alire
+--
+--  Copyright (C) 2022 Free Software Foundation, Inc.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version. This program is distributed in the
+--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+--  PURPOSE. See the GNU General Public License for more details. You
+--  should have received a copy of the GNU General Public License
+--  distributed with this program; see file COPYING. If not, write to
+--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
+--  MA 02110-1335, USA.
+
+with "config/emacs_ada_mode_config.gpr";
+with "gnatcoll";
+with "gnatcoll_sqlite";
+with "gnatcoll_xref";
+with "standard_common_alire";
+with "wisi_alire";
+project Emacs_Gpr_Query is
+
+   for Source_Dirs use (".", "config/");
+
+   for Object_Dir use "obj/" & Emacs_Gpr_Query_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Exec_Dir use "bin";
+   for Main use ("gpr_query.adb");
+
+   package Compiler is
+      case Emacs_Gpr_Query_Config.Build_Profile is
+      when "release" =>
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
+
+      when "validation" | "development" =>
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
+
+      end case;
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+end Emacs_Gpr_Query;

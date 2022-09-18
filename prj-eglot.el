@@ -1,4 +1,4 @@
-;; project settings for building ada-mode with Alire/editing with eglot -*- no-byte-compile : t -*-
+;; project settings for building gpr-query with Alire/editing with eglot -*- no-byte-compile : t -*-
 
 (require 'ada-mode)
 ;; This require is not needed for the following code, but is needed to
@@ -10,13 +10,13 @@
 
 (add-hook 'ada-mode-hook #'ada-eglot-setup)
 
-(let* ((gpr-file (expand-file-name "emacs_ada_mode.gpr" (file-name-directory load-file-name)))
-       (prj-file (expand-file-name "prj-eglot.prj" (file-name-directory load-file-name)))
+(let* ((gpr-file (expand-file-name "emacs_gpr_query.gpr" (file-name-directory load-file-name)))
+       (prj-file (expand-file-name "gpr-query.prj" (file-name-directory load-file-name)))
        (eglot-workspace-configuration (list `(ada (projectFile . ,gpr-file))))
 
        (project
 	(create-alire-project
-	 :prj-name "ada-mode main Alire eglot"
+	 :prj-name "gpr-query main Alire eglot"
 	 :prj-file prj-file
 	 :gpr-file gpr-file)))
 
