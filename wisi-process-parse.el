@@ -232,6 +232,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (setq search-start (point-min))
       (while (if filter-active
+		 ;; FIXME: if the filter is hung, this should reset it
 		 (not (eq #'internal-default-process-filter (process-filter process)));; wait for filter to finish
 
 	      (and (process-live-p process)
