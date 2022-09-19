@@ -37,22 +37,27 @@
     (setenv "GPR_PROJECT_PATH" "")
 
     (with-temp-buffer
-      (call-process "alr" nil (current-buffer) nil "printenv")
+      (let ((status (call-process "alr" nil (current-buffer) nil "printenv")))
+	(cond
+	 ((= 0 status)
+	  (goto-char (point-min))
+	  (search-forward "GPR_PROJECT_PATH=")
+	  (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
 
-      (goto-char (point-min))
-      (search-forward "GPR_PROJECT_PATH=")
-      (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
+	  (setf (wisi-prj-file-env project)
+		(list (concat "GPR_PROJECT_PATH=" value-string)))
 
-      (setf (wisi-prj-file-env project)
-	    (list (concat "GPR_PROJECT_PATH=" value-string)))
+	  ;; gnat-compiler use same compiler as Alire
+	  (goto-char (point-min))
+	  (search-forward "GNAT_NATIVE_ALIRE_PREFIX=")
+	  (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
+	  (push (concat value-string "/bin") local-exec-path)
+	  (push (concat "PATH=" (mapconcat 'identity local-exec-path  path-separator))
+		(wisi-prj-file-env project)))
 
-      ;; gnat-compiler use same compiler as Alire
-      (goto-char (point-min))
-      (search-forward "GNAT_NATIVE_ALIRE_PREFIX=")
-      (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
-      (push (concat value-string "/bin") local-exec-path)
-      (push (concat "PATH=" (mapconcat 'identity local-exec-path  path-separator))
-	    (wisi-prj-file-env project))
+	 (t
+	  (user-error "alr printenv failed; bad or missing alire.toml?"))
+	 ))
       )))
 
 ;;;###autoload
