@@ -8,18 +8,28 @@ all : build byte-compile autoloads
 
 docs : gpr-query.info
 
-build : force
+build : config/emacs_gpr_query_config.gpr force
 	gprbuild -p -j8 emacs_gpr_query.gpr
 
 install : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P gpr_query.gpr --install-name=gpr_query
 
+ifeq ($(shell uname),Linux)
+EMACS_EXE ?= emacs
+else ifeq ($(shell uname),Darwin)
+EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
+else
+# windows
+# specify uniscribe to workaround weird Windows harfbuzz bug
+EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+endif
+
 BYTE_COMPILE := "(progn (setq byte-compile-error-on-warn t)(batch-byte-compile))"
 byte-compile : byte-compile-clean
-	emacs -Q -batch -L . --eval $(BYTE_COMPILE) *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(GNAT_COMPILER) -L $(WISI) --eval $(BYTE_COMPILE) *.el
 
 byte-compile-clean :
-	cd ..; rm -f *.elc
+	rm -f *.elc
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval "(progn (setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
@@ -48,11 +58,14 @@ build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
 	make -C $(ELPA_ROOT)/ build/gpr-query
 
+config/emacs_gpr_query_config.gpr :
+	cp emacs_gpr_query_config_devel.gpr config/emacs_gpr_query_config.gpr
+
 ### misc stuff
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.emacs.gpr-query)
-  TAR_FILE := org.emacs.gpr-query-$(ADA_MODE_VERSION)
+  TAR_FILE := org.emacs.gpr-query-$(GPR_QUERY_VERSION)
 else
   TAR_FILE := $(BRANCH)
 endif
@@ -63,7 +76,7 @@ zip :
 	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C .. $(TAR_FILE)
 
 tag :
-	mtn tag h:org.emacs.gpr-query org.emacs.gpr-query-$(ADA_MODE_VERSION)
+	mtn tag h:org.emacs.gpr-query org.emacs.gpr-query-$(GPR_QUERY_VERSION)
 
 
 # Local Variables:

@@ -16,12 +16,10 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
-with "config/emacs_ada_mode_config.gpr";
+with "config/emacs_gpr_query_config.gpr";
 with "gnatcoll";
 with "gnatcoll_sqlite";
 with "gnatcoll_xref";
-with "standard_common_alire";
-with "wisi_alire";
 project Emacs_Gpr_Query is
 
    for Source_Dirs use (".", "config/");
@@ -32,12 +30,52 @@ project Emacs_Gpr_Query is
    for Main use ("gpr_query.adb");
 
    package Compiler is
+      Style_Checks := ("-gnaty3abcefhiklnOprtx", "-gnatyM120");
+
+   Common_Switches :=
+        ("-gnat2020", --  GNAT 11.3 (Debian testing as of Sept 2022) doesn't have -gnat2022
+         "-fstack-check",
+         "-g",
+         "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
+         "-gnatw.d", -- warnings about tags
+         "-gnatwaBCeJL"
+        -- wa = most warnings
+        -- wB = no warn on bad fixed values
+        -- wC = no warn on conditionals
+        -- we = error on warning
+        -- wJ = no warn on obsolescent (including () for array indices!)
+        -- wL = no warn on elaboration
+        );
+
+      --  -gnatVa causes some inline procedures to be non-inlineable;
+      --  suppress that warning with -gnatwP.
+      Debug_Switches := Common_Switches &
+        (
+         "-O0", --  we don't use -Og because that causes gdb to report incorrect results in some cases in Ada.
+         "-gnatVa", -- validity checks
+         "-gnateE", -- extra info in exceptions
+         "-gnatwP", -- no warn on Inline
+         "-gnata"  -- assertions, pre/post-conditions
+        );
+
+      --  -O3 is measurably faster than -O2 for wisitoken generate
+      --  LR1. We include -fstack-check because it catches
+      --  hard-to-find bugs, and the processors are so fast.
+      --  -fno-var-tracking-assignments speeds compiling of large
+      --  files; var tracking is only useful for debugging.
+      Release_Switches := Common_Switches &
+        (
+         "-O3",
+         "-gnatn",
+         "-fno-var-tracking-assignments"
+        );
+
       case Emacs_Gpr_Query_Config.Build_Profile is
       when "release" =>
-         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
+         for Default_Switches ("Ada") use Release_Switches & Style_Checks;
 
       when "validation" | "development" =>
-         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
+         for Default_Switches ("Ada") use Debug_Switches & Style_Checks;
 
       end case;
    end Compiler;

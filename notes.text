@@ -1,13 +1,19 @@
 General notes on Emacs gpr-query minor mode
 
-build/Makefile   wisi
 Alire.make       Alire
-ELPA.make        elpa
-(load-file "build/prj-eglot.el")
+ELPA.make        elpa, devel
 
 o.e.gpr-query: release, in use
 
+(dvc-state-multiple
+'((xgit . "/Projects/org.emacs.wisi/")
+  (xgit . "/Projects/org.emacs.gnat-compiler/")
+  (xgit . "/Projects/org.emacs.gpr-query/")))
+
  current work
+test makefiles
+    ELPA.make done
+    Alire.make
 
 for *.texi:
     ----------------------
