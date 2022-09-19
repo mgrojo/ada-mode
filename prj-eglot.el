@@ -20,7 +20,7 @@
 	 :prj-file prj-file
 	 :gpr-file gpr-file)))
 
-  (wisi-prj-select-cache prj-file nil "Makefile")
+  (wisi-prj-select-cache prj-file nil "Alire.make")
 
   ;; ada_language_server gets GPR_PROJECT_PATH from its process
   ;; environment, and the gpr file from eglot-workspace-configuration.

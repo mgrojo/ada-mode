@@ -1,4 +1,4 @@
-# For compiling ada-mode Ada with Alire
+# For compiling gpr-query Ada code with Alire
 
 include ../org.stephe_leake.makerules/alire_rules.make
 

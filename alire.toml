@@ -1,5 +1,5 @@
 name = "emacs_gpr_query"
-description = "Emacs xref backend using cross-reference information output by GNAT compiler."
+description = "Emacs xref backend using information output by GNAT compiler."
 version = "0.1.0-dev"
 
 authors = ["Stephen Leake"]
