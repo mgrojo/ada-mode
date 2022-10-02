@@ -1351,7 +1351,8 @@ IDENTIFIER is from a user prompt with completion, or from
       (setq column (plist-get t-prop :column))
       )
 
-     ((string-match (wisi-xref-completion-regexp (wisi-prj-xref prj)) identifier)
+     ((and (wisi-prj-xref prj)
+	   (string-match (wisi-xref-completion-regexp (wisi-prj-xref prj)) identifier))
       ;; IDENTIFIER is from prompt/completion on wisi-xref-completion-table
       (setq ident (match-string 1 identifier))
 
@@ -1363,7 +1364,8 @@ IDENTIFIER is from a user prompt with completion, or from
 	(setq column (nth 2 loc))
 	))
 
-     ((string-match wisi-names-regexp identifier)
+     ((and (wisi-prj-xref prj)
+	   (string-match wisi-names-regexp identifier))
       ;; IDENTIFIER is from prompt/completion on wisi-names.
       (setq ident (match-string 1 identifier))
       (setq file (buffer-file-name))
