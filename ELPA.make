@@ -38,7 +38,7 @@ autoloads : force
 	makeinfo $< -o ../$@
 
 clean : force
-	rm -rf gpr-query.info obj gpr_query*
+	rm -rf gpr-query.info obj gpr_query$(EXE_EXT)
 
 recursive-clean : force
 	gprclean -r -P emacs_gpr_query.gpr

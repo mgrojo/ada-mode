@@ -11,9 +11,8 @@ o.e.gpr-query: release, in use
   (xgit . "/Projects/org.emacs.gpr-query/")))
 
  current work
-test makefiles
-    ELPA.make done
-    Alire.make
+split out gpr-query.texi from ada-mode.texi
+    just install; rest is documented in code
 
 for *.texi:
     ----------------------

@@ -74,8 +74,21 @@ project Emacs_Gpr_Query is
       when "release" =>
          for Default_Switches ("Ada") use Release_Switches & Style_Checks;
 
+         for Switches ("gpr_query.adb") use
+           -- WORKAROUND: GNAT Community 2021 with gnatcoll 21.2 and -gnat2020 reports a missing "overrides"
+           -- AdaCore ticket U618-051
+           Common_Switches &
+           "-gnaty3abcefhiklnprtx" & "-gnatyM120" & -- not overriding
+           Release_Switches;
+
       when "validation" | "development" =>
          for Default_Switches ("Ada") use Debug_Switches & Style_Checks;
+
+         for Switches ("gpr_query.adb") use
+           -- WORKAROUND: GNAT Community 2021 reports that gnatcoll 21.2 is missing an "overrides" somewhere
+           Common_Switches &
+           "-gnaty3abcefhiklnprtx" & -- not overrding
+           Debug_Switches;
 
       end case;
    end Compiler;
