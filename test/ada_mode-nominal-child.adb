@@ -1,6 +1,6 @@
 --  Test ada-find-other-file and a few other things
 
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 package body Ada_Mode.Nominal.Child is -- target 0
 
    --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
@@ -76,9 +76,9 @@ package body Ada_Mode.Nominal.Child is -- target 0
 
    --  Homonym, for testing xref with no line/col info
    --EMACSCMD:(test-all-defs "function Child_Add" t)
-   --EMACSRESULT_START:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) function")) (gnat '("ada_mode-nominal-child.adb" "Child_Add spec")))
-   --EMACSRESULT_ADD:  (cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) body")) (gnat '("ada_mode-nominal-child.adb" "Child_Add body")))
-   --EMACSRESULT_ADD:  (cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body"))(gnat '("ada_mode-nominal-child.ads" "Child_Add spec")))
+   --EMACSRESULT_START:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) function")) (gnat '("ada_mode-nominal-child.adb" "Child_Add spec")))
+   --EMACSRESULT_ADD:  (cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) body")) (gnat '("ada_mode-nominal-child.adb" "Child_Add body")))
+   --EMACSRESULT_ADD:  (cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body"))(gnat '("ada_mode-nominal-child.ads" "Child_Add spec")))
    --EMACSRESULT_ADD: (when (eq ada-xref-tool 'gnat) '("ada_mode-nominal-child.adb" "Child_Add body"))
    --EMACSRESULT_FINISH:
    function Child_Add (Left : in Child_Type_1) return Child_Type_1

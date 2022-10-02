@@ -68,9 +68,10 @@ install : install_executables
 #
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	$(MAKE) -C $(WISI)/build byte-compile
-	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	$(MAKE) -C $(WISI)/build byte-compile autoloads
+	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile autoloads
+	$(MAKE) -C $(GPR_QUERY) -f ELPA.make byte-compile autoloads
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -L $(GPR_QUERY) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -91,23 +92,26 @@ benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el $(RUN_ARGS)
 
 ONE_TEST_FILE ?= debug.adb
-one :: ELISP ?= (setq-default wisi-parser-verbosity "debug=1" save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
+#one :: ELISP ?= (setq-default debug-on-error t wisi-parser-verbosity "debug=1" save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
+one :: ELISP ?= (setq-default debug-on-error t)
 one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
-one :: build_executables
-one :: byte-compile autoloads
+#one :: build_executables
+#one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
 #one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
-one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+one :: RUNTEST := run-indent-test-eglot.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILE))
 one :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
-one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+#one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one-debug :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
+one-debug :: RUNTEST := run-indent-test-eglot.el
 one-debug :: force
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
@@ -151,12 +155,13 @@ three : run_libadalang.exe
 export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
 export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
 export GNAT_COMPILER ?= $(shell cd ../../org.emacs.gnat-compiler; pwd)
+export GPR_QUERY     ?= $(shell cd ../../org.emacs.gpr-query; pwd)
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -l ../autoloads.el -L $(WISI) -L $(GNAT_COMPILER) -l $(GNAT_COMPILER)/autoloads.el -l exclude-elpa.el
+ADA_MODE_DIR := -L .. -l ../autoloads.el -L $(WISI) -L $(GNAT_COMPILER) -l $(GNAT_COMPILER)/autoloads.el -L $(GPR_QUERY) -l $(GPR_QUERY)/autoloads.el -l exclude-elpa.el
 
 # ".exe", not $(EXE_EXT); wisitoken hard-codes .exe
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
@@ -172,6 +177,16 @@ include rules.make
 
 update-test-log : force
 	find . -maxdepth 1 -name "*.diff" -not -size 0 >> test.log
+
+test-ada-eglot : RUNTEST := run-indent-test-eglot.el
+test-ada-eglot : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))
+
+test-ada-eglot.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-eglot
+	touch $@
+	echo "test-ada-eglot" >> test.log
+	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el
 test-ada-lalr-process-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))

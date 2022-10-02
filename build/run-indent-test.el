@@ -4,6 +4,22 @@
 
 (require 'wisi-run-indent-test)
 
+;; Let edebug display strings full-length, and show internals of records
+;; this is also done in run-test; we do it here for 'make one-debug'
+(setq cl-print-readably t)
+
+(defun half-screen ()
+  (interactive)
+  (modify-frame-parameters
+      nil
+      (list
+       (cons 'font "DejaVu Sans Mono-8")
+       (cons 'width 120) ;; characters; fringe extra
+       (cons 'height 94) ;; characters
+       (cons 'left 0)
+       (cons 'top 0))))
+(define-key global-map "\C-cp" 'half-screen)
+
 (defun switch-to-lr1 ()
   (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
@@ -52,7 +68,7 @@
     (test-xref-helper
      name
      (lambda () (xref-backend-definitions
-		 prj
+		 (xref-find-backend)
 		 (if no-line-col
 		     (thing-at-point 'symbol)
 		   (xref-backend-identifier-at-point (xref-find-backend))))))

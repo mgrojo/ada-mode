@@ -38,6 +38,19 @@
   :type 'boolean
   :group 'ada)
 
+(defcustom ada-face-backend 'wisi
+  "Face backend to use for Ada; wisi or eglot."
+  ;; could be extended to tree-sitter
+  :type 'symbol
+  :options '(wisi eglot)
+  :group 'ada)
+
+(defcustom ada-indent-backend 'wisi
+  "Indent backend to use for Ada; wisi or eglot."
+  :type 'symbol
+  :options '(wisi eglot)
+  :group 'ada)
+
 (defconst ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"
   "Regexp matching Ada operator_symbol.")
@@ -475,15 +488,18 @@ sort-lines."
 
 ;;;; xref
 
-(defconst ada-xref-known-tools '(gpr_query gnat eglot)
+(defconst ada-xref-known-backends '(gpr_query gnat eglot)
   "Supported xref tools")
 
-(defcustom ada-xref-tool
+(defcustom ada-xref-backend
   (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr_query 'gnat)
   "Ada cross reference tool; can be overridden in project files."
   :type 'symbol
-  :options ada-xref-known-tools
+  :options ada-xref-known-backends
   :group 'ada)
+
+(defalias 'ada-xref-tool 'ada-xref-backend)
+(make-obsolete 'ada-xref-tool 'ada-xref-backend "ada-mode version 8.0")
 
 (defun ada-make-subprogram-body ()
   "Convert subprogram specification after point into a subprogram body stub."
@@ -539,7 +555,7 @@ sort-lines."
 		    name
 		    compile-env
 		    (compiler-label ada-compiler)
-		    (xref-label ada-xref-tool)
+		    (xref-label ada-xref-backend)
 		    source-path
 		    plist
 		    file-pred
@@ -561,7 +577,7 @@ sort-lines."
      name
      compile-env
      (compiler-label ada-compiler)
-     (xref-label ada-xref-tool)
+     (xref-label ada-xref-backend)
      source-path
      plist
      file-pred)
@@ -606,7 +622,7 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 	 (make-ada-prj
 	  :name (or name "_default_")
 	  :compiler-label  ada-compiler
-	  :xref-label      ada-xref-tool
+	  :xref-label      ada-xref-backend
 	  :source-path	  (cond
 			   ((null src-dir) nil)
 			   ((listp src-dir) src-dir)
@@ -665,23 +681,19 @@ Throw an error if current project is not an ada-prj."
       (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir obj-dir))
       ))
 
-   ((string= name "xref_tool")
+   ((string= name "xref_backend")
     ;; This is defined here, rather than in wisi, because the list of
     ;; xref tools is likely to be language-specific (but not always;
     ;; for example Gnu global supports many languages).
     (let ((xref-label (intern value)))
       (cond
-       ((memq xref-label '(gpr_query gnat))
+       ((memq xref-label ada-xref-known-backends)
 	(setf (ada-prj-xref-label project) xref-label)
 	(setf (ada-prj-xref project) (ada-prj-make-xref xref-label)))
 
-       ((eq xref-label 'eglot)
-	nil ;; FIXME: implement wisi xref lsp backend for eglot
-	)
-
        (t
 	(user-error "'%s' is not a recognized xref tool (must be one of %s)"
-		    xref-label ada-xref-known-tools))
+		    xref-label ada-xref-known-backends))
       )))
    ))
 

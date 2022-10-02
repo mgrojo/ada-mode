@@ -106,8 +106,8 @@ is -- target 0
       return Function_Access_1'Access;
    end
      Function_Access_11;
-   --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (end-of-line 0)(forward-word -1)(call-interactively 'xref-find-definitions)(forward-word -1)(looking-at "function Function_Access_11"))
-   --EMACSRESULT: (eq ada-xref-tool 'gpr_query)
+   --EMACSCMD:(cl-ecase ada-xref-backend ((gpr_query eglot) (end-of-line 0)(forward-word -1)(call-interactively 'xref-find-definitions)(forward-word -1)(looking-at "function Function_Access_11")) (gnat nil))
+   --EMACSRESULT: (cl-ecase ada-xref-backend ((gpr_query eglot) t) (gnat nil))
    -- gnatxref goes to an *xref* buffer for this, with body and spec
    -- lines both pointing at the same place. gpr_query is smarter.
 

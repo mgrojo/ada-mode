@@ -34,10 +34,12 @@ o.e.a.stephe-7 (): available
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
-  (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/org.emacs.wisi.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.stephe_leake.sal")
+  (xgit . "/Projects/org.wisitoken")
+  (xgit . "/Projects/org.emacs.gnat-compiler")
+  (xgit . "/Projects/org.emacs.gpr-query")
+  (xgit . "/Projects/org.emacs.wisi")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-4")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -46,6 +48,30 @@ o.e.a.stephe-7 (): available
    ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
 
  current work
+run all tests with eglot
+test/ada_mode-expression_functions.ads
+    on visit file, get warning about ada parser not found; should not
+        warning issued before wisi-setup run
+        ada-eglot-setup must set wisi-disable-parser
+
+/Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-expression_functions.ads:33: test (test-all-defs "type Result") ... signaled
+    when run by make one ada_language_server reports more than one gpr file
+        apparently it is started before the gpr file is specified?
+        didchangeconfiguration is present; race condition?
+
+        M-x eglot-shutdown followed by wisi-prj-select-cache gets it right.
+
+        eglot is started by wisi-prj-select-cache via wisi-compiler-select-prj
+        but "workspace/didChangeConfiguration" is not sent until after that completes!?
+            what in eglot triggers sending it?
+            eglot-connect-hook
+                run just before "Connected! ... " message
+                hack-dir-local-variables is also run then
+
+            change to eglot-server-initialized-hook?
+
+        try overriding eglot-initialization-options, as eglot-eclipse does
+
 Gnat-compiler-fix-hook for ada fixes. Or wisi-goto-declar*
 
 wisitoken-syntax_trees.ads function New_Stream
@@ -192,6 +218,9 @@ support als LSP extensions
 
 process coding for line-ending bug:
     eglot uses :coding 'utf-8-emacs-unix
+
+http://www.ada-auth.org/standards/overview22.html
+    add missing tests?
 
 fix/use tree-sitter
     o.e.a.s-7/o.e.w.s-1

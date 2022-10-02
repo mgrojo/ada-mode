@@ -11,11 +11,8 @@ project Ada_Mode_Compile is
       --  "debug.adb", including this gives an error when it is not present
 
       "access_in_record.ads", -- incomplete code
-      "ada_mode-ada95.ads", -- font-lock only
-      "ada_mode-ada2005.ads", -- font-lock only
-      "ada_mode-ada2012.ads", -- font-lock only
 
-      "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019 -gnatX
+      "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019
       "ada_mode-ascii_control_chars.adb",
       "ada_mode-bad_duplicate_state.adb",
 

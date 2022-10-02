@@ -27,8 +27,8 @@ use Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
 --EMACSCMD:(test-face "Nested_Packages" font-lock-function-name-face)
 package body Ada_Mode.Nested_Packages is
 
-   --EMACSCMD:(try-completion (cl-ecase ada-xref-tool (gpr_query "<=")(gnat "\"<=\"")) (wisi-xref-completion-table (wisi-prj-xref (xref-find-backend)) (project-current)))
-   --EMACSRESULT:(cl-ecase ada-xref-tool (gpr_query "<=<Ada_Mode.Nested_Packages<41>>")(gnat "\"<=\"<41>"))
+   --EMACSCMD:(try-completion (cl-ecase ada-xref-backend ((gpr_query eglot) "<=")(gnat "\"<=\"")) (wisi-xref-completion-table (wisi-prj-xref (xref-find-backend)) (project-current)))
+   --EMACSRESULT:(cl-ecase ada-xref-backend ((gpr_query eglot) "<=<Ada_Mode.Nested_Packages<41>>")(gnat "\"<=\"<41>"))
 
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point

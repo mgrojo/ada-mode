@@ -50,8 +50,8 @@
 ;; is different from the compiler. For example, you can use a local
 ;; GNAT compiler to generate and access cross-reference information,
 ;; while using a cross-compiler for compiling the final
-;; executable. The user variable `ada-xref-tool' selects the xref
-;; tool; it can be overridden by the "xref_tool" setting in project
+;; executable. The user variable `ada-xref-backend' selects the xref
+;; tool; it can be overridden by the "xref_backend" setting in project
 ;; files.
 ;;
 ;; The indentation engine and skeleton tools are from the wisi
@@ -1683,28 +1683,28 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
 
   ;; We can't set buffer-local wisi-disable-parser before this,
   ;; because this is the first function run with major-mode set to
-  ;; ada-mode. We don't encourage setting global wisi-disable-parser
-  ;; because other modes may need a wisi parser (gpr-mode,
-  ;; wisitoken-grammar-mode).
+  ;; ada-mode. We don't encourage setting global or dir-local
+  ;; wisi-disable-parser because other modes may need a wisi parser
+  ;; (gpr-mode, wisitoken-grammar-mode).
+  (when (or (eq ada-xref-backend   'eglot)
+	    (eq ada-indent-backend 'eglot)
+	    (eq ada-face-backend   'eglot))
+    (require 'ada-eglot)
+    (when (fboundp 'ada-eglot-setup)
+      (ada-eglot-setup)))
+
+  ;; We want at least one warning for missing ada-process-parse-exec,
+  ;; to give users a reminder to build/install it. But also allow
+  ;; suppressing that warning for users using eglot; ada-eglot-setup
+  ;; sets wisi-disable-parser if the wisi parser is not needed.
   ;;
-  ;; We don't allow setting wisi-disable-* in a local
-  ;; variable. FIXME: why not? 1. allow user to type ada-mode again
-  ;; to reset stuff? 2. Could set in dir-locals.el, but can't fully configure eglot there.
-  ;;
-  ;; We want at least one warning for missing
-  ;; ada-process-parse-exec, to give users a reminder to
-  ;; build/install it. But also allow suppressing that warning for
-  ;; users using eglot.
-  ;;
-  ;; FIXME: do this for gpr-mode, wisitoken-grammar-mode, ... . Move to wisi-setup?
   (unless wisi-disable-parser
     (unless (executable-find ada-process-parse-exec)
-      (unless ada-suppress-exec-warn
 	(display-warning
 	 'ada
-	 (format "Ada parser exec '%s' not found; install it, or set `ada-suppress-exec-warn'."
+	 (format "Ada parser exec '%s' not found; install it, or set ada-*-backend to eglot."
 		 ada-process-parse-exec)))
-      (setq-local wisi-disable-parser t)))
+      (setq-local wisi-disable-parser t))
 
   ;; wisi-setup tolerates parser nil.
   (wisi-setup
@@ -1734,11 +1734,6 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   ;; ada-fill-comment-prefix. In post-local because user may want to
   ;; set it per-file.
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
-
-  (when global-font-lock-mode
-    ;; This calls ada-font-lock-keywords, which depends on
-    ;; ada-keywords
-    (font-lock-refresh-defaults))
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
 

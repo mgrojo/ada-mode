@@ -1,4 +1,4 @@
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 package Ada_Mode.Expression_Functions is
 
    function Square (A : in Float) return Float
@@ -31,7 +31,7 @@ package Ada_Mode.Expression_Functions is
          when D => "Unk");
 
    --EMACSCMD:(test-all-defs "type Result")
-   --EMACSRESULT:(list (list "ada_mode-expression_functions.ads" (concat "Result " (cl-ecase ada-xref-tool (gpr_query "record type")(gnat "spec")))))
+   --EMACSRESULT:(list (list "ada_mode-expression_functions.ads" (concat "Result " (cl-ecase ada-xref-backend ((gpr_query eglot) "record type")(gnat "spec")))))
    type Result is record
       A : Integer;
       B : Integer;

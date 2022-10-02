@@ -1,13 +1,13 @@
 -- tests slices; example of typical code.
 
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
 --EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
 
-   --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (forward-line 2)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
+   --EMACSCMD:(cl-ecase ada-xref-backend ((gpr_query eglot) (forward-line 2)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
    --EMACSRESULT:(eq ada-xref-tool 'gpr_query)
    function "+" (Left : in Day; Right : in Integer) return Day;
 
@@ -36,7 +36,7 @@ procedure Ada_Mode.Slices is
    --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Sun"
    D1, D2 : Day := +Sun;
-   --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (end-of-line 0)(backward-char 5)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Item"))
+   --EMACSCMD:(cl-ecase ada-xref-backend ((gpr_query eglot) (end-of-line 0)(backward-char 5)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Item"))
    --EMACSRESULT: (eq ada-xref-tool 'gpr_query)
    --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Sun, Mon,"))
    --EMACSRESULT: t
