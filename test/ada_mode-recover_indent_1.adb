@@ -3,7 +3,6 @@
 --
 --  The test is that indent succeeds, and gives reasonable results.
 --
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Ada_Mode.Recover_Indent_1
 is
 begin

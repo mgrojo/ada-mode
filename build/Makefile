@@ -82,6 +82,7 @@ endif
 test : test-ada-lalr-partial-process-gpr_query.stamp
 test : test-ada-lalr-incremental-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
+test : test-ada-eglot.stamp
 test : summarize
 
 summarize :

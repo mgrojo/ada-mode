@@ -1,6 +1,5 @@
 -- Real error of missing string quote, now successfully recovered.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
 -- We get different indent results from partial and incremental parse;

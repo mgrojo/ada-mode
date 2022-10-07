@@ -1,5 +1,4 @@
 --  From a real editing session.
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Modify_Schema
 is
    Server_Config : Sal.Config_Files.Configuration_Type;

@@ -19,10 +19,12 @@ with -- context_clause_start
 --
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
+--EMACSCMD:(when (eql ada-xref-backend 'eglot) (ada-eglot-wait-indexing-done))
+
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 1"))
---EMACSRESULT:t
+--EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-at "; -- end 1"))
+--EMACSRESULT:(not (null wisi-parser-shared))
 with Ada.Strings.Unbounded; -- end 1
 
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
@@ -57,11 +59,11 @@ private with Ada.Containers.Vectors,
 --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 with Ada_Mode.Library_Function;
---EMACSCMD:(progn (forward-line -1)(forward-word 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
---EMACSRESULT:t
+--EMACSCMD:(when wisi-parser-shared (forward-line -1)(forward-word 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
+--EMACSRESULT:(not (null wisi-parser-shared))
 --EMACSCMD:(progn (forward-line -4)(test-all-defs "Ada_Mode.Library_Function"))
---EMACSRESULT_START:(list "ada_mode-library_function.ads" (concat "Library_Function " (cl-ecase ada-xref-backend ((gpr_query eglot) "function")(gnat "spec"))))
---EMACSRESULT_ADD:(list "ada_mode-library_function.adb" (concat "Library_Function " (cl-ecase ada-xref-backend ((gpr_query eglot) "body")(gnat "body"))))
+--EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot '("ada_mode-library_function.ads" "function Ada_Mode.Library_Function return Integer; -- spec")) (gpr_query '("ada_mode-library_function.ads" "Library_Function function")) (gnat '("ada_mode-library_function.ads" "Library_Function spec")))
+--EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-library_function.adb" "Library_Function body")) (gnat '("ada_mode-library_function.adb" "Library_Function body")))
 --EMACSRESULT_FINISH:
 
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "procedure Ada_Mode.Library_Procedure is"))
@@ -71,24 +73,24 @@ with Ada_Mode.Library_Procedure;
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2; -- context_clause_end
 
---EMACSCMD:(progn (goto-char (car (ada-fix-context-clause)))(looking-at "with -- context_clause_start"))
---EMACSRESULT:t
---EMACSCMD:(progn (goto-char (cdr (ada-fix-context-clause)))(looking-at "package Ada_Mode.Nominal -- context_clause_end"))
---EMACSRESULT:t
+--EMACSCMD:(when wisi-parser-shared (goto-char (car (ada-fix-context-clause)))(looking-at "with -- context_clause_start"))
+--EMACSRESULT:(not (null wisi-parser-shared))
+--EMACSCMD:(when wisi-parser-shared (goto-char (cdr (ada-fix-context-clause)))(looking-at "package Ada_Mode.Nominal -- context_clause_end"))
+--EMACSRESULT:(not (null wisi-parser-shared))
 
---EMACSRESULT:t
---EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
---EMACSRESULT:t
---EMACSCMD:(progn (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
---EMACSRESULT:t
+--EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
+--EMACSRESULT:(not (null wisi-parser-shared))
+--EMACSCMD:(when wisi-parser-shared (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
+--EMACSRESULT:(not (null wisi-parser-shared))
 package Ada_Mode.Nominal -- context_clause_end
 with
   Spark_Mode => On
 is -- target 0
-   --EMACSCMD:(progn (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
+   --EMACSCMD:(when wisi-parser-shared (ada-goto-declarative-region-start)(looking-at " -- target 0"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
@@ -156,7 +158,7 @@ is -- target 0
    type Object_Access_Type_7
      is access all Integer;
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    --  Test case-adjust of keyword in comment
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word -1)(wisi-case-adjust-at-point t)(let ((case-fold-search nil))(looking-back "New")))
@@ -175,7 +177,7 @@ is -- target 0
    --EMACSCMD:(progn (forward-line 1)(search-forward "is")(test-face "procedure" font-lock-keyword-face))
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    -- we don't put newline inside the paren here
    type Procedure_Access_Type_2 is access protected procedure
@@ -262,7 +264,7 @@ is -- target 0
        (A_Param : in Float)
        return Standard.Float;
    --EMACSCMD:(progn (forward-line -1)(ada-which-function))
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    -- a pathological case
    type Function_Access_Type_11 is access
@@ -300,25 +302,25 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
-   --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line -3)(test-all-defs "Private_Type_1"))
-   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Private_Type_1 " (cl-ecase ada-xref-backend ((gpr_query eglot) "abstract record type") (gnat "spec"))))
-   --EMACSRESULT_ADD:(list "ada_mode-nominal.ads" (concat "Private_Type_1 " (cl-ecase ada-xref-backend ((gpr_query eglot) "full declaration") (gnat "body")))))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_1 abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_1 full declaration"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_1a abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_1b abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_1c abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_1d abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_2 abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_2 full declaration"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_2a abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_3 abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_3 full declaration"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_4 abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_5 abstract record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Limited_Derived_Type_6 abstract record type"))
+   --EMACSCMD:(when wisi-parser-shared (forward-line -1)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
+   --EMACSCMD:(progn (forward-line -3)(test-all-defs "^   type Private_Type_1"))
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (cl-ecase ada-xref-backend (eglot "   type Private_Type_1 is abstract tagged limited null record;") (gpr_query "Private_Type_1 abstract record type") (gnat "Private_Type_1 spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Private_Type_1 full declaration")) (gnat '("ada_mode-nominal.ads" "Private_Type_1 body")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_1 abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_1 full declaration")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_1a abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_1b abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_1c abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_1d abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_2 abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_2 full declaration")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_2a abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_3 abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_3 full declaration")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_4 abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_5 abstract record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Limited_Derived_Type_6 abstract record type")) (gnat nil))
    --EMACSRESULT_FINISH:
 
    type Private_Type_2 is abstract tagged limited
@@ -384,14 +386,14 @@ is -- target 0
    function "+" (Left, Right : in Record_Type_1) return Record_Type_1;
    --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(xref-backend-identifier-at-point (project-current)))
    --EMACSRESULT: "\"+\""
-   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (forward-line -3)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
    function "and" (Left, Right : in Record_Type_1) return Boolean;
    --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(xref-backend-identifier-at-point (project-current)))
    --EMACSRESULT: "\"and\""
-   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "and\" (Left, Right : in Record_Type_1) return Boolean -- body"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (forward-line -3)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "and\" (Left, Right : in Record_Type_1) return Boolean -- body"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
    type Record_Type_2 is limited record
       Component_1 : Integer := 1;
@@ -406,8 +408,8 @@ is -- target 0
    end record;
    for Record_Type_2'Size use 32 * 3;
 
-   --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end record"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-back "end record"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
    --EMACSCMD:(test-face-1 "access" "Standard" font-lock-function-name-face)
    --EMACSCMD:(test-face-1 "access" "Integer" font-lock-type-face)
    type Record_Type_3
@@ -420,8 +422,8 @@ is -- target 0
       --EMACSCMD:(test-face "Object_Access_Type_0a" font-lock-type-face)
       Discriminant_3 : not null Ada_Mode.Nominal.Object_Access_Type_0a)
       is tagged record
-         --EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 2"))
-         --EMACSRESULT:t
+         --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-at "; -- end 2"))
+         --EMACSRESULT:(not (null wisi-parser-shared))
          Component_1 : Integer; -- end 2
          Component_2 :
            Integer;
@@ -449,7 +451,7 @@ is -- target 0
    type Decimal_Fixed_Point_3 is delta 0.10
      digits 10;
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    type Decimal_Fixed_Point_4 is delta
      0.10 digits 10;
@@ -488,39 +490,39 @@ is -- target 0
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(call-interactively 'wisi-goto-spec/body)(backward-word 1)(looking-at "body Protected_1 is"))
-   --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (end-of-line 5)(backward-word 5)(call-interactively 'wisi-goto-spec/body)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
+   --EMACSCMD:(when wisi-parser-shared (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
    protected type Protected_1 is -- Protected_1
 
       --EMACSCMD:(progn (forward-line -2)(test-all-defs "Protected_1"))
-      --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Protected_1 " (cl-ecase ada-xref-backend ((gpr_query eglot) "protected type")(gnat "spec"))))
-      --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Protected_1 body")
+      --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "   protected body Protected_1 is -- target 2")) (gpr_query '("ada_mode-nominal.ads" "Protected_1 protected type")) (gnat '("ada_mode-nominal.ads" "Protected_1 spec")))
+      --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) ((gpr_query gnat) '("ada_mode-nominal.adb" "Protected_1 body")))
       --EMACSRESULT_FINISH:
 
-      --EMACSCMD:(progn (end-of-line -5)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
-      --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -7)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
-      --EMACSRESULT:t
+      --EMACSCMD:(when wisi-parser-shared (end-of-line -5)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
+      --EMACSCMD:(when wisi-parser-shared (end-of-line -7)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
 
       --EMACSCMD:(ada-which-function)
-      --EMACSRESULT:"Protected_1"
+      --EMACSRESULT:(if wisi-parser-shared "Protected_1" "")
 
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
-      --EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 3"))
-      --EMACSRESULT:t
+      --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-at "; -- end 3"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
       function F1 return Integer; -- end 3
 
       --EMACSCMD:(test-face "Discrete_Type_1" font-lock-type-face)
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
       with Pre => B > 0.0;
-      --EMACSCMD:(progn (end-of-line 0)(ada-goto-declarative-region-start)(looking-at " -- Protected_1"))
-      --EMACSRESULT:t
+      --EMACSCMD:(when wisi-parser-shared (end-of-line 0)(ada-goto-declarative-region-start)(looking-at " -- Protected_1"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
 
       --EMACSCMD:(progn (forward-line 3)(ada-which-function t))
-      --EMACSRESULT:"E1"
+      --EMACSRESULT:(if wisi-parser-shared "E1" "")
       entry E1
         (X : Integer);
       entry E2 (X : Integer);
@@ -530,16 +532,16 @@ is -- target 0
         (A : Float;
          B : Float);
 
-      --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Protected_1"))
-      --EMACSRESULT:t
+      --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-back "end Protected_1"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
    private -- Protected_1
 
-      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
-      --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
-      --EMACSRESULT:t
+      --EMACSCMD:(when wisi-parser-shared (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
+      --EMACSCMD:(when wisi-parser-shared (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
+      --EMACSRESULT:(not (null wisi-parser-shared))
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
@@ -561,13 +563,13 @@ is -- target 0
 
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
-   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "protected body Protected_Buffer"))
+   --EMACSCMD:(progn (forward-line 2) (ada-find-other-file) (looking-at (cl-ecase ada-xref-backend (eglot "-- A comment before the first code") ((gpr_query gnat) "protected body Protected_Buffer"))))
    protected Protected_Buffer is
       --EMACSRESULT:t
       -- a single_protected_type
 
       --EMACSCMD:(ada-which-function)
-      --EMACSRESULT:"Protected_Buffer"
+      --EMACSRESULT:(if wisi-parser-shared "Protected_Buffer" "")
 
       --EMACSCMD:(test-face "Character" font-lock-type-face)
       --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
@@ -636,16 +638,16 @@ is -- target 0
    P_8
      : Ada.Strings.Unbounded.String_Access;
 
-   --EMACSCMD:(progn (forward-line 4)(test-all-defs "Task_Type_1"))
-   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Task_Type_1 " (cl-ecase ada-xref-backend ((gpr_query eglot) "task type") (gnat "spec"))))
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Task_Type_1 body")
+   --EMACSCMD:(progn (forward-line 4)(test-all-defs "^   task type Task_Type_1"))
+   --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "   task body Task_Type_1 is")) (gpr_query '("ada_mode-nominal.ads" "Task_Type_1 task type")) (gnat '("ada_mode-nominal.ads" "Task_Type_1 spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) ((gpr_query gnat) '("ada_mode-nominal.adb" "Task_Type_1 body")))
    --EMACSRESULT_FINISH:
    task type Task_Type_1 (Name : access String)
    with
      Storage_Size => 512 + 256
    is
       --EMACSCMD:(ada-which-function)
-      --EMACSRESULT:"Task_Type_1"
+      --EMACSRESULT:(if wisi-parser-shared "Task_Type_1" "")
 
       --EMACSCMD:(test-face "Start" 'font-lock-function-name-face)
       --EMACSCMD:(test-face "Discrete_Type_1" nil)
@@ -664,10 +666,10 @@ is -- target 0
    -- 'overriding' in ada_mode-nominal-child.ads
 
    --EMACSCMD:(test-all-defs "type Parent_Type_1")
-   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Parent_Type_1 " (cl-ecase ada-xref-backend ((gpr_query eglot) "record type")(gnat "spec"))))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Child_Type_1 record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Child_Type_2 record type"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Child_Type_2 full declaration"))
+   --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Parent_Type_1 record type")) (gnat '("ada_mode-nominal.ads" "Parent_Type_1 spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.ads" "Child_Type_1 record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.ads" "Child_Type_2 record type")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")) (gnat nil))
    --EMACSRESULT_FINISH:
    type Parent_Type_1 is tagged record
       Parent_Element_1 : Integer;
@@ -696,9 +698,9 @@ is -- target 0
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
    --EMACSCMD:(progn (forward-line -1)(forward-word)(ada-which-function))
-   --EMACSRESULT:"Procedure_1a"
+   --EMACSRESULT:(if wisi-parser-shared "Procedure_1a" "")
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    not overriding
    procedure Procedure_1b
@@ -715,15 +717,15 @@ is -- target 0
       Item_2 : out    Character)
      is null;
    --EMACSCMD:(progn (forward-line -5)(ada-which-function))
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
    --EMACSCMD:(progn (forward-line -6)(ada-which-function))
-   --EMACSRESULT:"Procedure_1d"
+   --EMACSRESULT:(if wisi-parser-shared "Procedure_1d" "")
    --EMACSCMD:(progn (forward-line -7)(ada-which-function))
-   --EMACSRESULT:"Procedure_1d"
+   --EMACSRESULT:(if wisi-parser-shared "Procedure_1d" "")
    --EMACSCMD:(progn (forward-line -8)(ada-which-function))
-   --EMACSRESULT:"Procedure_1d"
+   --EMACSRESULT:(if wisi-parser-shared "Procedure_1d" "")
    --EMACSCMD:(progn (forward-line -9)(ada-which-function))
-   --EMACSRESULT:"Procedure_1d"
+   --EMACSRESULT:(if wisi-parser-shared "Procedure_1d" "")
 
    procedure Procedure_1e (Item   : in out Parent_Type_1;
                            Item_1 : in Character;
@@ -735,31 +737,31 @@ is -- target 0
 
    function Function_2a (Param : in Parent_Type_1) return Float;
 
-   --EMACSCMD:(test-all-refs "function Function_2b")
-   --EMACSRESULT_START:(cl-ecase ada-xref-backend ((gpr_query eglot) (list "ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat (list "ada_mode-nominal.ads" "Function_2b spec")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat (list "ada_mode-nominal.adb" "Function_2b body")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat (list "ada_mode-nominal-child.adb" "Function_2b")))
-   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b" (cl-ecase ada-xref-backend ((gpr_query eglot) " Parent_Type_1; dispatching call"))))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))(gnat '("ada_mode-nominal.adb" "Function_2b")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_2; dispatching call"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; body"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; static call"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; dispatching call"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Function_2b Child_Type_2; declaration"))
+   --EMACSCMD:(test-all-refs "^   function Function_2b")
+   --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.ads" "   function Function_2b (Param : in Parent_Type_1) return")) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat '("ada_mode-nominal.ads" "Function_2b spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "   function Function_2b (Param : in Parent_Type_1) return Float")) (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat '("ada_mode-nominal.adb" "Function_2b body")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "      return Function_2b (Parent_Type_1'(1, 1.0, False));")) (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat '("ada_mode-nominal-child.adb" "Function_2b")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "      return Function_2b (Item);")) (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")) (gnat '("ada_mode-nominal.adb" "Function_2b")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))(gnat '("ada_mode-nominal.adb" "Function_2b")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal-child.adb" "      return Function_2b (Item);")) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_2; dispatching call")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.adb" "Function_2b Child_Type_2; body")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.adb" "Function_2b Child_Type_2; static call")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.adb" "Function_2b Child_Type_2; dispatching call")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Function_2b Child_Type_2; declaration")) (gnat nil))
    --EMACSRESULT_FINISH:
    function Function_2b (Param : in Parent_Type_1) return
      Float;
    --EMACSCMD:(progn (forward-line -2)(test-all-defs "function Function_2b"))
-   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Function_2b " (cl-ecase ada-xref-backend ((gpr_query eglot) "Ada_Mode.Nominal.Parent_Type_1;(Param) function")(gnat "spec"))))
-   --EMACSRESULT_ADD:  (list "ada_mode-nominal.adb" (concat "Function_2b " (cl-ecase ada-xref-backend ((gpr_query eglot) "Ada_Mode.Nominal.Parent_Type_1;(Param) body")(gnat "body"))))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1;(Param) function"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1;(Param) body"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2;(Param) function"))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2;(Param) body"))
+   --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "   function Function_2b (Param : in Parent_Type_1) return Float")) (gpr_query '("ada_mode-nominal.ads" "Function_2b Ada_Mode.Nominal.Parent_Type_1;(Param) function")) (gnat '("ada_mode-nominal.ads" "Function_2b spec")))
+   --EMACSRESULT_ADD: (cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.adb" "Function_2b Ada_Mode.Nominal.Parent_Type_1;(Param) body")) (gnat '("ada_mode-nominal.adb" "Function_2b body")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1;(Param) function")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1;(Param) body")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2;(Param) function")) (gnat nil))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2;(Param) body")) (gnat nil))
    --EMACSRESULT_FINISH:
 
    function Function_2c (Param : in Parent_Type_1)
@@ -769,15 +771,15 @@ is -- target 0
    not overriding function
      Function_2e (Param : in Parent_Type_1) return Float;
 
-   --EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 5"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-at "; -- end 5"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
    not overriding
    function Function_2f
      (Param : in Parent_Type_1)
      return Float; -- end 5
 
    --EMACSCMD:(progn (end-of-line 3)(ada-which-function))
-   --EMACSRESULT:"Function_2g"
+   --EMACSRESULT:(if wisi-parser-shared "Function_2g" "")
    function Function_2g
      (Param : in Private_Type_1)
      return Float
@@ -795,7 +797,7 @@ is -- target 0
       Parent_Element_2 => 2.0,
       Parent_Element_3 => False);
    --EMACSCMD:(progn (forward-line -2)(ada-which-function))
-   --EMACSRESULT:"Ada_Mode.Nominal"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    procedure Procedure_2a;
    procedure
@@ -835,18 +837,18 @@ is -- target 0
       procedure Separate_Procedure_2 (Item : in Integer);
    end Separate_Package_1;
 
-   --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
-   --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "; -- Ada_Mode.Nominal"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
+   --EMACSCMD:(when wisi-parser-shared (forward-line 2) (forward-sexp)(looking-at "; -- Ada_Mode.Nominal"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 private -- Ada_Mode.Nominal
 
-   --EMACSCMD:(progn (forward-line -2) (backward-sexp)(looking-at "is -- target 0"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (forward-line -2) (backward-sexp)(looking-at "is -- target 0"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
    type Private_Type_1 is abstract tagged limited null record;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 2)(call-interactively 'wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited private;"))
-   --EMACSRESULT: t
+   --EMACSCMD:(when wisi-parser-shared (forward-line -1)(forward-word 2)(call-interactively 'wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited private;"))
+   --EMACSRESULT: (not (null wisi-parser-shared))
    type Private_Type_2 is abstract tagged limited
       record
          Component_1 : Integer;
@@ -854,8 +856,8 @@ private -- Ada_Mode.Nominal
          Component_3 : Integer;
       end record; -- Ada mode 4.01 aligned this with "type"; this is better
 
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- Ada_Mode.Nominal"))
-
+   --EMACSCMD:(when wisi-parser-shared (ada-goto-declarative-region-start)(looking-at " -- target 0"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with
       record
          Component_1 : Integer := 0;
@@ -948,7 +950,7 @@ private -- Ada_Mode.Nominal
    type Limited_Derived_Type_6 is abstract
      limited new Private_Type_1 with null record;
    --EMACSCMD:(progn (forward-line -2)(ada-add-log-current-function))
-   --EMACSRESULT:"Limited_Derived_Type_6"
+   --EMACSRESULT:(if wisi-parser-shared "Limited_Derived_Type_6" "")
 
    overriding function Function_2g (Param : in Limited_Derived_Type_6) return Float is abstract;
    overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_6) is abstract;
@@ -969,8 +971,8 @@ private -- Ada_Mode.Nominal
 
 end Ada_Mode.Nominal; -- Ada_Mode.Nominal
 
---EMACSCMD:(progn (forward-line -2) (forward-sexp)(backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
---EMACSRESULT:t
+--EMACSCMD:(when wisi-parser-shared (forward-line -2) (forward-sexp)(backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSRESULT:(not (null wisi-parser-shared))
 -- Local Variables:
 -- fill-column: 70
 -- wisi-process-time-out: 6.0

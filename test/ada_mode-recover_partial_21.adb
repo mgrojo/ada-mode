@@ -1,6 +1,5 @@
 -- From a real editing session with partial parse active; computed nil indent for line 13
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 declare
    ID : Token_ID renames Prod.RHSs (RHS).Tokens (I);

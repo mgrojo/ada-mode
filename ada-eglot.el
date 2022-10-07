@@ -1,9 +1,30 @@
 ;;; ada-eglot.el --- Ada definitions for eglot -*- lexical-binding: t; -*-
 
 (require 'ada-core)
+(require 'eieio)
 (require 'eglot)
 (require 'gnat-compiler)
 (require 'wisi)
+
+(defclass eglot-ada (eglot-lsp-server)
+  ((indexing-done
+    :accessor eglot-ada-indexing-done
+    :initform nil))
+  :documentation "AdaCore's ada_language_server.")
+
+(cl-defmethod eglot-handle-notification ((server eglot-ada) (_method (eql $/progress))
+   &key _token value &allow-other-keys)
+  "Handle notification $/progress."
+  (when (string= (plist-get value :kind) "end")
+    (setf (eglot-ada-indexing-done server) t)))
+
+(defun ada-eglot-wait-indexing-done ()
+  (let ((server (eglot-current-server)))
+    (message "waiting for ada_language_server indexing ...")
+    (while (not (eglot-ada-indexing-done server))
+      (accept-process-output))
+    (message "waiting for ada_language_server indexing ... done")
+    ))
 
 (defun ada-eglot-indent-line ()
   "For `indent-line-function'."
@@ -45,21 +66,21 @@
       (when prj
 	(eglot 'ada-mode 	 ;; managed-major-mode
 	       prj 		 ;; project; project-root is server process directory
-	       'eglot-lsp-server ;; class
+	       'eglot-ada        ;; class
 	       'gnat-find-als 	 ;; contact
 	       "Ada" 		 ;; language-id
 	       )
 
 	(when (eglot-current-server)
 	  (cl-ecase ada-face-backend
-	    (wisi nil)
+	    ((none wisi) nil)
 	    (eglot
 	     (unless (plist-get (oref (eglot-current-server) capabilities) :semanticTokensProvider)
 	       (display-warning 'ada "LSP server does not support faces; change ada-face-backend")))
 	    )
 
 	  (cl-ecase ada-indent-backend
-	    (wisi nil)
+	    ((none wisi) nil)
 	    (eglot
 	     ;; :documentFormattingProvider does the whole file at once; not
 	     ;; useful for indent-region. IMPROVEME: in als devel version? fix it!
@@ -82,8 +103,8 @@
   (ada-eglot-require-eglot)
 
   (cl-ecase ada-face-backend
-    (wisi
-     (setq-local wisi-disable-face nil))
+    (none
+     (setq-local wisi-disable-face t))
 
     (eglot
      (setq-local wisi-disable-face t)
@@ -99,18 +120,27 @@
      ;; (setq wisi-disable-face t)
      ;; (setq eglot-enable-semantic-tokens t)
      ;; see the default settings in eglot-semantic-token-faces
-     ))
+     )
 
-  (cl-ecase ada-indent-backend
     (wisi
      ;; wisi-setup does the work
-     (setq-local wisi-disable-indent nil))
+     (setq-local wisi-disable-face nil))
+    )
+
+  (cl-ecase ada-indent-backend
+    (none
+     (setq-local wisi-disable-indent t))
 
     (eglot
      (setq-local wisi-disable-indent t)
 
      (setq-local indent-line-function #'ada-eglot-indent-line)
-     (setq-local indent-region-function #'eglot-format)))
+     (setq-local indent-region-function #'eglot-format))
+
+    (wisi
+     ;; wisi-setup does the work
+     (setq-local wisi-disable-indent nil))
+    )
 
   (cl-ecase ada-xref-backend
     ((gpr_query gnat)

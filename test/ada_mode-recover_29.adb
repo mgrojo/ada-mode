@@ -1,6 +1,5 @@
 -- Converting 'if then' to 'case'; parser used to fail.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 procedure Use_Minimal_Complete_Actions
   (Current_Token        : in     Token_ID;

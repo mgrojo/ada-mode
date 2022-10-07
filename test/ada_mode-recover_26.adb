@@ -1,7 +1,6 @@
 --  From a real editing session.
 --  Used to encounter 'error during resume'.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 
 package body Ada_Mode.Recover_26 is

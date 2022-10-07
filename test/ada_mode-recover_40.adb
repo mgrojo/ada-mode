@@ -1,7 +1,6 @@
 --  From an actual editing session; used to raise an exception.
 --
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_Navigate_1 is
    procedure Add_Param (Name : in String; Value : in String)

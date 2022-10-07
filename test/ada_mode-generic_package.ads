@@ -1,6 +1,6 @@
 -- This is to test the indentation of declarations in generics package declarations
 
---EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
+--EMACSCMD:(when (eq ada-face-backend 'wisi) (progn (wisi-parse-buffer 'face)(font-lock-ensure)))
 
 --EMACSCMD:(wisi-prj-select-cache "subdir/ada_mode.adp" (ada-prj-default))
 
@@ -16,12 +16,12 @@ with Ada.Strings.Unbounded;
 --EMACSRESULT:""
 
 --EMACSCMD:(progn (end-of-line)(forward-sexp)(looking-at "generic$"))
---EMACSRESULT: t
+--EMACSRESULT: (not (null wisi-parser-shared))
 --EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "package Ada_Mode.Generic_Package is$"))
---EMACSRESULT: t
+--EMACSRESULT: (not (null wisi-parser-shared))
 generic
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:"Ada_Mode.Generic_Package"
+   --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Generic_Package" "")
 
    use Ada.Text_IO;
 
@@ -140,18 +140,18 @@ generic
    --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
    --EMACSCMD:(progn (forward-line 4) (forward-sexp)(looking-at "is$"))
-   --EMACSRESULT: t
+   --EMACSRESULT: (not (null wisi-parser-shared))
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1) (forward-sexp)(looking-back "^end Ada_Mode.Generic_Package"))
-   --EMACSRESULT: t
+   --EMACSRESULT: (not (null wisi-parser-shared))
 package Ada_Mode.Generic_Package is
    --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(backward-sexp)(looking-at "^package Ada_Mode.Generic_Package is$"))
-   --EMACSRESULT:t
+   --EMACSRESULT:(not (null wisi-parser-shared))
    --EMACSCMD:(progn (forward-line -3)(backward-sexp)(looking-at "^generic$"))
-   --EMACSRESULT:t
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
    -- See ada_mode-generic_parent.ads for generic subprograms
 
-   --EMACSCMD:(progn (end-of-line 3)(ada-goto-declarative-region-start)(looking-back "Ada_Mode.Generic_Package is"))
+   --EMACSCMD:(cl-ecase ada-xref-backend ((gnat gpr_query) (end-of-line 3)(ada-goto-declarative-region-start)(looking-back "Ada_Mode.Generic_Package is")) (eglot t))
    --EMACSRESULT:t
    type Int is new Integer;
 
@@ -159,4 +159,4 @@ package Ada_Mode.Generic_Package is
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;
 --EMACSCMD:(progn (end-of-line 0)(backward-char 1)(backward-sexp)(looking-back "^package Ada_Mode.Generic_Package "))
---EMACSRESULT:t
+--EMACSRESULT:(not (null wisi-parser-shared))

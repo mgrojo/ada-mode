@@ -31,12 +31,14 @@ package Ada_Mode.Expression_Functions is
          when D => "Unk");
 
    --EMACSCMD:(test-all-defs "type Result")
-   --EMACSRESULT:(list (list "ada_mode-expression_functions.ads" (concat "Result " (cl-ecase ada-xref-backend ((gpr_query eglot) "record type")(gnat "spec")))))
+   --EMACSRESULT:(unless (eq ada-xref-backend 'eglot) (list (list "ada_mode-expression_functions.ads" (concat "Result " (cl-ecase ada-xref-backend (gpr_query "record type")(gnat "spec"))))))
    type Result is record
       A : Integer;
       B : Integer;
    end record;
 
+   --EMACSCMD:(test-all-defs "return Result")
+   --EMACSRESULT:(list (list "ada_mode-expression_functions.ads" (cl-ecase ada-xref-backend (eglot "   type Result is record")(gpr_query "Result record type")(gnat "Result spec")))))
    --  Don't require extra parens for aggregate result in expression function
    function Key return Result is
      (A => 1,

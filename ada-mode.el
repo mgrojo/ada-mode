@@ -149,25 +149,6 @@ rather than to the same column."
   :type 'integer
   :safe #'integerp)
 
-(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse"
-  "Name of executable to use for external process Ada parser.
-There are two standard choices; ada_mode_wisi_lalr_parse and
-ada_mode_wisi_lr1_parse. The LR1 version (the default) is
-slower to load on first use, but gives better error recovery."
-  :type 'string
-  :group 'ada)
-
-(defcustom ada-process-parse-exec-opts nil
-  "List of process start options for `ada-process-parse-exec'."
-  :type 'string
-  :group 'ada)
-
-(defcustom ada-suppress-exec-warn nil
-  "When non-nil, don't warn when `ada-process-parse-exec' not found."
-  :group 'ada
-  :type 'boolean
-  :safe #'booleanp)
-
 (defcustom ada-xref-full-path nil
   "If t, cross-references show the full path to source files; if
 nil, only the file name."
@@ -635,80 +616,88 @@ Also sets `ff-function-name' for `ff-pre-load-hook'."
 
   ;; Fail gracefully and silently, since this could be called from
   ;; which-function-mode.
-  (when wisi-parser-shared
-    ;; eglot/LSP maybe supports "which function" via DocumentSymbol, which
-    ;; ada_language_server does not support.
-    (cond
-     (wisi-incremental-parse-enable
-      (ada-validate-enclosing-declaration nil 'navigate))
+  (cl-ecase ada-face-backend
+    (wisi
+     (cond
+      (wisi-incremental-parse-enable
+       (ada-validate-enclosing-declaration nil 'navigate))
 
-     (t
-      (wisi-validate-cache (max (point-min) (- (point) (/ ada-which-func-parse-size 2)))
-			   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))
-			   nil
-			   'navigate)
-      ))
+      (t
+       (wisi-validate-cache (max (point-min) (- (point) (/ ada-which-func-parse-size 2)))
+			    (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))
+			    nil
+			    'navigate)
+       ))
 
-    (save-excursion
-      (condition-case nil
-	  (let ((result nil)
-		(cache (ada-goto-declaration-start-1 include-type)))
-	    (if (null cache)
-		;; bob or failed parse
-		(setq result "")
+     (save-excursion
+       (condition-case nil
+	   (let ((result nil)
+		 (cache (ada-goto-declaration-start-1 include-type)))
+	     (if (null cache)
+		 ;; bob or failed parse
+		 (setq result "")
 
-	      (when (memq (wisi-cache-nonterm cache)
-			  '(generic_package_declaration generic_subprogram_declaration))
-		;; name is after next statement keyword
-		(setq cache (wisi-next-statement-cache cache)))
+	       (when (memq (wisi-cache-nonterm cache)
+			   '(generic_package_declaration generic_subprogram_declaration))
+		 ;; name is after next statement keyword
+		 (setq cache (wisi-next-statement-cache cache)))
 
-	      ;; add or delete 'body' as needed
-	      (cl-ecase (wisi-cache-nonterm cache)
-		((entry_body entry_declaration)
-		 (setq result (ada-which-function-1 "entry" nil)))
+	       ;; add or delete 'body' as needed
+	       (cl-ecase (wisi-cache-nonterm cache)
+		 ((entry_body entry_declaration)
+		  (setq result (ada-which-function-1 "entry" nil)))
 
-		((full_type_declaration private_type_declaration)
-		 (setq result (ada-which-function-1 "type" nil)))
+		 ((full_type_declaration private_type_declaration)
+		  (setq result (ada-which-function-1 "type" nil)))
 
-		(package_body
-		 (setq result (ada-which-function-1 "package" nil)))
+		 (package_body
+		  (setq result (ada-which-function-1 "package" nil)))
 
-		((package_declaration
-		  package_specification) ;; after 'generic'
-		 (setq result (ada-which-function-1 "package" t)))
+		 ((package_declaration
+		   package_specification) ;; after 'generic'
+		  (setq result (ada-which-function-1 "package" t)))
 
-		(protected_body
-		 (setq result (ada-which-function-1 "protected" nil)))
+		 (protected_body
+		  (setq result (ada-which-function-1 "protected" nil)))
 
-		((protected_type_declaration single_protected_declaration)
-		 (setq result (ada-which-function-1 "protected" t)))
+		 ((protected_type_declaration single_protected_declaration)
+		  (setq result (ada-which-function-1 "protected" t)))
 
-		((abstract_subprogram_declaration
-		  expression_function_declaration
-		  subprogram_declaration
-		  subprogram_renaming_declaration
-		  generic_subprogram_declaration ;; after 'generic'
-		  null_procedure_declaration)
-		 (setq result (ada-which-function-1
-			       (progn (search-forward-regexp "function\\|procedure")(match-string 0))
-			       nil))) ;; no 'body' keyword in subprogram bodies
+		 ((abstract_subprogram_declaration
+		   expression_function_declaration
+		   subprogram_declaration
+		   subprogram_renaming_declaration
+		   generic_subprogram_declaration ;; after 'generic'
+		   null_procedure_declaration)
+		  (setq result (ada-which-function-1
+				(progn (search-forward-regexp "function\\|procedure")(match-string 0))
+				nil))) ;; no 'body' keyword in subprogram bodies
 
-		((subprogram_body subunit)
-		 (setq result (ada-which-function-1
-			       (progn (search-forward-regexp "function\\|procedure")(match-string 0))
-			       nil)))
+		 ((subprogram_body subunit)
+		  (setq result (ada-which-function-1
+				(progn (search-forward-regexp "function\\|procedure")(match-string 0))
+				nil)))
 
-		((single_task_declaration task_type_declaration)
-		 (setq result (ada-which-function-1 "task" t)))
+		 ((single_task_declaration task_type_declaration)
+		  (setq result (ada-which-function-1 "task" t)))
 
 
-		(task_body
-		 (setq result (ada-which-function-1 "task" nil)))
-		))
-	    (when (called-interactively-p 'interactive)
-	      (message result))
-	    result)
-	(error "")))))
+		 (task_body
+		  (setq result (ada-which-function-1 "task" nil)))
+		 ))
+	     (when (called-interactively-p 'interactive)
+	       (message result))
+	     result)
+	 (error ""))))
+
+    (eglot
+     (user-error "als version 22 does not support which-function")
+     ;; eglot/LSP maybe supports "which function" via DocumentSymbol, which
+     ;; ada_language_server version 22 does not support.
+     )
+
+    (none "")
+    ))
 
 (defun ada-add-log-current-function ()
   "For `add-log-current-defun-function'."
@@ -1703,8 +1692,8 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
 	(display-warning
 	 'ada
 	 (format "Ada parser exec '%s' not found; install it, or set ada-*-backend to eglot."
-		 ada-process-parse-exec)))
-      (setq-local wisi-disable-parser t))
+		 ada-process-parse-exec))
+	(setq-local wisi-disable-parser t)))
 
   ;; wisi-setup tolerates parser nil.
   (wisi-setup

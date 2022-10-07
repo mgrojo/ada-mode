@@ -5,7 +5,6 @@
 -- Used to encounter a bug in wisitoken-lr-mckenzie_recover-ada.adb
 -- Match_Names_Error; now finds a good solution quickly.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 function Ada_Mode.Recover_11
   (Grammar : in Wisitoken.Productions.Prod_Arrays.Vector;

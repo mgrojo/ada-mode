@@ -3,7 +3,6 @@
 --  Test automatically converting object.method to method.object.
 --
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
 package body Ada_Mode.Refactor_Object_Method_To_Method_Object is

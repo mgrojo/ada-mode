@@ -1,6 +1,5 @@
 --  Test navigation when changing a subprogram name
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 
 package body Ada_Mode.Recover_Change_Name is

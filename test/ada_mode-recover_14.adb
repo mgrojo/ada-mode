@@ -2,7 +2,6 @@
 --
 -- Used to cause recover to fail; now finds a good solution quickly.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 procedure Ada_Mode.Recover_14
 is

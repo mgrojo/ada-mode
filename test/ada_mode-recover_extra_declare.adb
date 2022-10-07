@@ -1,7 +1,6 @@
 -- Test error recovery from an extra 'declare'.
 -- Does not compile.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
 procedure Ada_Mode.Recover_Extra_Declare is

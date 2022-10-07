@@ -1,6 +1,5 @@
 --  A real error recovery case.
 --
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 procedure Journal_To_TSV
 is

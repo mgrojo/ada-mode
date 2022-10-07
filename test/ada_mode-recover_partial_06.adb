@@ -1,5 +1,4 @@
 --  Raised Constraint_Error. Now fixed.
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 
 --  recover inserts 'if then if then' here
 end if;

@@ -3,7 +3,6 @@
 --
 --  Does not compile.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
 --  ada-align inserts missing tokens in the parameter list, then runs

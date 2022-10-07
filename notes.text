@@ -48,13 +48,16 @@ o.e.a.stephe-7 (): available
    ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
 
  current work
-run all tests with eglot
-test/ada_mode-expression_functions.ads
-    on visit file, get warning about ada parser not found; should not
-        warning issued before wisi-setup run
-        ada-eglot-setup must set wisi-disable-parser
+install devel versions of eglot, als; test face
+    /Projects/ada_language_server
+        als: alr build
+lal_tools.gpr:2:06: imported project file "templates_parser.gpr" not found
+        installed libadalang, langkit, etc; /Projects/libadalang/user_manual/building.rst
+        still not found; posted issue https://github.com/AdaCore/ada_language_server/issues/1054
 
-/Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-expression_functions.ads:33: test (test-all-defs "type Result") ... signaled
+        eglot: cloned in /Projects/eglot-semantic-tokens
+
+/Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-expression_functions.ads
     when run by make one ada_language_server reports more than one gpr file
         apparently it is started before the gpr file is specified?
         didchangeconfiguration is present; race condition?
@@ -68,9 +71,11 @@ test/ada_mode-expression_functions.ads
                 run just before "Connected! ... " message
                 hack-dir-local-variables is also run then
 
-            change to eglot-server-initialized-hook?
-
         try overriding eglot-initialization-options, as eglot-eclipse does
+
+        ignoring for now.
+
+ada-make-subprogram-body is a refactor case
 
 Gnat-compiler-fix-hook for ada fixes. Or wisi-goto-declar*
 
@@ -80,12 +85,6 @@ wisitoken-syntax_trees.ads function New_Stream
     C-c C-d just goes to the body
     so just bind C-c C-d to xref-find-definitions; minor-mode
 
-M-d on "" => No applicable method: wisi-xref-definitions
-    xref-backend-functions is (t eglot-xref-backend)
-    xref-backend-definitions calls wisi-xref-definitions because 't' first means 'do global functions first'
-    now (wisi-find-backend) returns etags; delete that in ada-eglot-setup
-
-
 in Ediff; 't' does not insert type name in *xgit-log-edit*
     (add-log-current-defun) returns nil
     add-log-current-defun-function is ada-add-log-current-function
@@ -93,10 +92,6 @@ in Ediff; 't' does not insert type name in *xgit-log-edit*
         which only supports wisi-parser-shared
         add eglot?
         or add ada-eglot-log-current-function?
-
-tolerate no parser
-    use eglot
-    Could store alist in wisi-prj.parser-enabled; ((ada-mode . disabled) (gpr-mode . enabled)) but that's tedious
 
 build.sh don't build gpr_query if gnatcoll-xref not found - just use gnat xref or eglot
 

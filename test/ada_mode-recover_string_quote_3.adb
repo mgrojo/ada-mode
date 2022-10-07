@@ -2,7 +2,6 @@
 -- config.ops to delete all the string literals except the first; now
 -- keeps the last.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Ada_Mode.Recover_String_Quote_3
 is
    Response : Unbounded_String := +"<!DOCTYPE html>" & Ascii.Lf &

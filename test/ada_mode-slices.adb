@@ -7,8 +7,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
 
-   --EMACSCMD:(cl-ecase ada-xref-backend ((gpr_query eglot) (forward-line 2)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
-   --EMACSRESULT:(eq ada-xref-tool 'gpr_query)
+   --EMACSCMD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query (forward-line 2)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$")) (gnat nil))
+   --EMACSRESULT:(eq ada-xref-backend 'gpr_query)
    function "+" (Left : in Day; Right : in Integer) return Day;
 
    function "+" (Left : in Day; Right : in Integer) return Day
@@ -36,10 +36,10 @@ procedure Ada_Mode.Slices is
    --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Sun"
    D1, D2 : Day := +Sun;
-   --EMACSCMD:(cl-ecase ada-xref-backend ((gpr_query eglot) (end-of-line 0)(backward-char 5)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Item"))
-   --EMACSRESULT: (eq ada-xref-tool 'gpr_query)
-   --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Sun, Mon,"))
-   --EMACSRESULT: t
+   --EMACSCMD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query (end-of-line 0)(backward-char 5)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Item")) (gnat nil))
+   --EMACSRESULT: (eq ada-xref-backend 'gpr_query)
+   --EMACSCMD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query (end-of-line -2)(backward-char 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Sun, Mon,")) (gnat nil))
+   --EMACSRESULT: (eq ada-xref-backend 'gpr_query)
 
    N      : Integer;
    Line   : String(1..80);

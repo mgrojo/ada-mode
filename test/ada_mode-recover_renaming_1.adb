@@ -1,6 +1,5 @@
 --  From a real editing session. Found a bug in Language_Fixes.
 --
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_Renaming_1 is
 

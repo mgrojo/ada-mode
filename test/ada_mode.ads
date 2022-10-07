@@ -9,10 +9,10 @@ package Ada_Mode is
       entry E;
       procedure P;
       function F return Boolean;
-   end;
+   end Separate_Protected_Body;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(call-interactively 'wisi-goto-spec/body)(looking-at (cl-ecase ada-xref-backend (gpr_query "Separate_Procedure is separate")((gnat eglot) "Separate_Procedure is$"))))
-   --EMACSRESULT:t
+   --EMACSCMD:(cl-ecase ada-xref-backend ((eglot gnat) nil)(gpr_query (forward-line 2)(forward-word 2)(call-interactively 'wisi-goto-spec/body)(looking-at (cl-ecase ada-xref-backend (gpr_query "Separate_Procedure is separate")((gnat eglot) "Separate_Procedure is$")))))
+   --EMACSRESULT:(eq ada-xref-backend 'gpr_query)
    procedure Separate_Procedure;
    -- WORKAROUND: GNAT GPL 2016/2017 puts a reference to the full body
    -- declaration in subdir/ada_mode-separate_procedure.adb in

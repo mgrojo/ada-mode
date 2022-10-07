@@ -38,17 +38,38 @@
   :type 'boolean
   :group 'ada)
 
-(defcustom ada-face-backend 'wisi
-  "Face backend to use for Ada; wisi or eglot."
-  ;; could be extended to tree-sitter
-  :type 'symbol
-  :options '(wisi eglot)
+(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse"
+  "Name of executable to use for external process Ada parser.
+There are two standard choices; ada_mode_wisi_lalr_parse and
+ada_mode_wisi_lr1_parse. The LR1 version (the default) is
+slower to load on first use, but gives better error recovery."
+  :type 'string
   :group 'ada)
 
-(defcustom ada-indent-backend 'wisi
-  "Indent backend to use for Ada; wisi or eglot."
+(defcustom ada-process-parse-exec-opts nil
+  "List of process start options for `ada-process-parse-exec'."
+  :type 'string
+  :group 'ada)
+
+(defcustom ada-face-backend
+  (cond
+   ((locate-file ada-process-parse-exec exec-path '("" ".exe")) 'wisi)
+   ((gnat-find-als nil t) 'eglot)
+   (t 'none))
+  "Face backend to use for Ada; none, eglot or wisi."
+  ;; could be extended to tree-sitter
   :type 'symbol
-  :options '(wisi eglot)
+  :options '(none eglot wisi)
+  :group 'ada)
+
+(defcustom ada-indent-backend
+  (cond
+   ((locate-file ada-process-parse-exec exec-path '("" ".exe")) 'wisi)
+   ((gnat-find-als nil t) 'eglot)
+   (t 'none))
+  "Indent backend to use for Ada; none, eglot or wisi."
+  :type 'symbol
+  :options '(none eglot wisi)
   :group 'ada)
 
 (defconst ada-operator-re
@@ -88,13 +109,15 @@ Called by `syntax-propertize'.")
    (t
     (wisi-validate-cache (point-min) (point-max) error-on-fail parse-action))))
 
-
 (defun ada-goto-declarative-region-start ()
   "Goto start of declarative region containing point.
 If in a statement, goto declarative region of the containing
 declaration.  If already in a declaration at or before a
 declarative region start, goto containing region start."
   (interactive)
+  (unless wisi-parser-shared
+    (user-error "ada-goto-declarative-region-start requires a syntax-tree"))
+
   (ada-validate-enclosing-declaration t 'navigate)
   (push-mark)
 
@@ -493,7 +516,7 @@ sort-lines."
 
 (defcustom ada-xref-backend
   (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr_query 'gnat)
-  "Ada cross reference tool; can be overridden in project files."
+  "Ada cross reference backend; can be overridden in project files."
   :type 'symbol
   :options ada-xref-known-backends
   :group 'ada)
@@ -504,6 +527,9 @@ sort-lines."
 (defun ada-make-subprogram-body ()
   "Convert subprogram specification after point into a subprogram body stub."
   (interactive)
+  (unless wisi-parser-shared
+    ;; eglot/lsp does not provide access to syntax tree
+    (user-error "ada-make-subprogram-body not supported by eglot/LSP"))
   (wisi-goto-statement-start)
   ;; point is at start of subprogram specification;
 

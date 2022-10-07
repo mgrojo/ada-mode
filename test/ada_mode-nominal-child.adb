@@ -3,25 +3,25 @@
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 package body Ada_Mode.Nominal.Child is -- target 0
 
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
+   --EMACSCMD:(when wisi-parser-shared (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
    -- result verified by diff.
    overriding procedure Procedure_1a (Item  : in out Child_Type_1)
    is begin
       null;
    end Procedure_1a;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at "overriding function Function_2a") (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.ads")))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at (cl-ecase ada-xref-backend (eglot "-- ada_mode-nominal-child spec")((gnat gpr_query) "overriding function Function_2a")) (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.ads"))))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float
    is
       pragma Unreferenced (Param);
    begin
-      --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(looking-at "overriding function Function_2a"))
+      --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(looking-at (cl-ecase ada-xref-backend (eglot "-- ada_mode-nominal-child spec")((gnat gpr_query) "overriding function Function_2a"))))
       --EMACSRESULT:t
       return 0.0;
    end Function_2a;
 
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0.0"))
+   --EMACSCMD:(when wisi-parser-shared (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0.0"))
    -- result verified by diff.
    overriding
    function Function_2b (Param : in Child_Type_1) return
@@ -40,8 +40,8 @@ package body Ada_Mode.Nominal.Child is -- target 0
       return Function_2b (Item);
    end Dynamic_Call_Function_2b;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at " -- target 0"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when wisi-parser-shared (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at " -- target 0"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
    overriding function Function_2c (Param : in Child_Type_1)
                                    return Float
    is -- target Function_2c
@@ -75,11 +75,11 @@ package body Ada_Mode.Nominal.Child is -- target 0
    end Child_Add;
 
    --  Homonym, for testing xref with no line/col info
-   --EMACSCMD:(test-all-defs "function Child_Add" t)
-   --EMACSRESULT_START:(cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) function")) (gnat '("ada_mode-nominal-child.adb" "Child_Add spec")))
-   --EMACSRESULT_ADD:  (cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) body")) (gnat '("ada_mode-nominal-child.adb" "Child_Add body")))
-   --EMACSRESULT_ADD:  (cl-ecase ada-xref-backend ((gpr_query eglot) '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body"))(gnat '("ada_mode-nominal-child.ads" "Child_Add spec")))
-   --EMACSRESULT_ADD: (when (eq ada-xref-tool 'gnat) '("ada_mode-nominal-child.adb" "Child_Add body"))
+   --EMACSCMD:(test-all-defs "^   function Child_Add" t)
+   --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal-child.adb" "   function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1")) (gpr_query '("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) function")) (gnat '("ada_mode-nominal-child.adb" "Child_Add spec")))
+   --EMACSRESULT_ADD:  (cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) body")) (gnat '("ada_mode-nominal-child.adb" "Child_Add body")))
+   --EMACSRESULT_ADD:  (cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body")) (gnat '("ada_mode-nominal-child.ads" "Child_Add spec")))
+   --EMACSRESULT_ADD: (cl-ecase ada-xref-backend (eglot nil) (gpr_query nil) (gnat '("ada_mode-nominal-child.adb" "Child_Add body")))
    --EMACSRESULT_FINISH:
    function Child_Add (Left : in Child_Type_1) return Child_Type_1
    is begin

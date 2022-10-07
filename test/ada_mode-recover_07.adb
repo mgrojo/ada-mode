@@ -9,7 +9,6 @@
 -- following 'end loop'. However, Prev_Result looks like an end loop
 -- name, so the solution (delete 'end') is cheaper.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_7 is -- 6
    procedure Follow

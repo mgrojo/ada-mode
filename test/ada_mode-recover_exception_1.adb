@@ -1,7 +1,6 @@
 --  From a real editing session.
 
 --EMACSCMD:(setq skip-recase-test t)
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 package body Ada_Mode.Recover_Exception_1 is
 
    function All_Frames (File : in SMM.ID3.File) return Frame_Lists.List

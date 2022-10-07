@@ -32,8 +32,6 @@
 --  additional permissions described in the GCC Runtime Library Exception,
 --  version 3.1, as published by the Free Software Foundation.
 
---EMACS_SKIP_UNLESS:(eq 'process ada-parser)
-
 pragma License (Modified_Gpl);
 
 package body Ada_Mode.Recover_Match_Names is

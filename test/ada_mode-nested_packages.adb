@@ -5,7 +5,7 @@
 
 --EMACSCMD:(wisi-prj-select-cache "ada_mode.gpr" (ada-prj-default))
 
---EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
+--EMACSCMD:(unless (eq ada-face-backend 'none) (wisi-parse-buffer 'face)(font-lock-ensure))
 
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 
@@ -27,8 +27,8 @@ use Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
 --EMACSCMD:(test-face "Nested_Packages" font-lock-function-name-face)
 package body Ada_Mode.Nested_Packages is
 
-   --EMACSCMD:(try-completion (cl-ecase ada-xref-backend ((gpr_query eglot) "<=")(gnat "\"<=\"")) (wisi-xref-completion-table (wisi-prj-xref (xref-find-backend)) (project-current)))
-   --EMACSRESULT:(cl-ecase ada-xref-backend ((gpr_query eglot) "<=<Ada_Mode.Nested_Packages<41>>")(gnat "\"<=\"<41>"))
+   --EMACSCMD:(cl-ecase ada-xref-backend (eglot nil) (t (try-completion (cl-ecase ada-xref-backend (gpr_query  "<=")(gnat "\"<=\"")) (wisi-xref-completion-table (wisi-prj-xref (xref-find-backend)) (project-current)))))
+   --EMACSRESULT:(cl-ecase ada-xref-backend (eglot nil)(gpr_query "<=<Ada_Mode.Nested_Packages<41>>")(gnat "\"<=\"<41>"))
 
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point

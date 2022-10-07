@@ -11,7 +11,7 @@ package Ada_Mode.Find_File is
 
    procedure P_Bug_One;
 
-   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "procedure P_Bug$"))
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at (cl-ecase ada-xref-backend (eglot "--  other file for testing ada-find-other-file") ((gpr_query gnat) "procedure P_Bug$"))))
    procedure P_Bug
      (Param_1 : in Integer);
    --EMACSRESULT:t
