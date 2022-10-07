@@ -417,16 +417,31 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 (defvar cl-print-readably); cl-print.el, used by edebug
 
-(defun large-frame ()
+(defun wisi-half-screen ()
   (interactive)
   (modify-frame-parameters
       nil
       (list
+       (cons 'font "DejaVu Sans Mono-8")
        (cons 'width 120) ;; characters; fringe extra
-       (cons 'height 71) ;; characters
-       (cons 'left 0) ;; pixels
+       (cons 'height 94) ;; characters
+       (cons 'left 0)
        (cons 'top 0))))
-(define-key global-map "\C-cp" #'large-frame)
+(define-key global-map "\C-cp" 'wisi-half-screen)
+
+(defun wisi-first-error ()
+  (interactive)
+  (pop-to-buffer "*Messages*")
+  (goto-char (point-min))
+  (search-forward "error:"))
+(define-key global-map [f6] 'wisi-first-error)
+
+(defun wisi-prev-window ()
+  "move to previous window"
+  (interactive)
+  (other-window -1))
+(define-key global-map [M-C-up] 'wisi-prev-window)
+(define-key global-map [M-C-down] 'other-window)
 
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."
