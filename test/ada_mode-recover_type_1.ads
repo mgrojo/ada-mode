@@ -3,7 +3,6 @@
 -- Used to be very slow, require cost 13 to find a solution. Now finds
 -- an excellent solution quickly.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 package Ada_Mode.Recover_Type_1 is
    type Derivs (Label : Derivs_Label) is record
       case Label is

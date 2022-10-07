@@ -1,6 +1,5 @@
 --  Test refactor 3, 4
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Refactor_Object_Index_To_Element_Object is
 

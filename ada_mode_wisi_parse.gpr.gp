@@ -17,12 +17,6 @@
 --  MA 02110-1335, USA.
 
 with "standard_common";
-with "gnatcoll";
-with "gnatcoll_sqlite";
-with "gnatcoll_xref";
-#if HAVE_GNAT_UTIL="yes"
-with "gnat_util";
-#end if;
 with "wisi";
 project Ada_Mode_Wisi_Parse is
 
@@ -30,8 +24,7 @@ project Ada_Mode_Wisi_Parse is
      ("ada_mode_wisi_lalr_parse.ads",
       "ada_mode_wisi_lr1_parse.ads",
       "run_ada_lalr_parse.ads",
-      "run_ada_lr1_parse.ads",
-      "gpr_query.adb"  --  FIXME: move gpr-query to a separate package
+      "run_ada_lr1_parse.ads"
      );
 
    for Source_Dirs use (".");
@@ -70,12 +63,6 @@ project Ada_Mode_Wisi_Parse is
 
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
 
-         for Switches ("gpr_query.adb") use
-           -- WORKAROUND: GNAT Community 2021 reports that gnatcoll 21.2 is missing an "overrides" somewhere
-           Standard_Common.Compiler.Common_Switches &
-           "-gnaty3abcefhiklnprtx" & -- not overrding -- Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches;
-
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
@@ -91,13 +78,6 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
-
-         for Switches ("gpr_query.adb") use
-           -- WORKAROUND: GNAT Community 2021 with gnatcoll 21.2 and -gnat2020 reports a missing "overrides"
-           -- AdaCore ticket U618-051
-           Standard_Common.Compiler.Common_Switches &
-           "-gnaty3abcefhiklnprtx" & "-gnatyM120" & -- not overriding
-           Standard_Common.Compiler.Release_Switches;
 
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
       end case;

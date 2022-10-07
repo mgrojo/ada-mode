@@ -1,7 +1,7 @@
 -- Test non-ASCII source encoding, and ASCII equivalent of non-ASCII
 -- characters.
 
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
 -- Selecting the project changes ada-syntax-propertize-hook, but does
 -- not clear the syntax cache (see note in ada-prj-select-compiler for
@@ -46,7 +46,7 @@ package Non_ASCII is
 
    ["03c0"]_ASCII : constant := 3.14159;
    --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
-   --EMACSRESULT: "[\"03c0\"]_ASCII"
+   --EMACSRESULT: (unless (eq ada-xref-backend 'eglot) "[\"03c0\"]_ASCII")
 
    --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(insert "θ"))
    --EMACSCMD:(progn (end-of-line 3)(forward-word -1)(kill-word 1)(insert "0"))

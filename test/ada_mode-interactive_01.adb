@@ -110,11 +110,12 @@ begin
       --EMACSRESULT:t
    end;
 
-   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
+   --EMACSCMD:(when wisi-parser-shared (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
    for File_Name in File_Names loop
    end loop;
-   --EMACSRESULT:t
-   --EMACSCMD:(progn (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
+   --EMACSCMD:(when wisi-parser-shared (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
+   --EMACSRESULT:(not (null wisi-parser-shared))
 
    -- Insert a comment after code; used to signal error.
    --EMACSCMD:(progn (end-of-line 2)(backward-delete-char 2)(comment-dwim nil)(looking-back "--$"))

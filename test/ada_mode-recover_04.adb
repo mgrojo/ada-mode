@@ -1,6 +1,5 @@
 --  From a real editing session. Used to throw CONSTRAINT_ERROR, now fixed.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_04 is
    procedure Handle_Search

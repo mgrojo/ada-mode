@@ -6,7 +6,6 @@
 -- three push_backs; recovery inserts 'then' before 'or B' instead,
 -- which is much cheaper.
 --
---EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 procedure Ada_Mode.Recover_20
 is

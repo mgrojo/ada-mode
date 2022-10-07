@@ -10,7 +10,7 @@
 --EMACSCMD:(wisi-prj-select-cache "ada_mode.gpr" (ada-prj-default))
 --EMACSCMD:(ada-mode)
 
---EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
+--EMACSCMD:(when wisi-parser-shared (wisi-parse-buffer 'face)(font-lock-ensure))
 
 procedure Gnatprep is
 

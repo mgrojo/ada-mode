@@ -2,7 +2,6 @@
 --
 --  Now finds a good solution reasonably quickly.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package Ada_Mode.Recover_5 is
 

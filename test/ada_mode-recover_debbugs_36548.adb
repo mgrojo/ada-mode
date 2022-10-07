@@ -3,7 +3,6 @@
 -- Now error recover turns the mess in type Child_T into a type and a
 -- record_representation_clause.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
 with Ada.Text_IO; use Ada.Text_IO;

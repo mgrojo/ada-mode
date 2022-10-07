@@ -1,7 +1,5 @@
 --  'Pause' is misplaced, and caused the line to be indented wrong.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
-
 type Minimal_Action (Verb : Minimal_Verbs := Minimal_Verbs'First) is record
    case Verb is
       when  => Pause

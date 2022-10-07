@@ -6,7 +6,6 @@
 -- than reporting ambiguous parse as an error, we pick one parser
 -- arbitrarily to allow indent.
 
---EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(wisi-parse-buffer 'indent)
 procedure Ada_Mode.Ambiguous_Parse is
 begin

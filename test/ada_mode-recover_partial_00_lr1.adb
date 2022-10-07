@@ -1,6 +1,5 @@
 --  LR1 Recover used to hit enqueue_limit, now works nicely.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(switch-to-lr1)
 
 -- Before, when hitting the enqueue limit, there were two errors, one

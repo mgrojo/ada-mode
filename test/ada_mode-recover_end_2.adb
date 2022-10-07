@@ -3,7 +3,6 @@
 -- Compare to ada_mode-recover_end_1.adb; that has no matching end
 -- names.
 --
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_End_2 is
    procedure Case_Example

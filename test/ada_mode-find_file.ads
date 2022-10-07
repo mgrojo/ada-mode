@@ -1,7 +1,7 @@
 --  Test ada-find-other-file
 
 -- Point on "package" line, goto its parent
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "ada_mode.gpr") (gnat "ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "ada_mode.gpr") (gnat "ada_mode-gnatxref.prj")) (ada-prj-default))
 --EMACSCMD:(progn (forward-line 1)(forward-word 1)(ada-find-other-file)(looking-at "package Ada_Mode is"))
 package Ada_Mode.Find_File is
    --EMACSRESULT:t
@@ -11,7 +11,7 @@ package Ada_Mode.Find_File is
 
    procedure P_Bug_One;
 
-   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "procedure P_Bug$"))
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at (cl-ecase ada-xref-backend (eglot "--  other file for testing ada-find-other-file") ((gpr_query gnat) "procedure P_Bug$"))))
    procedure P_Bug
      (Param_1 : in Integer);
    --EMACSRESULT:t

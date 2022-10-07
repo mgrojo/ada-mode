@@ -1,6 +1,5 @@
 --  From a real editing session.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Ada_Mode.Recover_Constant_As_Expression_1
 is begin
    loop

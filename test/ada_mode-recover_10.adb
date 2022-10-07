@@ -2,7 +2,6 @@
 --
 -- Recover used to fail to find a solution; now it does.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_10 is
    procedure Check_Rhs_Order

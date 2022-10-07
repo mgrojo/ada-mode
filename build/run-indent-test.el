@@ -4,6 +4,11 @@
 
 (require 'wisi-run-indent-test)
 
+;; Let edebug display strings full-length, and show internals of records
+;; this is also done in run-test; we do it here for 'make one-debug'
+(setq cl-print-readably t)
+(setq read-buffer-completion-ignore-case t) ;; for "*Messages*"
+
 (defun switch-to-lr1 ()
   (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
@@ -25,7 +30,7 @@
   (unless (bolp)
     ;; We are at bol if we did (forward-line -n). Otherwise, skip the (test-* "NAME").
     (end-of-line))
-  (search-forward name)
+  (search-forward-regexp name)
   (backward-word 1)
   (let ((xrefs (funcall generator))
 	result)
@@ -43,7 +48,12 @@
   (let ((prj (project-current)))
     (test-xref-helper
      name
-     (lambda () (xref-backend-references prj (xref-backend-identifier-at-point (xref-find-backend)))))
+     (lambda () (xref-backend-references
+		 (xref-find-backend)
+		 (if (eq ada-xref-backend 'eglot)
+		     ;; eglot doesn't actually implement xref-backend-identifier-at-point
+		     (thing-at-point 'symbol)
+		   (xref-backend-identifier-at-point (xref-find-backend))))))
     ))
 
 (defun test-all-defs (name &optional no-line-col)
@@ -52,8 +62,9 @@
     (test-xref-helper
      name
      (lambda () (xref-backend-definitions
-		 prj
-		 (if no-line-col
+		 (xref-find-backend)
+		 (if (or no-line-col (eq ada-xref-backend 'eglot))
+		     ;; eglot doesn't actually implement xref-backend-identifier-at-point
 		     (thing-at-point 'symbol)
 		   (xref-backend-identifier-at-point (xref-find-backend))))))
     ))

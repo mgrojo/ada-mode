@@ -1,6 +1,5 @@
 -- Example from real code.
 --
---EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_22 is
 

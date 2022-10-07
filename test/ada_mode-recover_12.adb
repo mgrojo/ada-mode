@@ -4,7 +4,6 @@
 --
 --  Used to violate an assert in recover, now finds a good solution quickly.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_12 is
    function Recursive (Nonterm : in Token_Id; Prod : in Wisitoken.Productions.Instance) return Boolean

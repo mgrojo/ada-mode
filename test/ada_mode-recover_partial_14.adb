@@ -2,8 +2,6 @@
 --
 -- This file has DOS line endings, to test that case.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
-
 --  wisi-debug 1 is required to see the failure
 --EMACSCMD:(setq wisi-debug: 1)
 

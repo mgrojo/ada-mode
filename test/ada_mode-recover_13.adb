@@ -3,7 +3,6 @@
 -- After recover, too many parallel parsers were required. Now it
 -- terminates the one with the highest cost repair, and continues.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_13 is
 

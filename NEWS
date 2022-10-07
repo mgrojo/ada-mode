@@ -6,6 +6,19 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada Mode 8.0
+
+** Support building ada-mode parser with Alire.
+
+** Support using Emacs ada-mode with Emacs eglot.
+
+** gpr-query, gnat-compiler, gpr-mode each split out to a separate
+   Emacs package and Alire crate.
+
+** ada-xref-tool renamed to ada-xref-backend; now supports choice eglot.
+
+** New user configuration variables; ada-indent-backend, ada-face-backend.
+
 * Ada Mode 7.3.beta
 9 Jul 2022 beta testing
 

@@ -1,15 +1,11 @@
---  enable which-function for Ada mode
---EMACSCMD:(require 'which-func)
---EMACSCMD:(add-hook 'which-func-functions 'ada-which-function nil t)
-
 with Ada.Text_Io;
 procedure Which_Test is
 
    procedure Titi is
       package Tata is new Ada.Text_Io.Integer_Io (Integer);
-      --EMACSCMD: (which-function)
-      --EMACSRESULT: "Titi"
-   begin         --  01/03/2000: which-function says "Tata" from here.
+      --EMACSCMD: (ada-which-function)
+      --EMACSRESULT:(if wisi-parser-shared "Titi" "")
+   begin
       null;
    end Titi;
 
@@ -28,9 +24,9 @@ procedure Which_Test is
          null;
       end T2;
    begin
-      --EMACSCMD: (which-function)
-      --EMACSRESULT: "T"
-      null;  --  01/03/2000: which-function says "which_function" here.
+      --EMACSCMD: (ada-which-function)
+      --EMACSRESULT: (if wisi-parser-shared "T" "")
+      null;
    end T;
 
 begin

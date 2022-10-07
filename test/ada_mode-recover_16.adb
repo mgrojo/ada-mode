@@ -3,7 +3,6 @@
 -- Recover used to fail on too many enqueues, now finds a good
 -- solution in reasonable time.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_16 is
 

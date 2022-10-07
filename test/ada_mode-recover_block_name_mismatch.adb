@@ -1,7 +1,5 @@
 --  From a real editing session.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
-
 package body Ada_Mode.Recover_Block_Name_Mismatch is
    procedure Find_First
    is begin -- extra 'begin'

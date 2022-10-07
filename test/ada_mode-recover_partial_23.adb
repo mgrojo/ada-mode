@@ -3,8 +3,6 @@
 -- attempt. Deleted that; Minimal_Complete_Actions finds a correct
 -- solution faster.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
-
 declare
    Kind       : Valid_Node_Index;
 begin

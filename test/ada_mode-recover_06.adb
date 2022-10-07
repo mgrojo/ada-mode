@@ -1,7 +1,6 @@
 -- From a real editing session; used to raise an exception, now finds
 -- a good solution quickly.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 procedure Ada_Mode.Recover_6
 is

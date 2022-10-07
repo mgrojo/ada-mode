@@ -2,7 +2,6 @@
 --
 --  Test of ada-format-paramlist when error correction happens
 --
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 --EMACSCMD:(setq skip-reindent-test t)
 package body Ada_Mode.Recover_Format_Paramlist is
