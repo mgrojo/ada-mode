@@ -750,13 +750,14 @@ server; this allows specifying a development version. See
   :group 'gnat-compiler
   :type 'string)
 
-(defun gnat-find-als (&optional _interactive)
+(defun gnat-find-als (&optional _interactive no-error)
   ;; in eglot 1.8, eglot--connect calls CONTACT with 1 arg
   ;; in devel eglot, eglot--connect calls CONTACT with no args
   "Find the language server executable.
-If `gnat-lsp-server-exec' is set, uses that. Otherwise defaults to
-AdaCore ada_language_server in `exec-path', then in a gnat
-installation found in `exec-path'."
+If `gnat-lsp-server-exec' is set, uses that. Otherwise defaults
+to AdaCore ada_language_server in `exec-path', then in a gnat
+installation found in `exec-path'.  If NO-ERROR, return nil if
+server executable not found; otherwise signal user-error."
   (if gnat-lsp-server-exec
       (if (file-readable-p gnat-lsp-server-exec)
 	  (list gnat-lsp-server-exec)
@@ -779,7 +780,8 @@ installation found in `exec-path'."
     (let ((guess (locate-file "ada_language_server" path exec-suffixes 1)))
       (if guess
 	  (list guess)
-	(user-error "ada_language_server not found"))))))
+	(unless no-error
+	  (user-error "ada_language_server not found")))))))
 
 ;;;;; wisi compiler generic methods
 
