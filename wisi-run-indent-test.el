@@ -48,47 +48,49 @@ FACE may be a list."
       (error
        (error "can't find '%s'" token)))
 
-    (save-match-data
-      (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'face)
-      (font-lock-ensure (line-beginning-position) (line-end-position)))
+    (when (not skip-recase-test)
+      (save-match-data
+	(when wisi-parser-shared
+	  (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'face))
+	(font-lock-ensure (line-beginning-position) (line-end-position)))
 
-    ;; We don't use face-at-point, because it doesn't respect
-    ;; font-lock-face set by the parser! And we want to check for
-    ;; conflicts between font-lock-keywords and the parser.
+      ;; We don't use face-at-point, because it doesn't respect
+      ;; font-lock-face set by the parser! And we want to check for
+      ;; conflicts between font-lock-keywords and the parser.
 
-    ;; font-lock-keywords sets 'face property, parser sets 'font-lock-face.
+      ;; font-lock-keywords sets 'face property, parser sets 'font-lock-face.
 
-    ;; In emacs < 27, if we use (get-text-property (point) 'face), we
-    ;; also get 'font-lock-face, but not vice-versa. So we have to use
-    ;; text-properties-at to check for both.
-    (let* ((token (match-string 0))
-	   (props (text-properties-at (match-beginning 0)))
-	   key
-	   token-face)
+      ;; In emacs < 27, if we use (get-text-property (point) 'face), we
+      ;; also get 'font-lock-face, but not vice-versa. So we have to use
+      ;; text-properties-at to check for both.
+      (let* ((token (match-string 0))
+	     (props (text-properties-at (match-beginning 0)))
+	     key
+	     token-face)
 
-      (cond
-       ((plist-get props 'font-lock-face)
-	(setq key 'font-lock-face)
-	(setq token-face (plist-get props 'font-lock-face)))
+	(cond
+	 ((plist-get props 'font-lock-face)
+	  (setq key 'font-lock-face)
+	  (setq token-face (plist-get props 'font-lock-face)))
 
-       ((plist-get props 'face)
-	(setq key 'face)
-	(setq token-face (plist-get props 'face)))
-       )
+	 ((plist-get props 'face)
+	  (setq key 'face)
+	  (setq token-face (plist-get props 'face)))
+	 )
 
-      (when (and (memq 'font-lock-face props)
-		 (memq 'face props))
-	(describe-text-properties (match-beginning 0))
-	(error "mixed font-lock-keyword and parser faces for '%s'" token))
+	(when (and (memq 'font-lock-face props)
+		   (memq 'face props))
+	  (describe-text-properties (match-beginning 0))
+	  (error "mixed font-lock-keyword and parser faces for '%s'" token))
 
-      (unless (not (text-property-not-all 0 (length token) key token-face token))
-	(error "mixed faces, expecting %s for '%s'" face token))
+	(unless (not (text-property-not-all 0 (length token) key token-face token))
+	  (error "mixed faces, expecting %s for '%s'" face token))
 
-      (unless (or (and (listp face)
-		       (memq token-face face))
-		  (eq token-face face))
-	(error "found face %s, expecting %s for '%s'" token-face face token))
-    )))
+	(unless (or (and (listp face)
+			 (memq token-face face))
+		    (eq token-face face))
+	  (error "found face %s, expecting %s for '%s'" token-face face token))
+	))))
 
 (defun test-face-1 (search token face)
   "Move to end of comment, search for SEARCH, call `test-face'."
@@ -311,10 +313,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 	     ((string= (match-string 1) "RESULT_START")
 	      (looking-at ".*$")
-	      (setq expected-result
-		    (list (save-excursion
-		            (end-of-line 1)
-		            (eval (car (read-from-string (match-string 0))) t)))))
+	      (let ((val (save-excursion
+		          (end-of-line 1)
+		          (eval (car (read-from-string (match-string 0))) t))))
+		(when val
+		  (setq expected-result (list val)))))
 
 	     ((string= (match-string 1) "RESULT_ADD")
 	      (looking-at ".*$")
