@@ -55,7 +55,7 @@ is
       use Ada.Text_IO;
       First : Boolean := True;
    begin
-      Put_Line (Standard_Error, "version 3.0"); -- matches release version in Docs/wisitoken.html
+      Put_Line (Standard_Error, "version 4.0"); -- matches release version in Docs/wisitoken.html
       Put_Line (Standard_Error, "wisitoken-bnf-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
@@ -141,7 +141,8 @@ is
 
    Trace          : aliased WisiToken.Text_IO_Trace.Trace;
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser := Wisitoken_Grammar_Main.Create_Parser
+     (Trace'Unchecked_Access, Input_Data'Unchecked_Access);
    Log_File       : Ada.Text_IO.File_Type; -- not used
 
    procedure Use_Input_File (File_Name : in String)
@@ -150,11 +151,6 @@ is
       use Ada.Text_IO;
    begin
       Output_File_Name_Root := +Ada.Directories.Base_Name (File_Name) & Suffix;
-
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_Productions,
-         Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (File_Name);
 

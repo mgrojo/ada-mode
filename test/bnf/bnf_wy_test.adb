@@ -52,20 +52,14 @@ package body BNF_WY_Test is
       Trace          : aliased WisiToken.Text_IO_Trace.Trace;
       Log_File       : Ada.Text_IO.File_Type;
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser := Wisitoken_Grammar_Main.Create_Parser
+        (Trace'Unchecked_Access, Input_Data'Unchecked_Access);
 
       Save_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
    begin
       WisiToken.Trace_Parse := 0; --  user does not want to see a trace of the grammar parser.
 
       WisiToken.Generate.Error := False;
-
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser      => Grammar_Parser,
-         Lexer       => Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Table       => Wisitoken_Grammar_Main.Create_Parse_Table,
-         Productions => Wisitoken_Grammar_Main.Create_Productions,
-         User_Data   => Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File ("../test/bnf/" & Root_Name & ".wy");
       Grammar_Parser.Parse (Log_File);

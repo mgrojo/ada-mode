@@ -2,7 +2,7 @@
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 3.0
+ZIP_VERSION := 4.0
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc

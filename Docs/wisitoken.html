@@ -49,15 +49,19 @@ and adding support for simple Packrat parsers.
 
 <p><a href="http://www.nongnu.org/ada-mode/wisitoken-user_guide.html">User guide</a>
 
-<p>WisiToken may be obtained in two ways:
+<p>WisiToken may be obtained in three ways:
 <ul>
-  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-3.0.tar.bz2">source
-  Gnu tar bzip2 wisitoken-3.0.tar.bz2</a>, from
+  <li>Alire crate "wisitoken".
+
+  <li>Emacs package "wisi".
+
+  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-4.0.tar.bz2">source
+  Gnu tar bzip2 wisitoken-4.0.tar.bz2</a>, from
   the <a href="http://download.savannah.gnu.org/releases/ada-mode/">Gnu
   savannah ada-mode download page</a>.
-    <li><a href="http://download.savannah.gnu.org/releases/ada-mode/org.stephe_leake.sal-3.4.tar.bz2">SAL library, used by wisitoken</a>.
 </ul>
-<p>It relies on external libraries:
+
+<p>The source package relies on external libraries/tools (automatically included by Alire):
   <ul>
     <li><a href="http://stephe-leake.org/ada/sal.html">SAL</a>
     <li><a href="http://re2c.org/">re2c lexer</a>.
@@ -78,6 +82,15 @@ the <a href="https://lists.nongnu.org/mailman/listinfo/ada-mode-users">Emacs
 Ada mode mailing list</a>.
 
 <h2><a name="History"></a> History</h2>
+
+<h3>Version 4.0 </h3>
+<ul>
+  <li>8 Oct 2022
+  <li>Builds with Alire
+  <li>Using generated <language>_main package is more consistent; all
+  parser flavors have a single Create_Parser function.
+  <li>Miscellaneous minor improvements.
+</ul>
 
 <h3>Version 3.0 </h3>
 <ul>
@@ -191,6 +204,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Fri Jul  8 14:28:21 Pacific Daylight Time 2022 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sat Oct  8 09:59:09 PDT 2022 <!-- hhmts end -->
 </body>
 </html>
