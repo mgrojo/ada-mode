@@ -1,6 +1,6 @@
 name = "wisitoken"
-description = "Generalized LALR and packrat parser generator, with robust error correction"
-tags = ["parser generator", "LALR", "packrat", "generalized", "error recovery"]
+description = "Generalized error correcting LALR and packrat parser generator"
+tags = ["parser", "generator", "generalized"]
 version = "4.0"
 licenses = "GPL-3.0-or-later"
 
