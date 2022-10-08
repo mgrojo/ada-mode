@@ -46,7 +46,14 @@ bump version
     source/sal.adb
         Version
 
+    alire.toml
+        Version
+
+
 # dvc-state-multiple above
+
+In Windows PowerShell - required by alr for prompts!
+    alr publish --tar
 
 build/Makefile zip tag
 

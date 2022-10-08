@@ -1,9 +1,12 @@
 name = "stephes_ada_library"
-description = "Shiny new project"
-version = "0.1.0-dev"
+description = "Stephe's Ada library; miscellaneous useful stuff."
+version = "3.7"
+licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
 maintainers-logins = ["stephe-ada-guru"]
+
+website = "https://stephe-leake.org/ada/sal.html"
 
 project-files = ["build/stephes_ada_library.gpr"]
