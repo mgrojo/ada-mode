@@ -134,6 +134,15 @@ verify other metadata
     wisi.el
 
 (dvc-state-one ".")
+
+On Debian - alr publish --tar broken on Windows (alr version 1.2.1)
+    alr publish --tar
+    # at "upload and enter url" prompt; in mys2
+    cd /Projects/org.stephe-leake.sal/alire/archives
+    gpg -b *.tgz
+    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/stephes_ada_library-3.7.0.tgz
+
 build/Makefile tag zip
 
 in cygwin console for gpg prompts:
@@ -144,7 +153,12 @@ in cygwin console for gpg prompts:
 
     scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
-FIXME: publish to elpa!
+push to elpa
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+
+    (dvc-state-one "/Projects/elpa")
+    (dvc-state-one "/Projects/elpa/packages/wisi")
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi

@@ -1,10 +1,14 @@
 name = "emacs_wisi"
 description = "Ada code for Emacs wisi ELPA package"
+tags = ["ident", "project", "compile", "xref"]
 version = "4.1.0-beta"
+licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
 maintainers-logins = ["stephe-ada-guru"]
+
+website = "https://elpa.gnu.org/packages/wisi.html"
 
 project-files = ["wisi_alire.gpr"]
 
