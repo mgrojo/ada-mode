@@ -1,5 +1,6 @@
 name = "stephes_ada_library"
 description = "Stephe's Ada library; miscellaneous useful stuff."
+tags = ["containers", "trees"]
 version = "3.7"
 licenses = "GPL-3.0-or-later"
 
