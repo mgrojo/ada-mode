@@ -1,15 +1,17 @@
 name = "emacs_wisi"
-description = "Shiny new project"
-version = "0.1.0-dev"
+description = "Ada code for Emacs wisi ELPA package"
+version = "4.1.0-beta"
 
 authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
 maintainers-logins = ["stephe-ada-guru"]
 
 project-files = ["wisi_alire.gpr"]
+
 [[depends-on]]
-stephes_ada_library = "~0.1.0-dev"
-wisitoken = "~0.1.0-dev"
+stephes_ada_library = "3.7"
+wisitoken = "4.0"
+
 [[pins]]
 stephes_ada_library = { path='../org.stephe_leake.sal' }
 wisitoken = { path='../org.wisitoken' }
