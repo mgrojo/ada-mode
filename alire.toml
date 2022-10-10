@@ -1,6 +1,8 @@
 name = "emacs_gpr_query"
 description = "Emacs xref backend using information output by GNAT compiler."
-version = "0.1.0-dev"
+tags = ["emacs", "xref"]
+version = "1.0"
+licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]

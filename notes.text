@@ -11,9 +11,6 @@ o.e.gpr-query: release, in use
   (xgit . "/Projects/org.emacs.gpr-query/")))
 
  current work
-split out gpr-query.texi from ada-mode.texi
-    just install; rest is documented in code
-
 for *.texi:
     ----------------------
     gpr-query relies on the cross reference information output by the
