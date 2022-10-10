@@ -47,10 +47,6 @@ for *.texi:
  release process
 keep status in ~/projects.text
 
-(dvc-status ".")
-
-drop emacs 26 - not tested? at least drop emacs 25
-
 check for ELPA patches by others
     (dvc-state-one "/Projects/elpa/packages/gpr-query")
     (dvc-pull "/Projects/elpa")
@@ -64,7 +60,6 @@ check for ELPA patches by others
         apply changes to current
 
 check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
     to update a bug: nnn@debbugs.gnu.org
         subject: from bug title, for people who rely on that.
@@ -75,12 +70,9 @@ check emacs buglist
 tested in ada-mode; it uses the same test sources for multiple xref backends.
 
 compare:
-    build stuff to compare with previous release in elpa:
-        build/Makefile pub
+    ELPA.make pub
 
-    ~/.emacs.d/early-init.el
-        reset package-load-list to '(all) to allow installing gpr-query
-
+    (setq package-load-list '(all))
     (list-packages)
         install previous gpr-query from public ELPA for diffs
 
@@ -90,7 +82,7 @@ compare:
             add release date
             add new features
 
-build in elpa; /Projects/elpa/packages/gpr-query/Makefile
+build in elpa; /Projects/elpa/packages/gpr-query/ELPA.make
 
 Check copyright on files in elpa
     c:/Projects/elpa/GNUMakefile check-all
@@ -126,13 +118,25 @@ bump version
     README
         first line
 
-    build/Makefile
-        run uninstall-elpa with old values before changing!
-        GPR_QUERY_VERSION       for beta, must include timestamp; copy from c:/Projects/elpa/archive-devel
+    alire.toml
+        version
+        depends-on versions
+
+(dvc-state-one ".")
+
+On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
+    alr publish --tar
+    # at "upload and enter url" prompt; in mys2
+    cd /Projects/org.stephe-leake.sal/alire/archives
+    gpg -b *.tgz
+    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    # wait until http download actually works; took 0.5 days
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
 
 update elpa:
     (gpr-query-kill-all-sessions)
-    build/Makefile pub
+    ELPA.make pub
 
     # sometimes this is useful
     # (ediff-directories "/Projects/org.emacs.gpr-query" "/Projects/elpa/packages/gpr-query" nil)
@@ -158,7 +162,7 @@ after Gnu ELPA updated, test install from GNU ELPA
     also wisitoken-grammar-mode
 
 (dvc-state-one ".")
-build/Makefile tag zip
+ELPA.make tag zip
 
 in cygwin console for gpg prompts:
     cd /Projects/org.emacs.gpr-query/build/

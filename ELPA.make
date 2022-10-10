@@ -44,8 +44,7 @@ recursive-clean : force
 	gprclean -r -P emacs_gpr_query.gpr
 
 ### publish to elpa package
-pub : force
-	mkdir -p $(ELPA_ROOT)/packages/gpr-query
+pub : force | $(ELPA_ROOT)/packages/gpr-query
 	rm -rf $(ELPA_ROOT)/packages/gpr-query/*
 	cp *.el *.gpr *.make *.prj *.sh *.texi $(ELPA_ROOT)/packages/gpr-query
 	cp NEWS README $(ELPA_ROOT)/packages/gpr-query

@@ -8,6 +8,8 @@ authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
 maintainers-logins = ["stephe-ada-guru"]
 
+website = "https://elpa.gnu.org/packages/gpr-query.html"
+
 project-files = ["emacs_gpr_query.gpr"]
 
 executables = ["gpr_query.adb"]
