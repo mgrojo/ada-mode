@@ -6,4 +6,265 @@ o.e.g-c: release, in use; minor-modes for eglot
 o.e.g.stephe-1: work
 o.e.a.stephe-2 (o.s_l.sal.s_2, o.w.s_3, o.e.w.s_2): alire
 
+ release process
+keep status in ~/projects.text
+do sal, wisitoken, wisi
+
+check for ELPA patches by others
+    (dvc-status "/Projects/elpa/packages/gnat-compiler")
+    (dvc-pull "/Projects/elpa/packages/gnat-compiler")
+    (dvc-sync-review "/Projects/elpa/packages/gnat-compiler")
+        update
+        clean, quit sync
+    cd c:/Projects/elpa/packages/gnat-compiler
+    git log -2
+    if changes, apply changes to current via ediff
+
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gnat-compiler
+    to update a bug: nnn@debbugs.gnu.org
+        subject: from bug title, for people who rely on that.
+    if fixed in devel sources, add 'pending' tag:
+        control@debbugs.gnu.org
+        tags nnn + pending
+
+run all ada-mode tests
+
+compare:
+    ~/.emacs.d/early-init.el
+        reset package-load-list to '(all) to allow installing gnat-compiler
+
+    (list-packages)
+        install previous gnat-compiler from public ELPA for diffs
+        change versions in compares below to match installed versions.
+
+    (ediff-directories "~/.emacs.d/elpa/gnat-compiler-1.0.0" "/Projects/elpa/packages/gnat-compiler" nil)
+        NEWS
+            copyright date
+            add release date
+            add new features
+            list fixed bugs
+
+Check copyright on files in elpa
+    c:/Projects/elpa/GNUMakefile check-all
+    if any files added to output, fix them (add or change to FSF)
+
+bump versions
+    Gnu ELPA requires single digits between dots in versions
+    add ".alpha" ".beta" ".rc" for devel version
+        use .alpha for Debian testing
+
+        alpha test: add .alpha in elpa Version header, ada-mode Makefile only
+
+        beta test: add .beta everywhere
+            for follow-on, add/change n in elpa Version header, gnat-compiler Makefile only
+
+        release candidate; .rc everywhere
+            for follow-on, add/change n in elpa Version header, gnat-compiler Makefile only
+
+    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+        bump third digit for bug fixes, minor features, no user-incompatible changes
+
+        bump second digit for major features, mostly backward-compatible
+            or if third digit gets to 10
+
+        bump first digit for really major elisp user-visible changes:
+
+    wisi-gpr.ads
+        (should have been changed already, but verify;
+         should match last mention of language protocol version in NEWS)
+        Language_Protocol_Version if this file changed
+        ie, if installed parser must be replaced on upgrade or downgrade
+
+    gnat-compiler.el
+        Version:
+        package-requires wisi version
+        gnat-compiler-version
+
+    NEWS
+        if not done above
+
+    gnat-compiler.texi
+        @title
+        @node top
+
+    README
+        first line
+
+    build.sh
+        if -d ../wisi-, WISI_DIR (twice)
+
+    install.sh
+        if -d ../wisi-, WISI_DIR (twice)
+
+    build/Makefile
+        run uninstall-elpa with old values before changing!
+        GPR_MODE_VERSION       for beta, must include timestamp; copy from c:/Projects/elpa/archive-devel
+
+    d:/Web/savannah/gnat-compiler/index.html
+        find-replace gnat-compiler i.j.k
+
+        echoed to savannah web page on CVS commit.
+        other files in that dir updated by ~/web/Makefile
+
+    ~/Web/Makefile
+        GPR_MODE_VERSION
+
+verify other metadata
+    gnat-compiler.el
+
+prep for elpa tests:
+    build/Makefile byte-compile-clean pub
+    # pushes to elpa workspace
+    # commit: (dvc-state-multiple "c:/Projects/elpa/packages")
+    build/Makefile pub-install
+    # builds local elpa archive, installs it
+
+Emacs 25.3, current gnat
+    ~/bin/emacs-25.sh
+    build/Makefile install-elpa
+    (gpr-query-kill-all-sessions)
+    (list-processes)
+    # 'd' = kill; gpr_mode_wisi_parse.exe
+    cd ~/.emacs.d/elpa/gnat-compiler-1.0.0*
+    ./build.sh
+    cd .. # allow uninstall-elpa
+
+    restart Emacs to set load-path
+
+    build/Makefile test-clean
+    build/Makefile test TEST_DIR=elpa
+
+    build/Makefile uninstall-elpa
+    (gpr-query-kill-all-sessions)
+    build/Makefile recursive-clean clean # if changing compilers
+
+push for Debian
+    current Emacs for dvc
+    # dvc-state-multiple above
+    (dvc-push "/Projects/elpa/packages/gnat-compiler")
+    (dvc-push "/Projects/org.emacs.gnat-compiler")
+
+Debian testing
+    build/Makefile uninstall-elpa
+        # before versions change
+
+    (dvc-pull ".")
+    (dvc-sync-review ".")
+
+    upgrade debian (to avoid eventually needing to reinstall from scratch)
+
+    FIXME: test with the latest Debian gnat release
+        bugs to https://gcc.gnu.org/bugzilla/buglist.cgi?quicksearch=comp%3Aada
+
+    build/Makefile
+        docs pub-gpr clean-elpa
+        # build-elpa uses latest commit
+        (dvc-state-multiple "/Projects/elpa/packages")
+        build-elpa uninstall-elpa
+        install-elpa
+            # byte-compile errors, warnings show in *compile-log*
+
+    check for bogus execute permissions in elpa
+        $ cd /Projects/elpa/gnat-compiler
+        $ ls -R -l . | grep -- -rwx
+        $ chmod -x *.el *.adb
+        # keep execute on *.sh
+
+    commit elpa:
+    (dvc-state-multiple "/Projects/elpa/packages")
+        add/delete, stage, commit gnat-compiler
+
+    (dvc-push "/Projects/elpa/gnat-compiler")
+
+    # dvc-state-multiple above
+    (dvc-push ".")
+
+On Windows
+(dvc-pull)
+(dvc-sync-review ".")
+
+delete changes in elpa:
+    $ cd c:/Projects/elpa/
+    $ git checkout .
+
+update windows elpa
+    (dvc-pull "/Projects/elpa/packages/gnat-compiler")
+    (dvc-sync-review "/Projects/elpa/packages/gnat-compiler")
+
+    # 24 hrs for web repository to update
+
+after Gnu ELPA updated, test install from GNU ELPA
+    first install current version, to be sure upgrade requires new versions
+        gnat-compiler 7.1.5 should have required wisi 3.1.5
+
+    (list-packages)
+    5.1.8 crashed emacs for me
+    see 'build.sh; install.sh' above for compiling
+
+(dvc-state-one ".")
+build/Makefile tag zip
+
+in cygwin console for gpg prompts:
+    cd /Projects/org.emacs.gnat-compiler/build/
+    ls *.tar*
+    rm <old>.tar*
+    gpg -b *.tar.*
+
+    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/gnat-compiler/
+
+~/Web/Makefile
+    # no 'sync' here; all on savannah via cvs, scp
+    gnat-compiler
+
+commit savannah
+    if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
+        # see projects.text "conflicting keys for savannah"
+        $ cd /d/Web/savannah/gnat-compiler
+        $ cvs status
+        # edit ~/.ssh/known_hosts, delete offending one, repeat 'cvs status'
+    (cvs-examine "d:/Web/savannah/gnat-compiler" nil)
+    mark all 'm'
+    commit   'c'
+    edit commit message "release version i.j.k"
+    C-c C-c
+
+    takes ~ 10 min for http://www.nongnu.org/gnat-compiler/ to reflect cvs commit
+
+publish Alire crate
+
+create release branch
+
+post on emacs-ada-mode mailing list, c.l.a newsgroup, https://savannah.nongnu.org/news/submit.php?group_id=11631:
+
+-------------------
+Gnu Emacs gpr mode 1.0.0 released.
+-------------------
+
+Gnu Emacs gpr mode 1.0.0 is now available in GNU ELPA.
+
+This is the first release as a separate ELPA package; used to be
+bundled with ada-mode.
+
+See the NEWS file in ~/.emacs.d/elpa/gnat-compiler-1.0.0
+or at http://www.nongnu.org/ada-mode/, for more details.
+
+The required Ada code requires a manual compile step, after the normal
+list-packages installation ('install.sh' is new in this release):
+
+cd ~/.emacs.d/elpa/gnat-compiler-1.0.0
+./build.sh
+./install.sh
+-------------------
+
+mark fixed bugs
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gnat-compiler
+    http://debbugs.gnu.org/Developer.html
+    email to nnn-close@debbugs.gnu.org
+        subject: copy from bug report
+        body: closed by gnat-compiler version 7.2.1
+        don't include Version: header; that's an Emacs version
+    debbugs updates gnat-compiler summary page within half an hour; no emails
+
+-- end of file
 ;; end of file

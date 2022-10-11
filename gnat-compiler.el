@@ -1,5 +1,4 @@
-;; gnat-compiler.el --- Support for running GNAT tools, which support multiple programming  -*- lexical-binding:t -*-
-;; languages.
+;; gnat-compiler.el --- Support for running GNAT tools  -*- lexical-binding:t -*-
 ;;
 ;; GNAT is provided by AdaCore; see https://www.adacore.com/community
 ;;
@@ -8,7 +7,7 @@
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Version: 1.0
-;; package-requires: ((emacs "25.3") (wisi "4.0"))
+;; package-requires: ((emacs "25.3") (wisi "4.1"))
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -243,12 +242,20 @@ Assumes current buffer is (gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (let ((process-environment
-	 (append
-	   (wisi-prj-compile-env project)
-	   (wisi-prj-file-env project)
-	   (copy-sequence process-environment)))
+  ;; We can't just append file-env and compile-env to
+  ;; process-environment, because they might have values that
+  ;; override what's already in process-environment(for example alire sets PATH and
+  ;; GPR_PROJECT_PATH). So we use (setenv ...).
+  (let ((process-environment (copy-sequence process-environment))
+	(process-list
+	 (lambda (list)
+	   (dolist (var list)
+	     (string-match "\\(.*\\)=\"\\(.*\\)\"$" var)
+	     (setenv (match-string-no-properties 1 var) (match-string-no-properties 2 var)))))
 	status)
+
+    (funcall process-list (wisi-prj-compile-env project))
+    (funcall process-list (wisi-prj-file-env project))
 
     (when gnat-debug-run
       (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec))
@@ -274,6 +281,7 @@ Assumes current buffer is (gnat-run-buffer)"
 COMMAND must be a string, SWITCHES-ARGS a list of strings.
 EXPECTED-STATUS must be nil or a list of integers.
 Return process status.
+
 Assumes current buffer is (gnat-run-buffer)"
   (let* ((compiler (wisi-prj-compiler project))
 	 (gpr-file (gnat-compiler-gpr-file compiler))
@@ -289,7 +297,7 @@ Assumes current buffer is (gnat-run-buffer)"
             (list (concat "--RTS=" (gnat-compiler-runtime compiler)))))
 	 (cmd (append (list command) (list project-file-switch) runtime switches-args)))
 
-    (gnat-run project target-gnat cmd nil expected-status)
+      (gnat-run project target-gnat cmd nil expected-status)
     ))
 
 (defun gnat-run-no-prj (command &optional dir)

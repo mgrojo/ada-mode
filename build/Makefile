@@ -12,7 +12,7 @@ byte-compile-clean :
 	cd ..; rm -f *.elc
 
 autoloads : force
-	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
+	cd ../; $(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
 
 ifeq ($(shell uname),Linux)
 EMACS_EXE ?= emacs

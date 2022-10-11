@@ -27,13 +27,15 @@
 (require 'gnat-compiler)
 
 (defun alire-get-env (project)
-  "Set PROJECT slots from Alire."
+  "Set PROJECT slots from Alire as needed."
 
-  ;; WORKAROUND: alire 1.2.0 inherits GPR_PROJECT_PATH, which is just
-  ;; wrong. So empty it here.
-  (let ((process-environment (copy-sequence process-environment))
-	value-string
-	(local-exec-path exec-path))
+  ;; alire inherits GPR_PROJECT_PATH (see
+  ;; https://github.com/alire-project/alire/issues/1147). So empty it
+  ;; here.
+  ;;
+  ;; We need all of the alire settings for "gnat list" and "gpr_query"
+  ;; to properly process complex projects (like Alire).
+  (let ((process-environment (copy-sequence process-environment)))
     (setenv "GPR_PROJECT_PATH" "")
 
     (with-temp-buffer
@@ -41,19 +43,12 @@
 	(cond
 	 ((= 0 status)
 	  (goto-char (point-min))
-	  (search-forward "GPR_PROJECT_PATH=")
-	  (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
-
-	  (setf (wisi-prj-file-env project)
-		(list (concat "GPR_PROJECT_PATH=" value-string)))
-
-	  ;; gnat-compiler use same compiler as Alire
-	  (goto-char (point-min))
-	  (search-forward "GNAT_NATIVE_ALIRE_PREFIX=")
-	  (setq value-string (buffer-substring-no-properties (1+ (point)) (1- (line-end-position))))
-	  (push (concat value-string "/bin") local-exec-path)
-	  (push (concat "PATH=" (mapconcat 'identity local-exec-path  path-separator))
-		(wisi-prj-file-env project)))
+	  (while (not (eobp))
+	    (looking-at "export \\(.*\\)$")
+	    (setf (wisi-prj-file-env project)
+		  (append (wisi-prj-file-env project) (list (match-string-no-properties 1))))
+	    (forward-line 1)
+	    ))
 
 	 (t
 	  (user-error "alr printenv failed; bad or missing alire.toml?"))
@@ -61,34 +56,36 @@
       )))
 
 ;;;###autoload
-(cl-defun create-alire-project (&key prj-name prj-file gpr-file)
-  ;; WORKAROUND: there is no way to get the gpr-file named in
-  ;; alire.toml, so we require it as an argument; must be absolute or
-  ;; relative to Alire root directory.
+(cl-defun create-alire-project (&key name gpr-file compile-env xref-label)
+  ;; We could use "alr exec -P -- echo" to get the project file (also
+  ;; see https://github.com/alire-project/alire/issues/1151), but that
+  ;; doesn't work when there are multiple project files listed in
+  ;; alire.toml. And if there are multiple project files, the user
+  ;; needs to pick one anyway.  So we require it as an argument; must
+  ;; be absolute or relative to Alire root directory.
   ;;
   ;; prj-file should _not_ specify the gpr-file or gpr-project-path;
   ;; it is only used for casing. We get GPR_PROJECT_PATH from the
   ;; Alire environment.
-  "Return a wisi project for the Alire workspace containing `default-directory'"
+  "Return an initial wisi project for the current Alire workspace."
   (let* ((default-directory (locate-dominating-file default-directory "alire.toml"))
 	 (abs-gpr-file (expand-file-name gpr-file))
-	 (project (make-wisi-prj :name prj-name))
+	 (project (make-wisi-prj :name name :compile-env compile-env))
 	 )
 
     (alire-get-env project)
 
-    ;; We use a gnat-compiler to set compilation-search-path.
+    ;; We need a gnat-compiler to set compilation-search-path.
     (setf (wisi-prj-compiler project)
 	  (create-gnat-compiler
 	   :gpr-file abs-gpr-file
 	   :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
-    (gnat-get-paths project :ignore-prj-paths nil)
 
-    ;; Now we parse prj-file; casing can use (wisi-prGPR_PROJECT_PATH
-    (wisi-prj-parse-file
-     :prj-file prj-file
-     :init-prj project
-     :cache t)))
+    (setf (wisi-prj-xref project)
+	  (funcall (intern (format "create-%s-xref" (symbol-name xref-label)))
+		   :gpr-file abs-gpr-file))
+
+    project))
 
 (provide 'gnat-alire)
 ;;; gnat-alire.el ends here
