@@ -44,23 +44,17 @@ review FIXMEs
 
  release process
 keep status in ~/projects.text
-wisi, wisitoken, sal done in ada-mode
-
-(dvc-status ".")
+do sal, wisitoken, wisi
 
 check for ELPA patches by others
-    (dvc-status "/Projects/elpa")
-    (dvc-state-multiple "/Projects/elpa/packages")
-        revert local changes in gpr-mode
-    (dvc-pull "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
+    (dvc-status "/Projects/elpa/packages/gpr-mode")
+    (dvc-pull "/Projects/elpa/packages/gpr-mode")
+    (dvc-sync-review "/Projects/elpa/packages/gpr-mode")
         update
         clean, quit sync
-    cd c:/Projects/elpa
-    git log -2 -- packages/gpr-mode
-    if changes:
-        (dvc-log "/Projects/elpa/packages/<dir>/<file>")
-        apply changes to current
+    cd c:/Projects/elpa/packages/gpr-mode
+    git log -2
+    if changes, apply changes to current via ediff
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
@@ -160,10 +154,15 @@ bump versions
     install.sh
         if -d ../wisi-, WISI_DIR (twice)
 
+    alire.toml
+        version
+        depends-on
+
     build/Makefile
         run uninstall-elpa with old values before changing!
         GPR_MODE_VERSION       for beta, must include timestamp; copy from c:/Projects/elpa/archive-devel
 
+    # Windows only
     d:/Web/savannah/gpr-mode/index.html
         find-replace gpr-mode i.j.k
 
@@ -173,8 +172,16 @@ bump versions
     ~/Web/Makefile
         GPR_MODE_VERSION
 
-verify other metadata
-    gpr-mode.el
+On Debian
+    (dvc-state-one ".") ;; commit or stash
+    (dvc-push)
+    alr publish --tar
+    # at "upload and enter url" prompt; in mys2
+    cd alire/archives
+    gpg -b *.tgz
+    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    # wait until http download actually works; even then alr publish may fail; wait some more
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/gpr-mode/emacs_gpr_mode-1.0.0.tgz
 
 prep for elpa tests:
     build/Makefile byte-compile-clean pub
