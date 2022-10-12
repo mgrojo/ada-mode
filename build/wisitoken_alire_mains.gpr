@@ -1,9 +1,23 @@
 --  For building WisiToken executables using Alire.
 
+--  Copyright (C) 2022 Free Software Foundation, Inc.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version. This program is distributed in the
+--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+--  PURPOSE. See the GNU General Public License for more details. You
+--  should have received a copy of the GNU General Public License
+--  distributed with this program; see file COPYING. If not, write to
+--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
+--  MA 02110-1335, USA.
+
 with "../config/wisitoken_config.gpr";
 with "../config/wisitoken_config.gpr";
 with "gnatcoll";
-with "standard_common";
+with "standard_common_alire";
 project WisiToken_Alire_Mains is
 
    for Source_Dirs use ("..");
@@ -13,16 +27,16 @@ project WisiToken_Alire_Mains is
    for Create_Missing_Dirs use "True";
 
    for Main use ("wisitoken-bnf-generate.adb");
-   for Exec_Dir use ".";
+   for Exec_Dir use "bin";
 
    package Compiler is
 
       case Wisitoken_Config.Build_Profile is
       when "release" =>
-         for Default_Switches ("Ada") use Standard_Common.Release_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
 
       when "validation" | "development" =>
-         for Default_Switches ("Ada") use Standard_Common.Debug_Switches & Standard_Common.Style_Checks;
+         for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
 
       end case;
 

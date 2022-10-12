@@ -47,7 +47,11 @@ On Debian
     cd /Projects/org.stephe-leake.sal/alire/archives
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/stephes_ada_library-3.7.0.tgz
+    # wait until files appear at https://download.savannah.nongnu.org/releases/ada-mode/
+    # download file from savannah, diff; wisitoken was bad after first attempt
+    # even then, alr publish may fail; wait some more.
+
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/wisitoken-4.0.0.tgz
 
 Makefile
     zip tag

@@ -41,3 +41,4 @@ build/*.tree_text
 alire/
 config/
 build/lib/
+build/bin/
