@@ -1,23 +1,20 @@
 name = "emacs_ada_mode"
-description = "Shiny new project"
-version = "0.1.0-dev"
+description = "Parser for Emacs ada-mode"
+tags = ["emacs", "ada-mode"]
+version = "8.0"
+licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
 maintainers = ["Stephen Leake <stephen_leake@stephe-leake.org>"]
 maintainers-logins = ["stephe-ada-guru"]
 
+website = "https://www.nongnu.org/ada-mode/"
+
 project-files = ["emacs_ada_mode.gpr"]
 
 executables = ["ada_mode_wisi_lalr_parse.ads",
-               "ada_mode_wisi_lr1_parse.ads",
-               "gpr_query.adb"
+               "ada_mode_wisi_lr1_parse.ads"
               ]
-
-# These are for gpr_query. FIXME: factor out to its own crate.
-[[depends-on]]
-gnatcoll = "^22.0.0"
-gnatcoll_sqlite = "^22.0.0"
-gnatcoll_xref = "^22.0.0"
 
 [[depends-on]]
 stephes_ada_library = "~0.1.0-dev"

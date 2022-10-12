@@ -48,6 +48,49 @@ o.e.a.stephe-7 (): available
    ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
 
  current work
+publish alire
+    do elpa release process first, to set version
+        use alr publish --tar; sal differs from savannah tar, default names differ
+
+        in "bump version" section, add:
+    alire.toml
+        Version
+        depends-on versions
+
+    /Projects/org.stephe_leake.sal/notes.text
+    /Projects/re2c_alire/alire.toml
+    /Projects/org.emacs.gpr-query/alire.toml
+        waiting for alire-index pull request approval
+
+    /Projects/org.emacs.ada-mode/notes.text
+        elpa release done to build in elpa
+
+        change install.sh to use Alire if present
+
+    /Projects/org.wisitoken
+    /Projects/org.emacs.gpr-mode/alire.toml
+        changed; redo publish
+
+    /Projects/org.emacs.gnat-compiler
+        ELPA only; no ada code
+        need to create elpa branch
+
+test elpa/als with devel versions
+    (let ((default-directory "/Projects/alire-main/")
+          (load-file "prj.el"))
+
+    /Projects/ada_language_server/alire.toml
+        missing dependencies:
+        libgpr2: https://github.com/AdaCore/gpr
+        templates_parser: https://github.com/AdaCore/templates-parser
+
+drop emacs 26 - not tested? at least drop emacs 25
+
+Doc ada-mode wisi indent settings that match als
+
+try eglot on alire project
+    use gnat-run to run eglot?
+
 wisi/gnat/gpr-query vs eglot/als capabilities:
     auto-case      - onTypeFormatting, except that seems more oriented towards indent? als does not provide it.
     font-lock/face - semanticTokens
@@ -934,8 +977,6 @@ fix "string not terminated by end of line" bug
     same for unterminated placeholder; use parser to fontify comments
         ada_mode-placeholders.adb
 
-move EXE_EXT, GNAT_EXE, INSTALL_BIN into makefile.conf
-
 fix blinking fringe mark when type "--"
     delay the display of the fringe mark (using a timer), without delaying font-lock itself
 
@@ -1338,7 +1379,8 @@ to test compiling info files:
 
  release process
 keep status in ~/projects.text
-do wisitoken release ../org.wisitoken/build/release_process.text
+    dependency releases done below, after tests that test all of them.
+
 
 update benchmark_results.text
 
@@ -1347,26 +1389,16 @@ add wisitoken grammar doc to wisi package
 
 find info cross reference checker; ref to wisi from ada-mode was wrong.
 
-(dvc-status ".")
-
 drop emacs 26 - not tested? at least drop emacs 25
 
 check for ELPA patches by others
-    (dvc-status "/Projects/elpa")
-    (dvc-state-multiple "/Projects/elpa/packages")
-        revert local changes in ada, wisi, ada-ref-main; commit in uniquify
-    (dvc-pull "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
+    (dvc-pull "/Projects/elpa/packages/ada")
+    (dvc-sync-review "/Projects/elpa/packages/ada")
         update
         clean, quit sync
-    cd c:/Projects/elpa
-    git log -2 -- packages/wisi
-    git log -2 -- packages/ada-mode
-    git log -2 -- packages/ada-ref-man
-    git log -2 -- packages/uniquify-files
-    if changes:
-        (dvc-log "/Projects/elpa/packages/<dir>/<file>")
-        apply changes to current
+    cd c:/Projects/elpa/packages/ada-mode
+    git log -2
+        apply changes to current via ediff
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
@@ -1406,25 +1438,26 @@ run all tests without elpa:
         libgnatcoll-xrefnn-dev
         gprbuild
 
+do other package releases:
+    ../org.stephe_leake.sal/release_process.text alire
+    ../org.wisitoken/build/release_process.text  alire
+    ../org.emacs.wisi/notes.text elpa, alire
+    ../org.emacs.gnat-compiler/notes.text alire
+    ../org.emacs.gpr-query/notes.text elpa, alire
+
+    recommended:
+    ../org.emacs.gpr-mode/notes.text elpa, alire
+
 compare:
-    build stuff to compare with previous release in elpa:
-        build/Makefile pub
-        ../org.emacs.wisi/build/Makefile pub
+    build/Makefile pub
 
-    ~/.emacs.d/early-init.el
-        reset package-load-list to '(all) to allow installing ada-mode
-
+    (setq package-load-list '(all))
+    (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel/"))
     (list-packages)
-        install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
+        install previous ada-mode from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-3.1.7" "/Projects/elpa/packages/wisi" nil)
-        ../org.emacs.wisi/NEWS
-            copyright date
-            add release date
-            add new features
-
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.2.0" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.3beta1.0.20220711.185004" "/Projects/elpa/packages/ada-mode" nil)
         NEWS
             add release date
             add new features
@@ -1434,16 +1467,19 @@ compare:
         /Projects/org.adaic.arm_form/NEWS
             add release date, new features
 
-build in elpa; /Projects/elpa/packages/ada-mode/Makefile
+build in elpa; /Projects/elpa/packages/ada-mode/ELPA.make all
     check for unused sources in wisi; no .o => edit Makefile pub-*
 
 Check copyright on files in elpa
-    c:/Projects/elpa/GNUMakefile check-all
-    if any ada/wisi files added to output, fix them (add or change to FSF)
+    (find-file "/Projects/elpa/GNUmakefile")
+        # _don't_ follow symlink
+    check-all
 
 bump versions
-    Gnu ELPA requires single digits between dots in versions
-    add ".alpha" ".beta" ".rc" for devel version
+    Gnu ELPA requires single digits between dots in versions; always use three digits
+
+    insert ".alpha" ".beta" ".rc" before third digitfor devel version
+        not in .texi
         use .alpha for Debian testing
 
         alpha test: add .alpha in elpa Version header, ada-mode Makefile only
@@ -1453,6 +1489,9 @@ bump versions
 
         release candidate; .rc everywhere
             for follow-on, add/change n in elpa Version header, ada-mode Makefile only
+
+        if current release is non-beta, propagate from elpa/packages/ada-mode to elpa_release/packages/ada-mode
+
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
@@ -1470,17 +1509,14 @@ bump versions
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
             - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
+            - 8 split out gpr-mode, gpr-query; add eglot
 
             wisi:
             - 3 project.el integration
             - 4 incremental parse
 
-    ../org.emacs.wisi/emacs_wisi_common_parse.ads
-        (should have been changed already, but verify;
-         should match last mention of protocol version in NEWS)
-        Protocol_Version if this file changed, or
-        wisi-process-parse.el -send-parse, -send-refactor, -execute
-        changed; ie, if installed parser must be replaced on upgrade or downgrade
+    NEWS
+        if not done above
 
     wisi-ada.ads
         (should have been changed already, but verify;
@@ -1488,28 +1524,10 @@ bump versions
         Language_Protocol_Version if this file changed
         ie, if installed parser must be replaced on upgrade or downgrade
 
-    ../org.emacs.wisi/wisi.el
-        copyright date
-        Version:
-
-    ../org.emacs.wisi/NEWS
-        if not done above
-
-    ../org.emacs.wisi/wisi.texi
-        copyright date
-        @title
-        @node top
-
-    ../org.emacs.wisi/README
-        first line
-
     ada-mode.el
         Version:
-        package-requires wisi version
+        package-requires
         ada-mode-version
-
-    NEWS
-        if not done above
 
     ada-mode.texi
         @title
@@ -1527,12 +1545,19 @@ bump versions
     ada-ref-man.el
         Version:
 
+    alire.toml
+        version
+        depends-on
+
     build/Makefile
         run uninstall-elpa with old values before changing!
         ADA_MODE_VERSION       for beta, must include timestamp; copy from c:/Projects/elpa/archive-devel
         ADA_REF_MAN_VERSION
-        WISI_VERSION
 
+    build/uninstall-elpa.el
+        wisi version, uniquify-files version
+
+    # Windows only:
     d:/Web/savannah/ada-mode/index.html
         find-replace ada-mode i.j.k
         wisi version does not appear
@@ -1548,15 +1573,23 @@ bump versions
         ADA_MODE_VERSION
         _not_ WISITOKEN_ZIP_VERSION
 
-verify other metadata
-    ada-mode.el
-    ada-ref-man.el
-    wisi.el
+On Debian
+    (alr publish --tar broken on Windows (alr version 1.2.1))
+        check if windows fixed; https://github.com/alire-project/alire/issues/1216
+    (dvc-status)
+    alr publish --tar
+    # at "upload and enter url" prompt; in mys2
+    cd /Projects/org.stephe-leake.sal/alire/archives
+    gpg -b *.tgz
+    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    # wait until http download actually works; took 0.5 days
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
+
 
 if doing beta test:
     (gpr-query-kill-all-sessions)
     build/Makefile pub
-    ../org.emacs.wisi/build/Makefile pub
 
     # sometimes this is useful
     # (ediff-directories "/Projects/org.emacs.ada-mode" "/Projects/elpa/packages/ada-mode" nil)
@@ -1665,7 +1698,7 @@ update elpa, commit elpa/ada-ref-man (not done on Debian)
     build/Makefile pub-ada-ref-man
 
     (dvc-state-one "/Projects/elpa")
-        add, stage, commit
+    (dvc-state-one "/Projects/elpa/packages/ada-mode")
 
     (dvc-push "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")

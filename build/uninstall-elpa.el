@@ -5,11 +5,6 @@
 
 (package-initialize)
 
-(setq ada-mode-version (getenv "ADA_MODE_VERSION"))
-(setq ada-ref-man-version (getenv "ADA_REF_MAN_VERSION"))
-(setq wisi-version (getenv "WISI_VERSION"))
-(setq uniquify-files-version (getenv "UNIQUIFY_FILES_VERSION"))
-
 (defun pkg-dir (name version)
   (concat (locate-user-emacs-file "elpa") "/" name "-" version))
 
@@ -24,9 +19,12 @@
 	    (delete-directory file-name t)
 	  (delete-file file-name))))))
 
+(defvar ada-mode-version (getenv "ADA_MODE_VERSION"))
+(defvar ada-ref-man-version (getenv "ADA_REF_MAN_VERSION"))
+
 (pkg-dir-clean "ada-mode" ada-mode-version)
 (pkg-dir-clean "ada-ref-man" ada-ref-man-version)
-(pkg-dir-clean "wisi" wisi-version)
-(pkg-dir-clean "uniquify-files" uniquify-files-version)
+(pkg-dir-clean "wisi" "4.1.beta")
+(pkg-dir-clean "uniquify-files" "1.0.4")
 
 ;; end of file

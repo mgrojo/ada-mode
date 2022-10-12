@@ -17,9 +17,6 @@
 --  MA 02110-1335, USA.
 
 with "config/emacs_ada_mode_config.gpr";
-with "gnatcoll";
-with "gnatcoll_sqlite";
-with "gnatcoll_xref";
 with "standard_common_alire";
 with "wisi_alire";
 project Emacs_Ada_Mode is
@@ -32,8 +29,7 @@ project Emacs_Ada_Mode is
    for Exec_Dir use "bin";
    for Main use
      ("ada_mode_wisi_lalr_parse.ads",
-      "ada_mode_wisi_lr1_parse.ads",
-      "gpr_query.adb"
+      "ada_mode_wisi_lr1_parse.ads"
      );
 
    package Compiler is

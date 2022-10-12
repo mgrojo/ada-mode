@@ -6,8 +6,6 @@
 
 export ADA_MODE_VERSION       := 7.3beta1.0.20220711.185004
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 4.0beta1.0.20220711.185552
-export UNIQUIFY_FILES_VERSION := 1.0.4
 
 TEST_DIR ?= source
 
@@ -350,9 +348,6 @@ elpa-archive-zip : ada-mode-elpa-archive-$(DATE).tar.bz2
 ada-mode-elpa-archive-$(DATE).tar.bz2 : $(ELPA_ROOT)/archive/packages/archive-contents
 	tar -c -C $(ELPA_ROOT) archive/packages | bzip2 -9 > ada-mode-elpa-archive-$(DATE).tar.bz2
 
-tag :
-	mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-$(ADA_MODE_VERSION)
-
 MANUALS := ada-mode
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
@@ -368,22 +363,21 @@ VPATH := ..
 # First delete all files in Gnu ELPA, so we catch files deleted here.
 #
 # Copy files to Gnu ELPA ada-mode package
-pub-ada : force
-	mkdir -p $(ELPA_ROOT)/packages/ada-mode
+pub-ada : force | $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../*.el ../*.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
-	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
-	cp ../Makefile ../Makefile.conf ../create_makefile_conf.sh $(ELPA_ROOT)/packages/ada-mode/
+	cp ../build.sh ../install.sh ../ada_mode_wisi_parse.gpr $(ELPA_ROOT)/packages/ada-mode/
+	cp ../*.make $(ELPA_ROOT)/packages/ada-mode/
 	cp ../ada_mode.prj ../prj.el $(ELPA_ROOT)/packages/ada-mode/
 	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../*.wy ../ada*.ad? ../run_ada*.ad? ../wisi-ada*.ad? $(ELPA_ROOT)/packages/ada-mode
-	cd $(ELPA_ROOT)/packages/ada-mode; rm ada-ref-man.el ada_annex_p_bnf.wy ada_annex_p_txt.wy autoloads.el
+	cd $(ELPA_ROOT)/packages/ada-mode; rm -f ada-ref-man.el ada_annex_p_bnf.wy ada_annex_p_txt.wy autoloads.el
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
-	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
+# FIXME: move to arm_form
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
 	rm -rf $(ELPA_ROOT)/packages/ada-ref-man/*
@@ -420,24 +414,12 @@ uninstall-elpa :
 install-elpa :
 	emacs -Q --eval '(load-file "install-elpa.el")'
 
-# We specify $(SHELL) here to work around a Mingw64 'make' problem.
-Makefile.conf : create_makefile_conf.sh
-	$(SHELL) -c ./create_makefile_conf.sh
-
-include Makefile.conf
-
-../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp $(WISI)/wisi.gpr
-	gnatprep -DHAVE_GNAT_UTIL=$(HAVE_GNAT_UTIL) -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
-
 $(WISI)/wisi.gpr : force
 	$(MAKE) -C $(WISI)/build ../wisi.gpr
 
 # RUN_ARG is a list of addresses from a stack dump
 trace :
 	addr2line -e ../run_ada_lalr_parse.exe $(RUN_ARG)
-
-$(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
-	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
 %$(EXE_EXT) : %.adb force
 	cd ..; gprbuild -p -j8 -P ada_mode_wisi_parse.gpr $*.adb

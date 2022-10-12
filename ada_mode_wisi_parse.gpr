@@ -28,6 +28,7 @@ project Ada_Mode_Wisi_Parse is
      );
 
    for Source_Dirs use (".");
+   for Create_Missing_Dirs use "True";
 
    case Standard_Common.Profile is
    when "On" =>
