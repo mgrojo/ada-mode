@@ -60,20 +60,29 @@ publish alire
     /Projects/org.stephe_leake.sal/notes.text
     /Projects/re2c_alire/alire.toml
     /Projects/org.emacs.gpr-query/alire.toml
-        waiting for alire-index pull request approval
-
-    /Projects/org.emacs.ada-mode/notes.text
-        elpa release done to build in elpa
-
-        change install.sh to use Alire if present
-
-    /Projects/org.wisitoken
     /Projects/org.emacs.gpr-mode/alire.toml
-        changed; redo publish
+    /Projects/org.wisitoken
+    /Projects/org.emacs.ada-mode/alire.toml
+        waiting for alire-index pull request build tests
+        https://github.com/alire-project/alire-index/pull/659
 
-    /Projects/org.emacs.gnat-compiler
-        ELPA only; no ada code
-        need to create elpa branch
+        build crate:
+            gpr_query passed
+            emacs_wisi  hash check fail; see comment in pull request log
+0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad /Projects/org.emacs.wisi/alire/archives/
+0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad ~/Downloads
+0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad local emacs_wisi-4.1.0-beta.toml
+0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad pull request
+
+        review comments:
+            alire.toml "executables" is file name of binary sans ".exe"
+                hash is .tgz; alire.toml is in hash, but emacs_gpr_query.toml isn't
+                fix executables for all packages that have them, upload new tarball for each; bump patch version
+emacs_ada_mode
+emacs_gpr_mode
+emacs_gpr_query
+
+    remove "-beta" in emacs_wisi
 
 test elpa/als with devel versions
     (let ((default-directory "/Projects/alire-main/")
@@ -84,6 +93,17 @@ test elpa/als with devel versions
         libgpr2: https://github.com/AdaCore/gpr
         templates_parser: https://github.com/AdaCore/templates-parser
 
+publish elpa
+    need new branches:
+    /Projects/org.emacs.gnat-compiler/gnat-compiler.el
+    /Projects/org.emacs.gpr-query/gpr-query.el
+    /Projects/org.emacs.gpr-mode
+
+    /Projects/elpa/admin/README "** To add a package:"
+        posted on emacs-devel; send a reply referencing savannah git branches
+
+        add elpa branches; the README assumes you are pushing from some repository, not starting from scratch
+            see windows git-notes "add new local branch for new project"
 drop emacs 26 - not tested? at least drop emacs 25
 
 Doc ada-mode wisi indent settings that match als
@@ -1278,6 +1298,10 @@ refactoring
         it guesses parameter_result_profile
 
  debug hints, relevant files
+browse Alire source:
+    (let ((default-directory "/Projects/alire-main/")
+          (load-file "prj.el")))
+
 https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
@@ -1577,13 +1601,16 @@ On Debian
     (alr publish --tar broken on Windows (alr version 1.2.1))
         check if windows fixed; https://github.com/alire-project/alire/issues/1216
     (dvc-status)
+    (dvc-push)
     alr publish --tar
     # at "upload and enter url" prompt; in mys2
-    cd /Projects/org.stephe-leake.sal/alire/archives
+    cd alire/archives
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # wait until http download actually works; took 0.5 days
-    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
+    # wait until http download actually works; even then alr publish may fail; wait some more
+    # FIXME: switch to git upstream when alr changes trusted host to git.savannah.nongnu.org;
+    # https://github.com/alire-project/alire/issues/1219
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-1.0.0.tgz
     # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
 
 

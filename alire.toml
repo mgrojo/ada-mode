@@ -12,8 +12,8 @@ website = "https://www.nongnu.org/ada-mode/"
 
 project-files = ["emacs_ada_mode.gpr"]
 
-executables = ["ada_mode_wisi_lalr_parse.ads",
-               "ada_mode_wisi_lr1_parse.ads"
+executables = ["ada_mode_wisi_lalr_parse",
+               "ada_mode_wisi_lr1_parse"
               ]
 
 [[depends-on]]
