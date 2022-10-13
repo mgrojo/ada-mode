@@ -1,7 +1,7 @@
 name = "emacs_gpr_query"
 description = "Emacs xref backend using information output by GNAT compiler."
 tags = ["emacs", "xref"]
-version = "1.0"
+version = "1.0.1"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -12,7 +12,7 @@ website = "https://elpa.gnu.org/packages/gpr-query.html"
 
 project-files = ["emacs_gpr_query.gpr"]
 
-executables = ["gpr_query.adb"]
+executables = ["gpr_query"]
 
 [[depends-on]]
 gnatcoll = "^22.0.0"

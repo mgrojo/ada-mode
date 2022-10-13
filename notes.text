@@ -125,14 +125,15 @@ bump version
 (dvc-state-one ".")
 
 On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
+    cd /Projects/org.emacs.gpr-query
     alr publish --tar
     # at "upload and enter url" prompt; in mys2
-    cd /Projects/org.stephe-leake.sal/alire/archives
+    cd alire/archives
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
     # wait until http download actually works; took 0.5 days
-    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_query-1.0.0.tgz
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_query-i.j.k.tgz
 
 update elpa:
     (gpr-query-kill-all-sessions)
