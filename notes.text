@@ -78,7 +78,7 @@ publish alire
             alire.toml "executables" is file name of binary sans ".exe"
                 hash is .tgz; alire.toml is in hash, but emacs_gpr_query.toml isn't
                 fix executables for all packages that have them, upload new tarball for each; bump patch version
-emacs_ada_mode
+emacs_ada_mode https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-8.0.1.tgz
 emacs_gpr_mode
 emacs_gpr_query
 
