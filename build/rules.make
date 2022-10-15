@@ -126,10 +126,10 @@ clean :: test-clean
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 	rm -f error_correction_algorithm.ps
 
-# don't delete prj.el
+# don't delete prj.el, release_process.text
 test-clean :
 	rm -f binding.gyp *.ad? *.c *.diff *-process.el *.in *.js *.re2c *.exe *.out *.parse* *.set_table *.txt *.wy
-	rm -f *.wy.errors
+	rm -f *.wy.errors *.tree_text
 
 # We want the files generated for wisitoken_grammar.wy in ../, for CM,
 # and to avoid deleting them in clean. We don't include

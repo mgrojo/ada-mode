@@ -20,6 +20,15 @@ with "gnatcoll";
 with "standard_common_alire";
 project WisiToken_Alire_Mains is
 
+   --  Note that we _don't_ have 'with "wisitoken_alire"; doing that
+   --  gives the error:
+   --
+   --      main cannot be a source of a library project: "wisitoken-bnf-generate"
+   --
+   --  So we have to include the sources here. Which means that
+   --  wisitoken_alire_mains.gpr cannot be in alire.toml
+   --  project-files; that leads to errors about sources in both
+   --  projects.
    for Source_Dirs use ("..");
    for Languages use ("Ada", "C");
 

@@ -42,16 +42,17 @@ Makefile
 ../notes.text dvc-state-multiple
 
 On Debian
-    $ alr publish --tar
+    (dvc-state-one ".") ;; commit or stash
+    (dvc-push)
+    cd /Projects/org.wisitoken/
+    alr publish --tar
     # at "upload and enter url" prompt; in mys2
-    cd /Projects/org.stephe-leake.sal/alire/archives
+    cd alire/archives
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # wait until files appear at https://download.savannah.nongnu.org/releases/ada-mode/
-    # download file from savannah, diff; wisitoken was bad after first attempt
-    # even then, alr publish may fail; wait some more.
-
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/wisitoken-4.0.0.tgz
+    # wait until wget https://download.savannah.nongnu.org/releases/ada-mode/wisitoken-4.0.0.tgz; diff succeeds
+    # often 404 or old file on first attempt
+    # even when diff succeeds, alr publish may fail; wait some more.
 
 Makefile
     zip tag
