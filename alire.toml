@@ -1,7 +1,7 @@
 name = "stephes_ada_library"
 description = "Stephe's Ada library; miscellaneous useful stuff."
 tags = ["containers", "trees"]
-version = "3.7"
+version = "3.7.1"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -11,3 +11,7 @@ maintainers-logins = ["stephe-ada-guru"]
 website = "https://stephe-leake.org/ada/sal.html"
 
 project-files = ["build/stephes_ada_library.gpr"]
+
+[[depends-on]]
+# We use Ada 2022 syntax, so need the -gnat2022 switch; introduced in gnat FSF 11, Community 2021. 
+gnat = ">=11 & <2000"
