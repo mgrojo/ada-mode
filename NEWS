@@ -6,7 +6,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi 4.1.beta
+* wisi 4.1.1
 8 Oct 2022
 
 ** Ada code builds with alire.
