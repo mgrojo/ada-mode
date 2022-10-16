@@ -94,7 +94,7 @@ bump versions
             - GPS indentation engine add/delete
             - delete elisp lexer
             - use virtual tokens in indent
-            - build with alire, create_parser
+            - build with alire, create_parser, support eglot
             - ? module?
 
         bump first digit for really major user-visible changes
@@ -104,7 +104,7 @@ bump versions
 
          if current release is non-beta, propagate from elpa/packages/wisi to elpa_release/packages/wisi
 
-   NEWS
+    NEWS
 
     emacs_wisi_common_parse.ads
         (should have been changed already, but verify)
@@ -121,6 +121,7 @@ bump versions
         copyright date
         @title
         @node top
+        package-requires versions
 
     README
         first line
@@ -129,19 +130,17 @@ bump versions
         version
         depends-on versions
 
-
-verify other metadata
-    wisi.el
-
 (dvc-state-one ".")
 
-On Debian - alr publish --tar broken on Windows (alr version 1.2.1)
+On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
     alr publish --tar
     # at "upload and enter url" prompt; in mys2
     cd /Projects/org.stephe-leake.sal/alire/archives
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/stephes_ada_library-3.7.0.tgz
+    # wait until http download actually works; took 0.5 days
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
 
 build/Makefile tag zip
 

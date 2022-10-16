@@ -815,9 +815,13 @@ case, return the project."
       ;; If no parser, prj-file is just a placeholder; there is no file to parse.
       ;; For example, sal-android-prj has no project file.
 	(funcall parser prj-file project)
-	(wisi-prj-parse-final project prj-file)
-	(wisi-compiler-parse-final (wisi-prj-compiler project) project prj-file)
-	(wisi-xref-parse-final (wisi-prj-xref project) project prj-file))
+	(wisi-prj-parse-final project prj-file))
+
+    ;; We do this even without a parser, so project builders can just
+    ;; set the compiler and xref; see gnat-alire.el
+    ;; create-alire-project.
+    (wisi-compiler-parse-final (wisi-prj-compiler project) project prj-file)
+    (wisi-xref-parse-final (wisi-prj-xref project) project prj-file)
 
     (when cache
       ;; Cache the project properties
