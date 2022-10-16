@@ -90,13 +90,6 @@ Check copyright on files in elpa
 
 bump version
     Gnu ELPA requires single digits between dots in versions
-    add ".alpha" ".beta" ".rc" for devel version
-        use .alpha for Debian testing
-
-        alpha test: add .alpha in elpa Version header, Makefile only
-
-        beta test: add .beta everywhere
-            for follow-on, add/change n in elpa Version header, Makefile only
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes

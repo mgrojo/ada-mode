@@ -1,4 +1,4 @@
-Emacs gpr-query version 1.0
+Emacs gpr-query version 1.0.1
 
 gpr-query provides an emacs xref backend using the cross-reference
 information output by the AdaCore GNAT compiler.
@@ -19,5 +19,5 @@ Both shell scripts use Alire if the 'alr' executable is found in PATH.
 See gpr-query.info section Installation for more information on
 installing; if not using Alire, you may need additional packages.
 
-Ada mode will automatically load gpr-query if ada-xref-tool is set to
-'gpr_query and the gpr_query executable is found in PATH. 
+Ada mode will automatically load gpr-query if the gpr_query executable
+is found in PATH; this may be overridden by setting ada-xref-tool.
