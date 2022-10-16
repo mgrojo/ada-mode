@@ -115,13 +115,12 @@ bump versions
     wisi.el
         copyright date
         Version:
-            ends in .beta for beta test release
+        package-requires versions
 
     wisi.texi
         copyright date
         @title
         @node top
-        package-requires versions
 
     README
         first line
