@@ -6,7 +6,7 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0
+;; Version: 1.0.0
 ;; package-requires: ((emacs "25.3") (wisi "4.1"))
 ;;
 ;; This file is part of GNU Emacs.
@@ -34,12 +34,20 @@
   :group 'programming)
 
 (defcustom gnat-debug-run nil
-  "If t, compilation buffers containing a GNAT command will show
+  "If t or integer > 0, buffers containing a GNAT command will show
 the command.  Otherwise, they will show only the output of the
-command.  This applies e.g. to *gnatfind* buffers."
-  :type 'boolean
-  :safe  #'booleanp
+command.  Higher integers show more information (environment vars etc)."
+  :type 'integer
+  :safe  #'integerp
   :group 'gnat-compiler)
+
+(defun gnat-debug-enabled (level)
+  "Return t if gnat-debug-run is t or > LEVEL."
+  (cond
+   ((integerp gnat-debug-run)
+    (> gnat-debug-run level))
+
+   (t gnat-debug-run)))
 
 ;;;;; project file handling
 
@@ -121,6 +129,7 @@ Throw an error if current project does not have a gnat-compiler."
     (condition-case-unless-debug nil
 	(with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name compiler))
 	  ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
+
 	  (gnat-run-gnat project "list" (list "-v") '(0 4))
 
 	  (goto-char (point-min))
@@ -257,10 +266,14 @@ Assumes current buffer is (gnat-run-buffer)"
     (funcall process-list (wisi-prj-compile-env project))
     (funcall process-list (wisi-prj-file-env project))
 
-    (when gnat-debug-run
+    (when (gnat-debug-enabled 0)
       (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec))
       (mapc (lambda (str) (insert (concat str " "))) command)
       (newline))
+
+    (when (gnat-debug-enabled 1)
+      (dolist (item process-environment)
+	(insert item)(insert "\n")))
 
     (let ((exec-path (split-string (getenv "PATH") path-separator)))
       (setq status (apply 'call-process exec nil t nil command)))
@@ -281,7 +294,6 @@ Assumes current buffer is (gnat-run-buffer)"
 COMMAND must be a string, SWITCHES-ARGS a list of strings.
 EXPECTED-STATUS must be nil or a list of integers.
 Return process status.
-
 Assumes current buffer is (gnat-run-buffer)"
   (let* ((compiler (wisi-prj-compiler project))
 	 (gpr-file (gnat-compiler-gpr-file compiler))
@@ -297,7 +309,7 @@ Assumes current buffer is (gnat-run-buffer)"
             (list (concat "--RTS=" (gnat-compiler-runtime compiler)))))
 	 (cmd (append (list command) (list project-file-switch) runtime switches-args)))
 
-      (gnat-run project target-gnat cmd nil expected-status)
+    (gnat-run project target-gnat cmd nil expected-status)
     ))
 
 (defun gnat-run-no-prj (command &optional dir)
