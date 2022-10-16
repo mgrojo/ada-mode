@@ -4,8 +4,8 @@
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0.0
-;; package-requires: ((emacs "25.3") (wisi "4.1") (gnat-compiler "1.0"))
+;; Version: 1.0.1
+;; package-requires: ((emacs "25.3") (wisi "4.1.1") (gnat-compiler "1.0"))
 ;; URL: http://stephe-leake.org/ada/wisitoken.html
 
 ;; This file is part of GNU Emacs.

@@ -108,16 +108,6 @@ Check copyright on files in elpa
 
 bump versions
     Gnu ELPA requires single digits between dots in versions
-    add ".alpha" ".beta" ".rc" for devel version
-        use .alpha for Debian testing
-
-        alpha test: add .alpha in elpa Version header, ada-mode Makefile only
-
-        beta test: add .beta everywhere
-            for follow-on, add/change n in elpa Version header, gpr-mode Makefile only
-
-        release candidate; .rc everywhere
-            for follow-on, add/change n in elpa Version header, gpr-mode Makefile only
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
@@ -136,7 +126,6 @@ bump versions
     gpr-mode.el
         Version:
         package-requires wisi version
-        gpr-mode-version
 
     NEWS
         if not done above
@@ -174,7 +163,7 @@ bump versions
 
 On Debian
     (dvc-state-one ".") ;; commit or stash
-    (dvc-push)
+    (dvc-push ".")
     alr publish --tar
     # at "upload and enter url" prompt; in mys2
     cd alire/archives

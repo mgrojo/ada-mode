@@ -1,6 +1,8 @@
 # For compiling gpr-mode Ada code with Alire
 
-include ../org.stephe_leake.makerules/alire_rules.make
+STEPHES_ADA_LIBRARY_ALIRE_PREFIX ?= $(CURDIR)/../org.stephe_leake.sal
+
+include $(STEPHES_ADA_LIBRARY_ALIRE_PREFIX)/build/alire_rules.make
 
 # Local Variables:
 # eval: (load-file "prj-eglot.el")

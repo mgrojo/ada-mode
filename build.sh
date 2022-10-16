@@ -15,10 +15,7 @@ elif type gprbuild; then
     echo "building gpr-mode executables via gnat compiler"
     
     if [ -d ../wisi-4.1.? ]; then
-        WISI_DIR=`ls -d ../wisi-4.0.?`
-    else
-        # try devel version
-        WISI_DIR=`find .. -type d -name "wisi-4.0beta*"`
+        WISI_DIR=`ls -d ../wisi-4.1.?`
     fi
 
     args=`echo -DELPA="yes" $WISI_DIR/wisi.gpr.gp $WISI_DIR/wisi.gpr`
