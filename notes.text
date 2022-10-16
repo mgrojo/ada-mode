@@ -86,20 +86,13 @@ publish alire
     /Projects/org.emacs.gpr-mode/Alire.make     done
     /Projects/org.emacs.ada-mode/Alire.make     done
 
-    upload all changed crates; bump patch version
-        dvc-state-multiple above
-
-* Makefile: Match alire_rules move.
-
-* alire.toml: Bump patch version.
-(depends-on): Restrict gnat version for -gnat2022.
-
-        /Projects/org.stephe_leake.sal/          committed 3.7.1
-        /Projects/org.wisitoken/alire.toml       committed 4.0.1
-        /Projects/org.emacs.wisi/alire.toml      committed 4.1.1
-        /Projects/org.emacs.gpr-query/alire.toml committed 1.0.1
-        /Projects/org.emacs.gpr-mode/alire.toml  committed 1.0.1
-        /Projects/org.emacs.ada-mode/alire.toml  8.0.2
+    upload all changed crates;
+        /Projects/org.stephe_leake.sal/          waiting on savannah
+        /Projects/org.wisitoken/alire.toml       waiting on savannah
+        /Projects/org.emacs.wisi/alire.toml      waiting on savannah
+        /Projects/org.emacs.gpr-query/alire.toml waiting on savannah
+        /Projects/org.emacs.gpr-mode/alire.toml  waiting on savannah
+        /Projects/org.emacs.ada-mode/alire.toml  committed 8.0.2
 
 
 install from alire
