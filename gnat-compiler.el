@@ -259,7 +259,8 @@ Assumes current buffer is (gnat-run-buffer)"
 	(process-list
 	 (lambda (list)
 	   (dolist (var list)
-	     (string-match "\\(.*\\)=\"\\(.*\\)\"$" var)
+	     (unless (string-match "\\(.*\\)=\\(.*\\)$" var)
+	       (error "malformed environment entry: %s" var))
 	     (setenv (match-string-no-properties 1 var) (match-string-no-properties 2 var)))))
 	status)
 
