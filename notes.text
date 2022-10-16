@@ -22,6 +22,7 @@ o.e.a.stephe-7 (): available
 ;;  (xgit . "/Projects/elpa/packages/uniquify-files")
   (xgit . "/Projects/org.emacs.wisi/")
   (xgit . "/Projects/org.emacs.gnat-compiler/")
+  (xgit . "/Projects/org.emacs.gpr-query/")
   (xgit . "/Projects/org.emacs.gpr-mode/")
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
@@ -49,58 +50,106 @@ o.e.a.stephe-7 (): available
 
  current work
 publish alire
-    do elpa release process first, to set version
-        use alr publish --tar; sal differs from savannah tar, default names differ
-
-        in "bump version" section, add:
-    alire.toml
-        Version
-        depends-on versions
-
+    https://github.com/alire-project/alire-index/pull/659
     /Projects/org.stephe_leake.sal/notes.text
     /Projects/re2c_alire/alire.toml
+    /Projects/org.wisitoken/alire.toml
+    /Projects/org.emacs.wisi/alire.toml
     /Projects/org.emacs.gpr-query/alire.toml
     /Projects/org.emacs.gpr-mode/alire.toml
-    /Projects/org.wisitoken
     /Projects/org.emacs.ada-mode/alire.toml
-        waiting for alire-index pull request build tests
-        https://github.com/alire-project/alire-index/pull/659
 
-        build crate:
-            gpr_query passed
-            emacs_wisi  hash check fail; see comment in pull request log
-0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad /Projects/org.emacs.wisi/alire/archives/
-0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad ~/Downloads
-0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad local emacs_wisi-4.1.0-beta.toml
-0ddcdcd84f52e250c068fff1479243510ac9518e7723e8f03ab2a46d98a751ad pull request
+    build test errors:
 
-        review comments:
-            alire.toml "executables" is file name of binary sans ".exe"
-                hash is .tgz; alire.toml is in hash, but emacs_gpr_query.toml isn't
-                fix executables for all packages that have them, upload new tarball for each; bump patch version
-emacs_ada_mode https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-8.0.1.tgz
-emacs_gpr_mode
-emacs_gpr_query
+2022-10-15T08:32:33.1885018Z wisitoken_alire_mains.gpr:21:09: unit "wisitoken.parse.lr.mckenzie_recover.parse" cannot belong to several projects
+    remove wisitoken_alire_mains.gpr from wisitoken project-files : done
 
-    remove "-beta" in emacs_wisi
+    comment: gnat version restriction
+        might fix error in Ubuntu LTS test
+        all alire.toml edited
+
+    rerun all "alr build"
+        first delete all alire dir
+            rm -rf org.emacs.ada-mode/alire
+            rm -rf org.emacs.gpr-mode/alire
+            rm -rf org.emacs.gpr-query/alire
+            rm -rf org.emacs.wisi/alire
+            rm -rf org.stephe_leake.sal/alire
+            rm -rf org.wisitoken/alire
+
+        then build bottom up:
+    /Projects/org.stephe_leake.sal/Makefile     done
+    /Projects/org.wisitoken/Makefile            done
+    /Projects/re2c_alire/alire.toml             none needed
+    /Projects/org.emacs.wisi/Makefile           done
+    /Projects/org.emacs.gpr-query/Alire.make    done
+    /Projects/org.emacs.gpr-mode/Alire.make     done
+    /Projects/org.emacs.ada-mode/Alire.make     done
+
+    upload all changed crates; bump patch version
+        dvc-state-multiple above
+
+* Makefile: Match alire_rules move.
+
+* alire.toml: Bump patch version.
+(depends-on): Restrict gnat version for -gnat2022.
+
+        /Projects/org.stephe_leake.sal/          committed 3.7.1
+        /Projects/org.wisitoken/alire.toml       committed 4.0.1
+        /Projects/org.emacs.wisi/alire.toml      committed 4.1.1
+        /Projects/org.emacs.gpr-query/alire.toml committed 1.0.1
+        /Projects/org.emacs.gpr-mode/alire.toml  committed 1.0.1
+        /Projects/org.emacs.ada-mode/alire.toml  8.0.2
+
+
+install from alire
+    --prefix=$HOME/.local
 
 test elpa/als with devel versions
-    (let ((default-directory "/Projects/alire-main/")
-          (load-file "prj.el"))
-
+    for semantic tokens
+    (dvc-status "/Projects/ada_language_server/")
     /Projects/ada_language_server/alire.toml
+    (let ((default-directory "/Projects/ada_language_server/"))
+       (load-file "prj.el"))
+
+        alr build
         missing dependencies:
         libgpr2: https://github.com/AdaCore/gpr
-        templates_parser: https://github.com/AdaCore/templates-parser
+        pin https://github.com/AdaCore/templates-parser
+            tp_xmlada not found; comment out for now
+        pin https://github.com/AdaCore/langkit
+            for langkit_support newer version
+        pin https://github.com/AdaCore/gnatcoll-bindings
+            for gnatcoll-gmp newer version
+        pin https://github.com/AdaCore/gnatcoll-core
+            for gnatcoll newer version
+        clone https://github.com/AdaCore/gprbuild
+        direct depends, pin libgpr (in gprbuild)
+            for gnatcoll main
+        direct depends on xmlada
+            for gprbuild/libgpr
+            edit gpr.gpr OS to lowercase "unix"; set by gnat
+
+        build finished!
+        exe is /Projects/ada_language_server/.obj/server/ada_language_server
+
+    eglot
+        https://github.com/joaotavora/eglot/issues/615
+        https://github.com/joaotavora/eglot/pull/839
+        /Projects/eglot-semantic-tokens/eglot.el
 
 publish elpa
-    need new branches:
+    need new beta branches, with corresponding release branches
+        don't need 'beta' in version; just don't push to release branch!
     /Projects/org.emacs.gnat-compiler/gnat-compiler.el
     /Projects/org.emacs.gpr-query/gpr-query.el
     /Projects/org.emacs.gpr-mode
 
+
+
     /Projects/elpa/admin/README "** To add a package:"
         posted on emacs-devel; send a reply referencing savannah git branches
+        stefan says ok
 
         add elpa branches; the README assumes you are pushing from some repository, not starting from scratch
             see windows git-notes "add new local branch for new project"
@@ -182,15 +231,6 @@ publish to alire
 
     add badge to websites:
 [![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/YOUR_CRATE.json)](https://alire.ada.dev/crates/YOUR_CRATE.html)
-
-install devel versions of eglot, als; test face
-    /Projects/ada_language_server
-        als: alr build
-lal_tools.gpr:2:06: imported project file "templates_parser.gpr" not found
-        installed libadalang, langkit, etc; /Projects/libadalang/user_manual/building.rst
-        still not found; posted issue https://github.com/AdaCore/ada_language_server/issues/1054
-
-        eglot: cloned in /Projects/eglot-semantic-tokens
 
 /Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-expression_functions.ads
     when run by make one ada_language_server reports more than one gpr file
@@ -1299,8 +1339,10 @@ refactoring
 
  debug hints, relevant files
 browse Alire source:
-    (let ((default-directory "/Projects/alire-main/")
-          (load-file "prj.el")))
+    (let ((default-directory "/Projects/alire-main/"))
+       (load-file "prj.el"))
+
+https://github.com/alire-project/alire/blob/master/doc/catalog-format-spec.md
 
 https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
@@ -1502,20 +1544,9 @@ Check copyright on files in elpa
 bump versions
     Gnu ELPA requires single digits between dots in versions; always use three digits
 
-    insert ".alpha" ".beta" ".rc" before third digitfor devel version
-        not in .texi
-        use .alpha for Debian testing
+    beta test: don't push to release branch
 
-        alpha test: add .alpha in elpa Version header, ada-mode Makefile only
-
-        beta test: add .beta everywhere
-            for follow-on, add/change n in elpa Version header, ada-mode Makefile only
-
-        release candidate; .rc everywhere
-            for follow-on, add/change n in elpa Version header, ada-mode Makefile only
-
-        if current release is non-beta, propagate from elpa/packages/ada-mode to elpa_release/packages/ada-mode
-
+    propagate release from elpa/packages/ada-mode to elpa_release/packages/ada-mode
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
@@ -1561,10 +1592,10 @@ bump versions
         first line
 
     build.sh
-        if -d ../wisi-, WISI_DIR (twice)
+        if -d ../wisi-, WISI_DIR
 
     install.sh
-        if -d ../wisi-, WISI_DIR (twice)
+        if -d ../wisi-, WISI_DIR
 
     ada-ref-man.el
         Version:

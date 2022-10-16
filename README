@@ -1,4 +1,4 @@
-Emacs Ada mode version 8.0.0
+Emacs Ada mode version 8.0.1
 
 Ada mode provides auto-casing, fontification, navigation, and
 indentation for Ada source code files.
@@ -11,10 +11,11 @@ found on PATH, defaulting to gpr-query.
 Ada mode uses a parser to provide fontification, single-file
 navigation, and indentation. Ada mode allows using eglot as the
 backend for these, but the current version of AdaCore
-ada_language_server only supports navigation. The wisi parser backend
-supports all Ada mode functions, is implemented in Ada, is fast enough
-even for very large files (via partial or incremental parsing), and
-recovers from almost all syntax errors.
+ada_language_server only supports single and multi-file navigation.
+The wisi parser backend supports all Ada mode functions, is
+implemented in Ada, is fast enough even for very large files (via
+partial or incremental parsing), and recovers from almost all syntax
+errors.
 
 The wisi parser is provided as Ada source code that must be compiled and
 installed, either directly or via Alire (https://alire.ada.dev/):

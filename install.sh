@@ -23,9 +23,6 @@ elif type gprbuild; then
 
     if [ -d ../wisi-4.1.? ]; then
         WISI_DIR=`ls -d ../wisi-4.1.?`
-    else
-        # try devel version
-        WISI_DIR=`find .. -type d -name "wisi-4.1.beta*"`
     fi
 
     gprinstall -f -p -P ada_mode_wisi_parse.gpr -aP $WISI_DIR --install-name=ada_mode_wisi_parse $1 

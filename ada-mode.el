@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 8.0.beta0
-;; package-requires: ((uniquify-files "1.0.1") (wisi "4.1.0") (gnat-compiler "1.0.0") (emacs "25.3"))
+;; Version: 8.0.1
+;; package-requires: ((uniquify-files "1.0.1") (wisi "4.1.1") (gnat-compiler "1.0.0") (emacs "25.3"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "8.0.beta0"))
+  (let ((version-string "8.0.1"))
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))

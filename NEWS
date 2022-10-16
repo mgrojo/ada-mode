@@ -6,7 +6,7 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* Ada Mode 8.0
+* Ada Mode 8.0.2
 
 ** Support building ada-mode parser with Alire.
 
