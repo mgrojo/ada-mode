@@ -424,7 +424,7 @@ trace :
 %$(EXE_EXT) : %.adb force
 	cd ..; gprbuild -p -j8 -P ada_mode_wisi_parse.gpr $*.adb
 
-build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../ada_annex_p_re2c.c force
+build_executables : $(WISI)/wisi.gpr ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables

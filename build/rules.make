@@ -134,10 +134,7 @@ compile-ada-test-clean :
 
 exe-clean ::
 	rm -rf ../obj
-	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
-	rm -rf ../gpr_query-process_refresh.adb
 	rm -rf ../ada_mode_wisi_*_parse$(EXE_EXT)
-	rm -f ../ada_mode_wisi_parse.gpr ../wisi.gpr
 	rm -rf ../run_ada_*_parse$(EXE_EXT)
 	rm -rf ../dump_*_corrected$(EXE_EXT)
 
