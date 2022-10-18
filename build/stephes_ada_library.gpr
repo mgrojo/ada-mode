@@ -41,11 +41,7 @@ project Stephes_Ada_Library is
          for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches &
            Standard_Common_Alire.Style_Checks;
 
-      when "validation" =>
-         -- FIXME: what is this for?
-         for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
-
-      when "development" =>
+      when "validation" | "development" =>
          for Default_Switches ("Ada") use Standard_Common_Alire.Debug_Switches & Standard_Common_Alire.Style_Checks;
 
       end case;

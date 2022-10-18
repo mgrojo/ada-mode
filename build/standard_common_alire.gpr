@@ -39,7 +39,11 @@ project Standard_Common_Alire is
    Style_Checks := (Base_Style_Checks, Line_Length);
 
    Common_Switches :=
-     ("-gnat2022",
+     (
+      --  GNAT 11 supports -gnat2020 but not -gnat2022. GNAT 12
+      --  supports both. Switch to -gnat2022 when drop support for
+      --  GNAT 11.
+      "-gnat2020",
       "-fstack-check",
       "-g",
       "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
