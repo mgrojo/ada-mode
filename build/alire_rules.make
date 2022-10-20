@@ -23,10 +23,9 @@ endif
 
 WISITOKEN_GENERATE := $(ALIRE_PREFIX)/build/bin/wisitoken-bnf-generate.exe
 
-$(WISITOKEN_GENERATE) :
-	$(MAKE) -C $(ALIRE_PREFIX) build/bin/wisitoken-bnf-generate.exe
-
-%.re2c : %.wy $(WISITOKEN_GENERATE)
+# The wisitoken crate builds wisitoken-bnf-generate.exe, so we don't
+# need a rule to build it here.
+%.re2c : %.wy
 	$(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --verbosity "time=1" --output_bnf $(<F)
 
 %_re2c.c : %.re2c
