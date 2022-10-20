@@ -18,19 +18,11 @@ with "../config/wisitoken_config.gpr";
 with "../config/wisitoken_config.gpr";
 with "gnatcoll";
 with "standard_common_alire";
+with "wisitoken_alire";
 project WisiToken_Alire_Mains is
 
-   --  Note that we _don't_ have 'with "wisitoken_alire"; doing that
-   --  gives the error:
-   --
-   --      main cannot be a source of a library project: "wisitoken-bnf-generate"
-   --
-   --  So we have to include the sources here. Which means that
-   --  wisitoken_alire_mains.gpr cannot be in alire.toml
-   --  project-files; that leads to errors about sources in both
-   --  projects.
-   for Source_Dirs use ("..");
-   for Languages use ("Ada", "C");
+   for Source_Dirs use ("../main");
+   for Languages use ("Ada");
 
    for Object_Dir use "obj/" & Wisitoken_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
@@ -56,6 +48,11 @@ project WisiToken_Alire_Mains is
       for Executable_Suffix use ".exe";
 
    end Builder;
+
+   package Linker is
+      --  WORKAROUND: gprbuild doesn't include this automatically for some reason.
+      for Switches ("wisitoken-bnf-generate.adb") use ("obj/" & Wisitoken_Config.Build_Profile & "/wisitoken_grammar_re2c.o");
+   end Linker;
 
    package Binder is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback

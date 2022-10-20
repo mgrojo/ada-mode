@@ -4,7 +4,7 @@ with "sal";
 with "standard_common";
 project WisiToken is
 
-   for Source_Dirs use ("..", "../memory");
+   for Source_Dirs use ("..", "../main", "../memory");
 
    for Languages use ("Ada", "C");
 

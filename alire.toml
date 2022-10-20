@@ -10,7 +10,10 @@ maintainers-logins = ["stephe-ada-guru"]
 
 website = "https://stephe-leake.org/ada/wisitoken.html"
 
-project-files = ["build/wisitoken_alire.gpr"]
+project-files = ["build/wisitoken_alire.gpr", "build/wisitoken_alire_mains.gpr"]
+
+#  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+executables = ["wisitoken-bnf-generate.exe"]
 
 [[depends-on]]
 gnatcoll = "^22.0.0"
