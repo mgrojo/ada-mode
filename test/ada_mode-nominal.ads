@@ -2,6 +2,10 @@
 -- No comment on the first line, to make sure we can handle that :)
 -- blank on first line, to test beginning-of-buffer logic for "with-context"
 
+-- eglot needs a gpr file to start the language server, so it needs a
+-- wisi project before test-face.
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(test-face "Text_IO" font-lock-function-name-face)
 with -- context_clause_start
@@ -13,11 +17,6 @@ with -- context_clause_start
 -- .adp and .gpr is tested here
 -- .gpr only is tested in ada_mode-find_file.adb
 -- .adp only is tested in ada_mode-generic_instantiation.ads
---
--- 'eval' is not a safe local variable, so we can't use local
--- variables for this in batch mode.
---
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-backend ((gpr_query eglot) "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
 --EMACSCMD:(when (eql ada-xref-backend 'eglot) (ada-eglot-wait-indexing-done))
 
@@ -742,7 +741,7 @@ is -- target 0
    --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "   function Function_2b (Param : in Parent_Type_1) return Float")) (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat '("ada_mode-nominal.adb" "Function_2b body")))
    --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "      return Function_2b (Parent_Type_1'(1, 1.0, False));")) (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat '("ada_mode-nominal-child.adb" "Function_2b")))
    --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal.adb" "      return Function_2b (Item);")) (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")) (gnat '("ada_mode-nominal.adb" "Function_2b")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))(gnat '("ada_mode-nominal.adb" "Function_2b")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal-child.ads" "   function Function_2b (Param : in Child_Type_1) return")) (gpr_query '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))(gnat '("ada_mode-nominal.adb" "Function_2b")))
    --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot '("ada_mode-nominal-child.adb" "      return Function_2b (Item);")) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")) (gnat nil))
    --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")) (gnat nil))
    --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")) (gnat nil))

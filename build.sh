@@ -9,7 +9,7 @@
 
 if type alr; then
     echo "building ada-mode executables via Alire"
-    alr get emacs_ada_mode
+    alr get --build emacs_ada_mode~8.0.2
 
 elif type gprbuild; then
     echo "building ada-mode executables via gnat compiler"
@@ -44,7 +44,7 @@ elif type gprbuild; then
 
 else
     echo "neither Alire nor gnat compiler found"
-    return 1
+    exit 1
 fi
 
 # end of file

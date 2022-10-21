@@ -9,7 +9,7 @@ o.e.a: release, in use
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (o.s_l.sal o.w o.e.w): run tests with eglot
+o.e.a.stephe-4 (o.s_l.sal.s-1 o.w.s-1 o.e.w.s-4): run tests with devel versions of eglot, ada_language_server
 o.e.a.stephe-5 (?): libadalang backend; dead
 o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead
 o.e.a.stephe-7 (): available
@@ -27,26 +27,32 @@ o.e.a.stephe-7 (): available
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-4")))
+ '(("../org.stephe_leake.sal"    . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"           . "../org.wisitoken.stephe-1")
+   ("../org.emacs.gnat-compiler" . "../org.emacs.gnat-compiler.stephe-1")
+   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-4")
+   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
-  (xgit . "/Projects/org.stephe_leake.sal")
-  (xgit . "/Projects/org.wisitoken")
-  (xgit . "/Projects/org.emacs.gnat-compiler")
-  (xgit . "/Projects/org.emacs.gpr-query")
-  (xgit . "/Projects/org.emacs.wisi")
+  (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
+  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.emacs.gnat-compiler.stephe-1")
+  (xgit . "/Projects/org.emacs.gpr-query.stephe-1")
+  (xgit . "/Projects/org.emacs.wisi.stephe-4")
+  (xgit . "/Projects/org.emacs.gpr-mode/.stephe-4")
   (xgit . "/Projects/org.emacs.ada-mode.stephe-4")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.wisi.stephe-4"       . "../org.emacs.wisi")
-   ("../org.emacs.ada-mode.stephe-7"   . "../org.emacs.ada-mode")))
+ '(("../org.stephe_leake.sal.stephe-1"           . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"                  . "../org.wisitoken")
+   ("../org.emacs.wisi.stephe-4"                 . "../org.emacs.wisi")
+   ("/Projects/org.emacs.gnat-compiler.stephe-1" . "/Projects/org.emacs.gnat-compiler")
+;;   ("/Projects/org.emacs.gpr-query.stephe-1"     . "/Projects/org.emacs.gpr-query")
+   ("../org.emacs.ada-mode.stephe-4"             . "../org.emacs.ada-mode")
+;;   ("/Projects/org.emacs.gpr-mode.stephe-4/"     . "/Projects/org.emacs.gpr-mode/")
+   ))
 
  current work
 publish alire
@@ -59,44 +65,42 @@ publish alire
     /Projects/org.emacs.gpr-mode/alire.toml
     /Projects/org.emacs.ada-mode/alire.toml
 
-    build test errors:
-
-2022-10-15T08:32:33.1885018Z wisitoken_alire_mains.gpr:21:09: unit "wisitoken.parse.lr.mckenzie_recover.parse" cannot belong to several projects
-    remove wisitoken_alire_mains.gpr from wisitoken project-files : done
-
-    comment: gnat version restriction
-        might fix error in Ubuntu LTS test
-        all alire.toml edited
-
     rerun all "alr build"
-        first delete all alire dir
-            rm -rf org.emacs.ada-mode/alire
-            rm -rf org.emacs.gpr-mode/alire
-            rm -rf org.emacs.gpr-query/alire
-            rm -rf org.emacs.wisi/alire
-            rm -rf org.stephe_leake.sal/alire
-            rm -rf org.wisitoken/alire
+        first delete all alire and obj dir
+            cd org.emacs.ada-mode; rm -rf alire build/obj
+            cd ../org.emacs.gpr-mode; rm -rf alire build/obj
+            cd ../org.emacs.gpr-query; rm -rf alire build/obj
+            cd ../org.emacs.wisi; rm -rf alire build/obj
+            cd ../org.stephe_leake.sal; rm -rf alire build/obj
+            cd ../org.wisitoken; rm -rf alire build/obj
 
         then build bottom up:
-    /Projects/org.stephe_leake.sal/Makefile     done
-    /Projects/org.wisitoken/Makefile            done
-    /Projects/re2c_alire/alire.toml             none needed
-    /Projects/org.emacs.wisi/Makefile           done
-    /Projects/org.emacs.gpr-query/Alire.make    done
-    /Projects/org.emacs.gpr-mode/Alire.make     done
-    /Projects/org.emacs.ada-mode/Alire.make     done
+    /Projects/org.stephe_leake.sal/Makefile alire-build
+    /Projects/org.wisitoken/Makefile
+    /Projects/org.emacs.wisi/Makefile
+    /Projects/org.emacs.gpr-query/Alire.make
+    /Projects/org.emacs.gpr-mode/Alire.make
+    /Projects/org.emacs.ada-mode/Alire.make
 
     upload all changed crates;
-        /Projects/org.stephe_leake.sal/          waiting on savannah
-        /Projects/org.wisitoken/alire.toml       waiting on savannah
-        /Projects/org.emacs.wisi/alire.toml      waiting on savannah
-        /Projects/org.emacs.gpr-query/alire.toml waiting on savannah
-        /Projects/org.emacs.gpr-mode/alire.toml  waiting on savannah
-        /Projects/org.emacs.ada-mode/alire.toml  committed 8.0.2
+    sha256sum *.tgz
+    # compare hash to ~/.config/alire/indexes/stephe/index/st/stephes_ada_library/stephes_ada_library-*.toml
+    # if changed, continue with upload
+        /Projects/org.stephe_leake.sal/          changed
+        /Projects/org.wisitoken/alire.toml       changed
+        /Projects/org.emacs.wisi/alire.toml      changed
+        /Projects/org.emacs.gpr-query/alire.toml no change
+        /Projects/org.emacs.gpr-mode/alire.toml  no change
+        /Projects/org.emacs.ada-mode/alire.toml
+
+    (dvc-status "~/.config/alire/indexes/stephe/repo/")
+    (dvc-push "~/.config/alire/indexes/stephe/repo/")
 
 
 install from alire
     --prefix=$HOME/.local
+    gprinstall -p --prefix=$HOME/.local build/wisitoken_alire.gpr
+    install.sh should default --prefix to that
 
 test elpa/als with devel versions
     for semantic tokens
@@ -105,31 +109,48 @@ test elpa/als with devel versions
     (let ((default-directory "/Projects/ada_language_server/"))
        (load-file "prj.el"))
 
-        alr build
-        missing dependencies:
-        libgpr2: https://github.com/AdaCore/gpr
-        pin https://github.com/AdaCore/templates-parser
-            tp_xmlada not found; comment out for now
-        pin https://github.com/AdaCore/langkit
-            for langkit_support newer version
-        pin https://github.com/AdaCore/gnatcoll-bindings
-            for gnatcoll-gmp newer version
-        pin https://github.com/AdaCore/gnatcoll-core
-            for gnatcoll newer version
-        clone https://github.com/AdaCore/gprbuild
-        direct depends, pin libgpr (in gprbuild)
-            for gnatcoll main
-        direct depends on xmlada
-            for gprbuild/libgpr
-            edit gpr.gpr OS to lowercase "unix"; set by gnat
-
-        build finished!
-        exe is /Projects/ada_language_server/.obj/server/ada_language_server
+    exe is /Projects/ada_language_server/.obj/server/ada_language_server
 
     eglot
         https://github.com/joaotavora/eglot/issues/615
         https://github.com/joaotavora/eglot/pull/839
-        /Projects/eglot-semantic-tokens/eglot.el
+        /Projects/eglot-stephe/eglot.el
+
+    (sal-devel-als-eglot)
+    (require 'eglot)
+
+    make test-ada-eglot.stamp
+    test/debug.adb
+        als raises constraint_error
+        capture eglot log
+        duplicate in als test
+        submit github issue
+
+    test/ada_mode-nominal.ads
+        lots of stuff right, lots wrong
+        in context_clause; Ada.Text_IO has (font-lock-builtin-face font-lock-keyword-face)
+            but test-face reports nil; race condition
+                font-lock-ensure only issues request; need to wait for response
+                    for now, use (sleep-for 0.1)
+                no "wait" functions in eglot
+                see eglot-test.el eglot--wait-for, eglot--sniffing
+
+
+als supported tokens:
+(:tokenTypes
+  ["namespace" "type" "class" "enum" "interface" "struct" "typeParameter" "parameter" "variable" "property"
+   "enumMember" "function" "keyword" "comment" "string" "number" "operator"]
+ :tokenModifiers
+  ["declaration" "definition" "readonly" "static" "deprecated" "abstract" "modification" "documentation"
+  "defaultLibrary"])
+
+    /Projects/ada_language_server/testsuite/ada_lsp/V628-012.highlighting.defining_names/
+        "basic test for semantictokens" does range first, then full
+        on a very small file
+
+test eglot with no gpr file; hello_world.adb
+    redo tutorial with eglot?
+    can always set gpr file later
 
 publish elpa
     need new beta branches, with corresponding release branches
@@ -358,7 +379,6 @@ first parser operation after opening a large file is slow
 
     or maybe packrat is faster?
 
- after incremental
 test/ada_mode-recover_51.adb
     error is on "=>"; tree.others is an expression  (could be tree.foo)
     Desired solution: (Undo_Reduce, undo_reduce ..., push_back 'others', push_back '.', delete '.')
@@ -1330,6 +1350,30 @@ refactoring
         prompt for name
         it guesses parameter_result_profile
 
+ build ada_language_server main devel
+    copy ada_language_server.toml
+    /Projects/ada_language_server/alire.toml
+    (let ((default-directory "/Projects/ada_language_server/"))
+       (load-file "prj.el"))
+
+        alr build
+        missing dependencies:
+        libgpr2: https://github.com/AdaCore/gpr
+        pin https://github.com/AdaCore/templates-parser
+            tp_xmlada not found; comment out for now
+        pin https://github.com/AdaCore/langkit
+            for langkit_support newer version
+        pin https://github.com/AdaCore/gnatcoll-bindings
+            for gnatcoll-gmp newer version
+        pin https://github.com/AdaCore/gnatcoll-core
+            for gnatcoll newer version
+        clone https://github.com/AdaCore/gprbuild
+        direct depends, pin libgpr (in gprbuild)
+            for gnatcoll main
+        direct depends on xmlada
+            for gprbuild/libgpr
+            edit gpr.gpr OS to lowercase "unix"; set by gnat
+
  debug hints, relevant files
 browse Alire source:
     (let ((default-directory "/Projects/alire-main/"))
@@ -1498,14 +1542,18 @@ run all tests without elpa:
         gprbuild
 
 do other package releases:
-    ../org.stephe_leake.sal/release_process.text alire
-    ../org.wisitoken/build/release_process.text  alire
-    ../org.emacs.wisi/notes.text elpa, alire
-    ../org.emacs.gnat-compiler/notes.text alire
-    ../org.emacs.gpr-query/notes.text elpa, alire
+    ../org.stephe_leake.sal/release_process.text local, alire
+    ../org.wisitoken/build/release_process.text  local, alire
+    ../org.emacs.wisi/notes.text                 elpa, alire
+    ../org.emacs.gnat-compiler/notes.text        elpa, alire
+    ../org.emacs.gpr-query/notes.text            elpa, alire
 
     recommended:
     ../org.emacs.gpr-mode/notes.text elpa, alire
+
+Alire.make
+    rm -rf org.emacs.ada-mode/alire
+    alire-build
 
 compare:
     build/Makefile pub
@@ -1585,6 +1633,7 @@ bump versions
         first line
 
     build.sh
+        alire get
         if -d ../wisi-, WISI_DIR
 
     install.sh
@@ -1622,21 +1671,25 @@ bump versions
         _not_ WISITOKEN_ZIP_VERSION
 
 On Debian
-    (alr publish --tar broken on Windows (alr version 1.2.1))
-        check if windows fixed; https://github.com/alire-project/alire/issues/1216
     (dvc-status)
     (dvc-push)
-    alr publish --tar
+    ~/bin/alire_publish-tar.sh
     # at "upload and enter url" prompt; in mys2
     cd alire/archives
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
     # wait until http download actually works; even then alr publish may fail; wait some more
-    # FIXME: switch to git upstream when alr changes trusted host to git.savannah.nongnu.org;
-    # https://github.com/alire-project/alire/issues/1219
     cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-1.0.0.tgz
+    # when checking for changed file, remember that wget does _not_
+      overwrite existing file; it appends an integer. pay attention to
+      the status message!
     # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
 
+    FIXME: patch als to store URL host/dir in alire.toml, or in config. also use ssh to push .tgz there.
+        on the other hand, just use git
+
+    (dvc-status "~/.config/alire/indexes/stephe/repo")
+    # commit, push
 
 if doing beta test:
     (gpr-query-kill-all-sessions)
