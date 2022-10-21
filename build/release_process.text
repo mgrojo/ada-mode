@@ -39,13 +39,17 @@ Makefile
         # check for missing clean actions
     all
 
+Makefile
+    alire-clean
+    alire-build
+
 ../notes.text dvc-state-multiple
 
 On Debian
     (dvc-state-one ".") ;; commit or stash
     (dvc-push)
     cd /Projects/org.wisitoken/
-    alr publish --tar
+    ~/bin/alire_publish-tar.sh
     # at "upload and enter url" prompt; in mys2
     cd alire/archives
     gpg -b *.tgz
@@ -63,6 +67,8 @@ upload to savannah for Emacs Ada mode:
     rm wisitoken-<old>.tar*
     gpg -b *.tar.bz2
     scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+
+push local Alire index to github after all other crates done
 
 update:
     FSF/UNESCO free software directory? https://directory.fsf.org/
