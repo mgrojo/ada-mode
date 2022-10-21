@@ -7,6 +7,9 @@ alire-build : force
 alire-env :
 	GPR_PROJECT_PATH= ;  alr $(ALIRE_ARGS) printenv
 
+alire-clean :
+	rm -rf alire build/obj/release build/obj/development
+
 ifeq ($(shell uname),Linux)
 ALIRE_PREFIX := $(WISITOKEN_ALIRE_PREFIX)
 else ifeq ($(shell uname),Darwin)

@@ -30,6 +30,10 @@ build/Makefile
 
 build/Makefile all
 
+Makefile
+    alire-clean
+    alire-build
+
 source/sal.html
     "Current version: i.j"
     doc version
