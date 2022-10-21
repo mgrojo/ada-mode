@@ -49,11 +49,6 @@ project WisiToken_Alire_Mains is
 
    end Builder;
 
-   package Linker is
-      --  WORKAROUND: gprbuild doesn't include this automatically for some reason.
-      for Switches ("wisitoken-bnf-generate.adb") use ("obj/" & Wisitoken_Config.Build_Profile & "/wisitoken_grammar_re2c.o");
-   end Linker;
-
    package Binder is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback
    end Binder;
