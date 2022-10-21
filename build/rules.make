@@ -151,7 +151,7 @@ update-wisitoken_grammar : wisitoken_grammar-clean ../wisitoken_grammar_re2c.c
 # Executables are normally compiled by the test project file, which requires AUnit
 # Override the project file for wisitoken-bnf-generate.exe, for use with Emacs Ada mode without AUnit
 wisitoken-bnf-generate.exe : obj/s-memory.ali force
-	gprbuild -p -j8 -P wisitoken.gpr wisitoken-bnf-generate
+	gprbuild -p -j8 $(GPRBUILD_ARGS) -P wisitoken.gpr wisitoken-bnf-generate
 
 # We must compile s-memory.adb specially, because it overrides a system package
 obj/s-memory.ali :
