@@ -25,8 +25,6 @@ pub : pub-wisi
 
 docs : info html
 
-# This updates generated elisp and byte-compiled files after any
-# source change, without running tests.
 update : autoloads
 update : byte-compile
 

@@ -1052,8 +1052,7 @@ fails."
 
 (defun wisi-fontify-region (begin end)
   "For `jit-lock-functions'."
-  (with-silent-modifications
-    (remove-text-properties begin end '(font-lock-face nil)))
+  (remove-text-properties begin end '(font-lock-face nil))
 
   (if wisi-parse-full-active
       ;; Record region to fontify when full parse is done.

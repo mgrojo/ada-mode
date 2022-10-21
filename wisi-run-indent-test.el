@@ -36,6 +36,9 @@ text, after each edit in an incremental parse, and before each partial parse.")
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
 
+(defvar test-face-wait-fn nil
+  "Function to call after `font-lock-ensure' to wait for face to actually be set.")
+
 (defun test-face (token face)
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list."
@@ -48,11 +51,15 @@ FACE may be a list."
       (error
        (error "can't find '%s'" token)))
 
-    (when (not skip-recase-test)
+    (when (not skip-recase-test) ;; should be t when wisi-disable-face is t
       (save-match-data
 	(when wisi-parser-shared
 	  (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'face))
-	(font-lock-ensure (line-beginning-position) (line-end-position)))
+
+	(font-lock-ensure (line-beginning-position) (line-end-position))
+
+	(when test-face-wait-fn
+	  (funcall test-face-wait-fn))
 
       ;; We don't use face-at-point, because it doesn't respect
       ;; font-lock-face set by the parser! And we want to check for
