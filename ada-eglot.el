@@ -60,8 +60,6 @@
     (when to-indent (back-to-indentation))
     ))
 
-;;; xref interface, via wisi
-
 ;;; startup
 (defun ada-eglot-require-eglot ()
   "Ensure eglot is started for the current project."
@@ -92,9 +90,15 @@
 	  (cl-ecase ada-face-backend
 	    ((none wisi) nil)
 	    (eglot
-	     (unless (plist-get (oref (eglot-current-server) capabilities) :semanticTokensProvider)
-	       (display-warning 'ada "LSP server does not support faces; change ada-face-backend")))
-	    )
+	     ;; FIXME: use (eglot--server-capable :semanticTokensProvider :range)?
+	     (let ((stcap (plist-get (oref (eglot-current-server) capabilities) :semanticTokensProvider)))
+	       (unless (and stcap
+			    (plist-get stcap :range))
+		 (display-warning 'ada "LSP server does not support faces; change ada-face-backend"))
+	       (unless (boundp 'eglot-enable-semantic-tokens)
+		 (display-warning 'ada "current version of eglot does not support faces"))
+	       )
+	     ))
 
 	  (cl-ecase ada-indent-backend
 	    ((none wisi) nil)
@@ -104,9 +108,9 @@
 	     (unless (plist-get (oref (eglot-current-server) capabilities) :documentRangeFormattingProvider)
 	       (display-warning 'ada "LSP server does not support line or range indent; change ada-indent-backend"))
 
-	       (setq-local indent-line-function #'ada-eglot-indent-line)
-	       (setq-local indent-region-function #'eglot-format)))
-	    )
+	     (setq-local indent-line-function #'ada-eglot-indent-line)
+	     (setq-local indent-region-function #'eglot-format)))
+	  )
 
 	;; We just assume the language server supports xref, completion
 	))))
@@ -125,9 +129,14 @@
 
     (eglot
      (setq-local wisi-disable-face t)
-     ;; FIXME: tell font-lock to use eglot.
+     (when (boundp 'eglot-enable-semantic-tokens)
+       (setq eglot-enable-semantic-tokens t)
+       (when-let ((item (assoc "defaultLibrary" eglot-semantic-token-modifier-faces)))
+	 ;; No need to distinguish "Ada" from other packages.
+	 (setq eglot-semantic-token-modifier-faces
+	     (cl-delete item eglot-semantic-token-modifier-faces))))
 
-     ;; IMPROVEME: LSP defines Semantic Tokens for syntactic
+     ;; LSP defines Semantic Tokens for syntactic
      ;; highlighting/font-lock. Not supported in eglot.el 1.8,
      ;; ada_language_server 22.0. Supported in devel versions;
      ;; https://github.com/joaotavora/eglot/issues/615

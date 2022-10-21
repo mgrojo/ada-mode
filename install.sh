@@ -8,6 +8,8 @@ if type alr; then
 
     if [ x$1 == x ];
        echo "you must specify the install directory with 'install.sh <dir>'"
+       # FIXME: default prefix to $HOME/.local
+       # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
        return 1
     fi
     # IMPROVEME: when alr supports install, use that
