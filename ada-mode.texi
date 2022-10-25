@@ -250,10 +250,9 @@ cd ~/.emacs.d/elpa/ada-mode-i.j.xx
 ./install.sh
 @end example
 
-By default, @file{install.sh} installs the parser executable in the same
-directory as the GNAT executable (using @file{gprinstall}). If you
-don't have write privileges there, or if you want to install somewhere
-else, use @code{install.sh --prefix=<dir>}.
+By default, @file{install.sh} installs the parser executable in
+@code{$HOME/.local/bin}. If you want to install somewhere else, use
+@code{install.sh --prefix=<dir>}.
 
 @node Known versions
 @section Known versions

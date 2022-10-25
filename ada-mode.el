@@ -1670,11 +1670,56 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
   (setq wisi-xref-full-path ada-xref-full-path)
 
-  ;; We can't set buffer-local wisi-disable-parser before this,
-  ;; because this is the first function run with major-mode set to
-  ;; ada-mode. We don't encourage setting global or dir-local
-  ;; wisi-disable-parser because other modes may need a wisi parser
-  ;; (gpr-mode, wisitoken-grammar-mode).
+  ;; Startup cases:
+  ;;
+  ;; 1) Newbie or small project; no wisi project, no gpr
+  ;; file. ada-*-background set by default from presence of als,
+  ;; ada_mode_wisi_parse, gpr_query.  Start eglot in ada-mode,
+  ;; ada-mode-hook, or ada-mode-post-local-vars.
+  ;;
+  ;; 2) ada-*-background set in dir-local vars or by default, wisi
+  ;; project with or without gpr file declared via wisi-select-* in
+  ;; dir-local vars. Start eglot in wisi-select-prj.
+  ;;
+  ;; 3) ada-*-background, wisi project declared in Makefile or
+  ;; elsewhere before Ada files opened; start eglot in
+  ;; wisi-select-prj.
+  ;;
+  ;; In order to accomodate 1 and 2, we call ada-eglot-setup and wisi-setup in
+  ;; ada-mode-post-local-vars.
+  (add-hook 'hack-local-variables-hook #'ada-mode-post-local-vars nil t)
+  )
+
+(defun ada-mode-post-local-vars ()
+  ;; These are run after ada-mode-hook and file/dir local variables
+  ;; because users or *.ad? files might set the relevant
+  ;; variable inside the hook or local variables.
+
+  ;; This means to fully set ada-mode interactively, user must
+  ;; do M-x ada-mode M-; (hack-local-variables)
+
+  (remove-hook 'hack-local-variables-hook #'ada-mode-post-local-vars)
+
+  ;;; Handle variables that can easily be file-specific.
+
+  ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
+  ;; call syntax-propertize, so set comment syntax on
+  ;; ada-fill-comment-prefix. In post-local because user may want to
+  ;; set it per-file.
+  (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
+
+  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
+
+  (setq wisi-auto-case ada-auto-case)
+  (setq wisi-case-identifier ada-case-identifier)
+  (setq wisi-case-strict ada-case-strict)
+  (setq wisi-language-keywords ada-keywords)
+  (setq wisi-case-keyword ada-case-keyword)
+  (setq wisi-case-adjust-p-function #'ada-case-adjust-p)
+
+  ;;; See comment in ada-mode on startup cases for rationale on doing
+  ;;; ada-eglot-setup here.
+
   (when (or (eq ada-xref-backend   'eglot)
 	    (eq ada-indent-backend 'eglot)
 	    (eq ada-face-backend   'eglot))
@@ -1683,9 +1728,9 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
       (ada-eglot-setup)))
 
   ;; We want at least one warning for missing ada-process-parse-exec,
-  ;; to give users a reminder to build/install it. But also allow
-  ;; suppressing that warning for users using eglot; ada-eglot-setup
-  ;; sets wisi-disable-parser if the wisi parser is not needed.
+  ;; to give users a reminder to build/install it. But avoid that
+  ;; warning for users using eglot; ada-eglot-setup sets
+  ;; wisi-disable-parser if the wisi parser is not needed.
   ;;
   (unless wisi-disable-parser
     (unless (executable-find ada-process-parse-exec)
@@ -1705,33 +1750,6 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
     (set (make-local-variable 'beginning-of-defun-function) #'ada-goto-declaration-start)
     (set (make-local-variable 'end-of-defun-function) #'ada-goto-declaration-end))
 
-  (add-hook 'hack-local-variables-hook #'ada-mode-post-local-vars nil t)
-  )
-
-(defun ada-mode-post-local-vars ()
-  ;; These are run after ada-mode-hook and file/dir local variables
-  ;; because users or *.ad? files might set the relevant
-  ;; variable inside the hook or local variables.
-
-  ;; This means to fully set ada-mode interactively, user must
-  ;; do M-x ada-mode M-; (hack-local-variables)
-
-  (remove-hook 'hack-local-variables-hook #'ada-mode-post-local-vars)
-
-  ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
-  ;; call syntax-propertize, so set comment syntax on
-  ;; ada-fill-comment-prefix. In post-local because user may want to
-  ;; set it per-file.
-  (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
-
-  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
-
-  (setq wisi-auto-case ada-auto-case)
-  (setq wisi-case-identifier ada-case-identifier)
-  (setq wisi-case-strict ada-case-strict)
-  (setq wisi-language-keywords ada-keywords)
-  (setq wisi-case-keyword ada-case-keyword)
-  (setq wisi-case-adjust-p-function #'ada-case-adjust-p)
   )
 
 (put 'ada-mode 'custom-mode-group 'ada)

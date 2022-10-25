@@ -40,6 +40,8 @@ project Ada_Mode_Wisi_Parse is
       for Exec_Dir use ".";
    end case;
 
+   for Exec_Dir use "bin";
+
    for Languages use ("Ada", "C");
 
    package Compiler is

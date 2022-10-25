@@ -216,7 +216,7 @@ Returns the project if a file is selected, nil otherwise."
   (let* ((prj-file (expand-file-name "default_.adp" default-directory)) ;; we assume this does not exist
  	 (ada-xref-backend
 	  (cl-ecase ada-xref-backend
-	    (nil nil)
+	    (none nil)
 	    (gpr_query 'gnat) ;; since we are not specifying a gpr file.
 	    (gnat 'gnat)
 	    (eglot 'eglot)))

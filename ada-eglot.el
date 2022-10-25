@@ -61,12 +61,18 @@
     ))
 
 ;;; startup
+(defvar ada-eglot-require-gpr nil
+  ;; Default nil to allow newbies and small projects to run without a
+  ;; gpr file; als uses a default.  unit tests can set t if the gpr
+  ;; file is set after the file under test is opened.
+)
+
 (defun ada-eglot-require-eglot ()
   "Ensure eglot is started for the current project."
   (unless (eglot-current-server)
-    (let ((prj (project-current))
-	  (process-environment (copy-sequence process-environment))
-	  eglot-workspace-configuration)
+    (let ((prj (eglot--current-project)) ;; provides a default if (current-project) is nil.
+ 	  (process-environment (copy-sequence process-environment))
+	  (eglot-workspace-configuration nil))
 
       (when (and (wisi-prj-p prj)
 		 (gnat-compiler-p (wisi-prj-compiler prj)))
@@ -78,7 +84,9 @@
 	      (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
 		      process-environment)))
 
-      (when prj
+      (unless (and ada-eglot-require-gpr
+		   (null eglot-workspace-configuration))
+
 	(eglot 'ada-mode 	 ;; managed-major-mode
 	       prj 		 ;; project; project-root is server process directory
 	       'eglot-ada        ;; class
@@ -118,10 +126,13 @@
 ;;;###autoload
 (defun ada-eglot-setup ()
   "Configure elgot settings for Ada."
-  ;; Called from ada-mode when any ada-*-backend is eglot.  This can
-  ;; fail to start eglot if there is no current project (which is
-  ;; always the case in ada-mode unit tests).
-  (ada-eglot-require-eglot)
+  ;; Called from ada-mode when any ada-*-backend is eglot.
+
+  (when (null ada-eglot-require-gpr)
+    ;; The user is not using a project, so wisi-select-prj is not
+    ;; called; start eglot now. See comment in ada-mode on startup
+    ;; cases.
+    (ada-eglot-require-eglot))
 
   (cl-ecase ada-face-backend
     (none
@@ -129,7 +140,8 @@
 
     (eglot
      (setq-local wisi-disable-face t)
-     (when (boundp 'eglot-enable-semantic-tokens)
+     (when (and (boundp 'eglot-enable-semantic-tokens)
+		(boundp 'eglot-semantic-token-modifier-faces))
        (setq eglot-enable-semantic-tokens t)
        (when-let ((item (assoc "defaultLibrary" eglot-semantic-token-modifier-faces)))
 	 ;; No need to distinguish "Ada" from other packages.
@@ -192,15 +204,22 @@
   (when (and wisi-disable-face
 	     wisi-disable-indent
 	     (eq ada-xref-backend 'eglot))
-    (setq wisi-disable-parser t))
-  )
+    (setq wisi-disable-parser t)))
 
-(cl-defmethod wisi-compiler-select-prj :after ((_compiler gnat-compiler) _project)
-  ;; Connect to the correct eglot instance; the gpr-file may have changed.
+(cl-defmethod wisi-select-prj :after (_project)
+  ;; Connect to or create an eglot instance, providing a gpr file if
+  ;; declared.
   (when (or (eq ada-xref-backend   'eglot)
 	    (eq ada-indent-backend 'eglot)
 	    (eq ada-face-backend   'eglot))
     (ada-eglot-require-eglot)))
+
+(cl-defmethod wisi-deselect-prj :after (_project)
+  ;; Shutdown a corresponding eglot instance (defined in
+  ;; eglot-current-server by combination of major-mode and
+  ;; current-project), to allow gpr file and other settings to change.
+  (when (eglot-current-server)
+    (eglot-shutdown (eglot-current-server))))
 
 ;; create-ada-prj runs create-%s-xref, where %s is ada-xref-backend. So
 ;; we need create-eglot-xref. It returns nil, since we don't use any

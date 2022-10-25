@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build executables for Ada mode.
-#    build.sh <other gprbuild options>
+#    build.sh options when not using Alire; <other gprbuild options>
 #    e.g. 'build.sh -j0' : use all available processors to compile
 #         'build.sh -wn' : treat warnings as warnings.
 #         'build.sh -vh' : Verbose output (high verbosity)
@@ -8,8 +8,12 @@
 # See install.sh for install
 
 if type alr; then
+    # alr can be installed from https://alire.ada.dev/
     echo "building ada-mode executables via Alire"
-    alr get --build emacs_ada_mode~8.0.2
+
+    # alr get --build builds dependencies with release, but top with development.
+    alr get emacs_ada_mode~8.0.2
+    cd emacs_ada_mode_*; alr build --release
 
 elif type gprbuild; then
     echo "building ada-mode executables via gnat compiler"

@@ -55,52 +55,68 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+test eglot with initializeOptions in eglot-server-programs
+    (progn
+     (setq ada-face-backend   'none)
+     (setq ada-indent-backend 'none)
+     (setq ada-xref-backend   'eglot))
+
+(defun ada-eglot-init-options ()
+  "Return initializationOptions for ada_language_server."
+  (let ((prj (eglot--current-project))) ;; provides a default if (current-project) is nil.
+    (when (and (wisi-prj-p prj)
+	       (gnat-compiler-p (wisi-prj-compiler prj)))
+      (list (list 'ada (cons 'projectFile (gnat-compiler-gpr-file (wisi-prj-compiler prj))))))))
+
+	(eglot 'ada-mode 	 ;; managed-major-mode
+	       prj 		 ;; project; project-root is server process directory
+	       'eglot-ada        ;; class
+	       (list (car (gnat-find-als)) :initializationOptions ada-eglot-init-options)))
+	       )
+
+fix elpa release
+    branch stuff done; waiting on elpa
+
+    for elpa/README:
+    For packages with a nil `:url`, the `:release-branch` happens to act
+only as a boolean and the branch from which the code is fetched is
+always `externals-release/<PKG>` for GNU ELPA and `elpa-release/<PKG>`
+for NonGNU ELPA.
+
+
+review FIXMEs
+    (grep-find "find c:/Projects/org.emacs.gpr-query -type f -print | \"xargs\" grep  -nH --null FIXME")
+        install.sh use alr;
+            if it's intended to be used with the external system gnat, we need to tell alr that.
+
+    (grep-find "find c:/Projects/org.emacs.gpr-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
+    (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
+
 publish alire
     https://github.com/alire-project/alire-index/pull/659
-    /Projects/org.stephe_leake.sal/notes.text
-    /Projects/re2c_alire/alire.toml
-    /Projects/org.wisitoken/alire.toml
-    /Projects/org.emacs.wisi/alire.toml
-    /Projects/org.emacs.gpr-query/alire.toml
-    /Projects/org.emacs.gpr-mode/alire.toml
-    /Projects/org.emacs.ada-mode/alire.toml
+    waiting on pull request approval
 
-    rerun all "alr build"
-        first delete all alire and obj dir
-            cd org.emacs.ada-mode; rm -rf alire build/obj
-            cd ../org.emacs.gpr-mode; rm -rf alire build/obj
-            cd ../org.emacs.gpr-query; rm -rf alire build/obj
-            cd ../org.emacs.wisi; rm -rf alire build/obj
-            cd ../org.stephe_leake.sal; rm -rf alire build/obj
-            cd ../org.wisitoken; rm -rf alire build/obj
+    add badge to websites:
+[![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/YOUR_CRATE.json)](https://alire.ada.dev/crates/YOUR_CRATE.html)
 
-        then build bottom up:
-    /Projects/org.stephe_leake.sal/Makefile alire-build
-    /Projects/org.wisitoken/Makefile
-    /Projects/org.emacs.wisi/Makefile
-    /Projects/org.emacs.gpr-query/Alire.make
-    /Projects/org.emacs.gpr-mode/Alire.make
-    /Projects/org.emacs.ada-mode/Alire.make
-
-    upload all changed crates;
-    sha256sum *.tgz
-    # compare hash to ~/.config/alire/indexes/stephe/index/st/stephes_ada_library/stephes_ada_library-*.toml
-    # if changed, continue with upload
-        /Projects/org.stephe_leake.sal/          changed
-        /Projects/org.wisitoken/alire.toml       changed
-        /Projects/org.emacs.wisi/alire.toml      changed
-        /Projects/org.emacs.gpr-query/alire.toml no change
-        /Projects/org.emacs.gpr-mode/alire.toml  no change
-        /Projects/org.emacs.ada-mode/alire.toml
-
-    (dvc-status "~/.config/alire/indexes/stephe/repo/")
-    (dvc-push "~/.config/alire/indexes/stephe/repo/")
+publish elpa
+    need new beta branches, with corresponding release branches
+        don't need 'beta' in version; just don't push to release branch!
+    /Projects/org.emacs.gnat-compiler/gnat-compiler.el
+    /Projects/org.emacs.gpr-query/gpr-query.el
+    /Projects/org.emacs.gpr-mode
 
 
-install from alire
-    --prefix=$HOME/.local
-    gprinstall -p --prefix=$HOME/.local build/wisitoken_alire.gpr
-    install.sh should default --prefix to that
+
+    /Projects/elpa/admin/README "** To add a package:"
+        posted on emacs-devel; send a reply referencing savannah git branches
+        stefan says ok
+
+        add elpa branches; the README assumes you are pushing from some repository, not starting from scratch
+            see windows git-notes "add new local branch for new project"
+
+
+
 
 test elpa/als with devel versions
     for semantic tokens
@@ -147,27 +163,6 @@ als supported tokens:
     /Projects/ada_language_server/testsuite/ada_lsp/V628-012.highlighting.defining_names/
         "basic test for semantictokens" does range first, then full
         on a very small file
-
-test eglot with no gpr file; hello_world.adb
-    redo tutorial with eglot?
-    can always set gpr file later
-
-publish elpa
-    need new beta branches, with corresponding release branches
-        don't need 'beta' in version; just don't push to release branch!
-    /Projects/org.emacs.gnat-compiler/gnat-compiler.el
-    /Projects/org.emacs.gpr-query/gpr-query.el
-    /Projects/org.emacs.gpr-mode
-
-
-
-    /Projects/elpa/admin/README "** To add a package:"
-        posted on emacs-devel; send a reply referencing savannah git branches
-        stefan says ok
-
-        add elpa branches; the README assumes you are pushing from some repository, not starting from scratch
-            see windows git-notes "add new local branch for new project"
-drop emacs 26 - not tested? at least drop emacs 25
 
 Doc ada-mode wisi indent settings that match als
 
@@ -222,11 +217,6 @@ wisi/gnat/gpr-query vs eglot/als capabilities:
             provides no options
 
 
-    need lsp backend for wisi-xref; another setting for ada-xref-tool
-        eglot only provides xref.el functions; not as fine-grained as lsp features.
-        add 'xref to eglot--stay-out-of-p
-            otherwise eglot sets local xref-backend-functions to eglot-xref-backend
-
     eglot--managed-mode has list of hooks that eglot sets
         run by find-file-hook, after-change-major-mode-hook
         which run after ada-mode-hook
@@ -240,18 +230,10 @@ wisi/gnat/gpr-query vs eglot/als capabilities:
             add local 'use type'
         arbitrary tree query; many tree nonterms have elisp symbols
 
-publish to alire
-    use tarballs on savannah
-
-    add badge to websites:
-[![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/YOUR_CRATE.json)](https://alire.ada.dev/crates/YOUR_CRATE.html)
+try adacore 23 in alire alr index --add=git+ https://github.com/alire-project/alire-index#adacore_lib_23-0 --name=adacore_lib_23-0 --before=community
 
 /Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-expression_functions.ads
     when run by make one ada_language_server reports more than one gpr file
-        apparently it is started before the gpr file is specified?
-        didchangeconfiguration is present; race condition?
-
-        M-x eglot-shutdown followed by wisi-prj-select-cache gets it right.
 
         eglot is started by wisi-prj-select-cache via wisi-compiler-select-prj
         but "workspace/didChangeConfiguration" is not sent until after that completes!?
@@ -261,18 +243,13 @@ publish to alire
                 hack-dir-local-variables is also run then
 
         try overriding eglot-initialization-options, as eglot-eclipse does
+            can specify in eglot-server-programs, as a function that is called at eglot start time
+                that function can specify the gpr file from the wisi project
 
-        ignoring for now.
 
 ada-make-subprogram-body is a refactor case
 
 Gnat-compiler-fix-hook for ada fixes. Or wisi-goto-declar*
-
-wisitoken-syntax_trees.ads function New_Stream
-    on a subprogram spec, gpr-query M-d puts up an *xref* buffer giving the spec and body (and overridden bodies?)
-    eglot just goes to the body, and back to spec.
-    C-c C-d just goes to the body
-    so just bind C-c C-d to xref-find-definitions; minor-mode
 
 in Ediff; 't' does not insert type name in *xgit-log-edit*
     (add-log-current-defun) returns nil
@@ -282,16 +259,11 @@ in Ediff; 't' does not insert type name in *xgit-log-edit*
         add eglot?
         or add ada-eglot-log-current-function?
 
-build.sh don't build gpr_query if gnatcoll-xref not found - just use gnat xref or eglot
-
 bug in gpr parser/navigate
     gnatcoll.gpr via /Projects/org.wisitoken.stephe-3/Makefile
     point on 'case OS'
     M-C-left => wisi-tree-node nil
     fix in /Projects/org.emacs.gpr-mode/notes.text
-
-support als LSP extensions
-    https://github.com/AdaCore/ada_language_server/tree/master/doc
 
 process coding for line-ending bug:
     eglot uses :coding 'utf-8-emacs-unix
@@ -301,24 +273,13 @@ http://www.ada-auth.org/standards/overview22.html
 
 fix/use tree-sitter
     o.e.a.s-7/o.e.w.s-1
-
-run parser on ACATS
-
-generate tree-sitter parse table
     see if tree-sitter error recover is good enough
 
-time %lr1_hash_table_size
+run parser on ACATS
 
 need test for ada-find-file
     it is currently broken
     also broken in ada-mode 7.2.0 with latest projects.el from ELPA
-
-review FIXMEs
-    (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
-    c:/Projects/org.emacs.wisi.stephe-1/build/Makefile
-
-    (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
-    (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
 
 respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
    https://github.com/tree-sitter/tree-sitter-rust
@@ -332,43 +293,8 @@ test/ada_mode-interactive_2.adb
 change set_parents to be incremental
     notes in o.w.s-1/notes.text
 
-delete elpa branches, push o.e.*
-    so users can test elpa-devel packages
-    don't change versions to prevent release
-        change version everywhere except :version header, so users can keep track
-        how does elpa-admin check for that?
-            must store last-release-version somewhere; in name of tarball?
-        ask Stefan if there's another way?
-
-    set :url in elpa/elpa-packages; see other savannah
-
 README-ada-ref-man moved to org.adaic.arm_form
     change elpa to push from there.
-
-wisitoken-grammar-mode
-    change to push to elpa
-
-push to elpa
-    advertize alpha testing on comp.lang.ada, ada-mode mailing list
-    doc how to use elpa HEAD
-
-visiting large files pauses emacs for longer than expected
-    not due to debug settings
-    d:/Apps/GNAT-gpl_2021/include/libadalang/libadalang-implementation.adb
-    buffer not shown until source sent to process
-        move that to background when :nowait?
-
-ada-mode-hook runs before initial parse
-    because we want to allow it to set debug etc that affect initial parse
-    if user puts a function on ada-mode-hook that requires parse, it signals file-not-found
-        that confuses things, get extra messages because of nowait
-        distinguish between context-not-found and need-text?
-        need command sequence numbers. sigh.
-        or process extra messages if nowait?
-            need test
-            run-test sets wisi-parse-full-background; it should not
-
-    need another hook that runs after initial parse started
 
 first parser operation after opening a large file is slow
     waiting for full parse to complete
@@ -376,8 +302,6 @@ first parser operation after opening a large file is slow
     then incremental parse expand tree.
     meanwhile separate thread does full parse
     wait until get user requests for it
-
-    or maybe packrat is faster?
 
 test/ada_mode-recover_51.adb
     error is on "=>"; tree.others is an expression  (could be tree.foo)
@@ -1552,7 +1476,7 @@ do other package releases:
     ../org.emacs.gpr-mode/notes.text elpa, alire
 
 Alire.make
-    rm -rf org.emacs.ada-mode/alire
+    alire-clean
     alire-build
 
 compare:
@@ -1587,7 +1511,11 @@ bump versions
 
     beta test: don't push to release branch
 
-    propagate release from elpa/packages/ada-mode to elpa_release/packages/ada-mode
+    (dvc-propagate-multiple
+        '(("/Projects/elpa/packages/ada-mode" . "/Projects/elpa_release/ada-mode")
+          ("/Projects/elpa/packages/wisi"     . "/Projects/elpa_release/wisi")))
+
+    (dvc-push "/Projects/elpa/admin")
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
@@ -1674,22 +1602,19 @@ On Debian
     (dvc-status)
     (dvc-push)
     ~/bin/alire_publish-tar.sh
-    # at "upload and enter url" prompt; in mys2
-    cd alire/archives
-    gpg -b *.tgz
-    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    # at "upload and enter url" prompt
+    ~/bin/alire-to-savannah.sh
     # wait until http download actually works; even then alr publish may fail; wait some more
     cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-1.0.0.tgz
     # when checking for changed file, remember that wget does _not_
       overwrite existing file; it appends an integer. pay attention to
       the status message!
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
 
     FIXME: patch als to store URL host/dir in alire.toml, or in config. also use ssh to push .tgz there.
         on the other hand, just use git
 
     (dvc-status "~/.config/alire/indexes/stephe/repo")
-    # commit, push
+    (dvc-push "~/.config/alire/indexes/stephe/repo/")
 
 if doing beta test:
     (gpr-query-kill-all-sessions)

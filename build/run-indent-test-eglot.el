@@ -6,6 +6,7 @@
 
 (setq skip-reindent-test (eq ada-indent-backend 'none))
 (setq skip-recase-test   (eq ada-face-backend 'none))
+(setq ada-eglot-require-gpr t)
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
