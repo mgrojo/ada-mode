@@ -368,7 +368,7 @@ pub-ada : force | $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.el ../*.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	cp ../build.sh ../install.sh ../ada_mode_wisi_parse.gpr $(ELPA_ROOT)/packages/ada-mode/
 	cp ../*.make $(ELPA_ROOT)/packages/ada-mode/
-	cp ../ada_mode.prj ../prj.el $(ELPA_ROOT)/packages/ada-mode/
+	cp ../ada_mode.prj ada-mode.casing ../prj.el $(ELPA_ROOT)/packages/ada-mode/
 	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../*.wy ../ada*.ad? ../run_ada*.ad? ../wisi-ada*.ad? $(ELPA_ROOT)/packages/ada-mode

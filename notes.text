@@ -61,28 +61,39 @@ test eglot with initializeOptions in eglot-server-programs
      (setq ada-indent-backend 'none)
      (setq ada-xref-backend   'eglot))
 
-(defun ada-eglot-init-options ()
-  "Return initializationOptions for ada_language_server."
-  (let ((prj (eglot--current-project))) ;; provides a default if (current-project) is nil.
-    (when (and (wisi-prj-p prj)
-	       (gnat-compiler-p (wisi-prj-compiler prj)))
-      (list (list 'ada (cons 'projectFile (gnat-compiler-gpr-file (wisi-prj-compiler prj))))))))
+    (find-file "build/Makefile")
+    (find-file "wisi-ada.adb")
 
-	(eglot 'ada-mode 	 ;; managed-major-mode
-	       prj 		 ;; project; project-root is server process directory
-	       'eglot-ada        ;; class
-	       (list (car (gnat-find-als)) :initializationOptions ada-eglot-init-options)))
-	       )
+    GNAT GPL 2021 als: still get "multiple gpr files" message, then CONSTRAINT_ERROR
 
-fix elpa release
-    branch stuff done; waiting on elpa
+    try gnat 23 via Alire
+        alr index --add git+https://github.com/alire-project/alire-index#adacore_lib_23-0 --before community
+            still als 22
 
-    for elpa/README:
+    try als 22
+        /Projects/Alire/ada_language_server
+        (setq gnat-lsp-server-exec "c:/home/stephe/.local/bin/ada_language_server.exe")
+
+    plain eglot adds :initializeOptions; an empty hash table
+        from eglot-initialization-options, stored in server object saved-initargs
+        set by eglot--connect; result of make-process !?
+
+    in doc string for eglot-server-programs:
+    If OPTIONS is a unary function, it
+  is called with the server instance and should return a JSON
+  object.
+
+for elpa/README and elpa/admin/README:
     For packages with a nil `:url`, the `:release-branch` happens to act
 only as a boolean and the branch from which the code is fetched is
 always `externals-release/<PKG>` for GNU ELPA and `elpa-release/<PKG>`
 for NonGNU ELPA.
+    see emacs-devel
 
+See Manuel Gomez email
+
+Add:
+    import_env_var=HOME
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.gpr-query -type f -print | \"xargs\" grep  -nH --null FIXME")
@@ -1718,6 +1729,11 @@ delete changes in elpa:
     $ cd c:/Projects/elpa/
     $ git checkout .
 
+install current version from ELPA, to test upgrade to new
+    (list-packages)
+    ~/.emacs.d/early-init.el
+        ada-mode 7.1.5 should have required wisi 3.1.5
+
 update elpa, commit elpa/ada-ref-man (not done on Debian)
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
@@ -1735,9 +1751,6 @@ update elpa, commit elpa/ada-ref-man (not done on Debian)
     # 24 hrs for web repository to update
 
 after Gnu ELPA updated, test install from GNU ELPA
-    first install current version, to be sure upgrade requires new versions
-        ada-mode 7.1.5 should have required wisi 3.1.5
-
     (list-packages)
     5.1.8 crashed emacs for me
     see 'build.sh; install.sh' above for compiling
@@ -1745,15 +1758,18 @@ after Gnu ELPA updated, test install from GNU ELPA
     also wisitoken-grammar-mode
 
 (dvc-state-one ".")
-build/Makefile tag zip
 
-in cygwin console for gpg prompts:
-    cd /Projects/org.emacs.ada-mode/build/
-    ls *.tar*
-    rm <old>.tar*
-    gpg -b *.tar.*
+tag savannah:
+    cd c:/Projects/org.emacs.ada-mode
+    git tag ada-mode-8.0.1
 
-    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+tag elpa release:
+    cd /Projects/elpa_release/packages/ada-mode
+    git tag ada-mode-7.3.0
+
+tag elpa devel:
+    cd /Projects/elpa_release/packages/ada-mode
+    git tag ada-mode-8.0.1
 
 ~/Web/Makefile
     # no 'sync' here; all on savannah via cvs, scp
@@ -1773,33 +1789,12 @@ commit savannah
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
 
-List in FSF/UNESCO free software directory?
-    https://directory.fsf.org/
-
-publish on Alire?
-    https://alire.ada.dev/
-    https://blog.adacore.com/announcing-the-2022-ada-spark-crate-of-the-year-award
-
-create release branches
-
-checkout reference copy in c:/Projects/ada-mode-releases
-    cd c:/Projects/ada-mode-releases
-    mkdir ada-mode-i.j.k
-    mkdir -p ada-mode-i.j.k/org.emacs.ada-mode
-    mkdir -p ada-mode-i.j.k/org.wisitoken
-    mkdir -p ada-mode-i.j.k/org.stephe_leake.sal
-    mkdir -p ada-mode-i.j.k/org.stephe_leake.makerules
-    cd c:/Projects/org.emacs.ada-mode
-    git archive ada-mode-i.j.k | tar -x -C /c/Projects/ada-mode-releases/ada-mode-i.j.k/org.emacs.ada-mode
-    cd c:/Projects/org.wisitoken
-    git archive wisitoken-i.j.k | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.wisitoken
-    cd c:/Projects/org.stephe_leake.sal
-    git archive sal-i.j.k | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.stephe_leake.sal
-    cd c:/Projects/org.stephe_leake.makerules
-    git archive HEAD | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.stephe_leake.makerules
-    aunit_ext?
-
-post on emacs-ada-mode mailing list, c.l.a newsgroup, https://savannah.nongnu.org/news/submit.php?group_id=11631:
+post on:
+    https://savannah.nongnu.org/news/submit.php?group_id=11631:
+        then approve: https://savannah.nongnu.org/news/approve.php?group=ada-mode click submit
+        # accessed via News | Manage
+    emacs-ada-mode mailing list
+    c.l.a newsgroup
 
 -------------------
 Gnu Emacs Ada mode 7.3.beta released.
@@ -1843,9 +1838,6 @@ cd ~/.emacs.d/elpa/ada-mode-7.3beta*
 ./build.sh
 ./install.sh
 
-There's a bug in install.sh; it looks for WISI_DIR with the old
-version. Copy the equivalent code from build.sh to fix it.
-
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
 
@@ -1857,23 +1849,31 @@ so build.sh generates it.
 
 
 -------------------
-Gnu Emacs Ada mode 7.1.6 released.
+Gnu Emacs Ada mode 7.3.1 released.
 -------------------
 
-Gnu Emacs Ada mode 7.1.6 is now available in GNU ELPA.
+Gnu Emacs Ada mode 7.3.1 is now available in GNU ELPA; the beta
+version has been promoted to release.
 
-This is a bug fix release.
+ada-mode and wisi are now compatible with recent gnat versions. The
+grammar is updated to the proposed Ada 2022 version.
 
-ada-mode and wisi are now compatible with gnat FSF 11, Pro 22,
-Community 2021.
+Incremental parse is provided. It still has some bugs, so it is not
+enabled by default. To try it:
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.6 and wisi-3.1.3,
+(setq-default wisi-incremental-parse-enable t).
+
+Incremental parse often gets confused; to recover, use M-x
+wisi-reset-parser. That does a full parse of the entire buffer, which
+can be noticeably slow in large buffers.
+
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.3.1 and wisi-4.0.0,
 or at http://www.nongnu.org/ada-mode/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation ('install.sh' is new in this release):
 
-cd ~/.emacs.d/elpa/ada-mode-7.1.6
+cd ~/.emacs.d/elpa/ada-mode-7.3.1
 ./build.sh
 ./install.sh
 

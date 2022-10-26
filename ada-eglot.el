@@ -70,27 +70,38 @@
 (defun ada-eglot-require-eglot ()
   "Ensure eglot is started for the current project."
   (unless (eglot-current-server)
-    (let ((prj (eglot--current-project)) ;; provides a default if (current-project) is nil.
- 	  (process-environment (copy-sequence process-environment))
-	  (eglot-workspace-configuration nil))
+    (let* ((prj (eglot--current-project)) ;; provides a default if (current-project) is nil.
+ 	   (process-environment (copy-sequence process-environment))
+	   (gpr-file
+	    (when (and (wisi-prj-p prj)
+		       (gnat-compiler-p (wisi-prj-compiler prj)))
+	      (gnat-compiler-gpr-file (wisi-prj-compiler prj))))
+	   ;; IMPROVEME: we should be able to specify the gpr file via
+	   ;; initializationOptions in the initialize method at server
+	   ;; startup. But that caused a CONSTRAINT_ERROR in GNAT GPL
+	   ;; 2021 als.
+	   (eglot-workspace-configuration nil))
 
-      (when (and (wisi-prj-p prj)
-		 (gnat-compiler-p (wisi-prj-compiler prj)))
+      (setq process-environment
+	    (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
+		    process-environment))
+
+      (when gpr-file
 	(setq eglot-workspace-configuration
 	      ;; This is sent in a workspace/didChangeConfiguration message.
-	      (list (list 'ada (cons 'projectFile (gnat-compiler-gpr-file (wisi-prj-compiler prj))))))
-
-	(setq process-environment
-	      (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
-		      process-environment)))
+	      (list (list 'ada (cons 'projectFile gpr-file)))))
 
       (unless (and ada-eglot-require-gpr
-		   (null eglot-workspace-configuration))
+		   (null gpr-file))
 
 	(eglot 'ada-mode 	 ;; managed-major-mode
 	       prj 		 ;; project; project-root is server process directory
 	       'eglot-ada        ;; class
-	       'gnat-find-als 	 ;; contact
+	       ;; IMPROVEME: see above
+	       ;; (if gpr-file
+	       ;; 	   (list (car (gnat-find-als))
+	       ;; 		 :initializationOptions (list (list 'ada (cons 'projectFile gpr-file))))
+	       (gnat-find-als)   ;; contact
 	       "Ada" 		 ;; language-id
 	       )
 

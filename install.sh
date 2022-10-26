@@ -14,7 +14,7 @@ fi
     
 echo "installing ada-mode executables to" $PREFIX/bin
 
-# No need for gprinstall; we only need the executable use that
+# No need for gprinstall; we only need the executable 
 
 if type alr; then
     cp emacs_ada_mode*/bin/* $PREFIX/bin
