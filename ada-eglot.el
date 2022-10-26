@@ -79,7 +79,7 @@
 	   ;; IMPROVEME: we should be able to specify the gpr file via
 	   ;; initializationOptions in the initialize method at server
 	   ;; startup. But that caused a CONSTRAINT_ERROR in GNAT GPL
-	   ;; 2021 als.
+	   ;; 2021 and GNAT 22 als.
 	   (eglot-workspace-configuration nil))
 
       (setq process-environment
@@ -89,7 +89,7 @@
       (when gpr-file
 	(setq eglot-workspace-configuration
 	      ;; This is sent in a workspace/didChangeConfiguration message.
-	      (list (list 'ada (cons 'projectFile gpr-file)))))
+	      (list (list :ada (cons 'projectFile gpr-file)))))
 
       (unless (and ada-eglot-require-gpr
 		   (null gpr-file))
@@ -100,7 +100,7 @@
 	       ;; IMPROVEME: see above
 	       ;; (if gpr-file
 	       ;; 	   (list (car (gnat-find-als))
-	       ;; 		 :initializationOptions (list (list 'ada (cons 'projectFile gpr-file))))
+	       ;; 		 :initializationOptions (list (list :ada (cons 'projectFile gpr-file))))
 	       (gnat-find-als)   ;; contact
 	       "Ada" 		 ;; language-id
 	       )

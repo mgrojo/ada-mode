@@ -55,41 +55,6 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-test eglot with initializeOptions in eglot-server-programs
-    (progn
-     (setq ada-face-backend   'none)
-     (setq ada-indent-backend 'none)
-     (setq ada-xref-backend   'eglot))
-
-    (find-file "build/Makefile")
-    (find-file "wisi-ada.adb")
-
-    GNAT GPL 2021 als: still get "multiple gpr files" message, then CONSTRAINT_ERROR
-
-    try gnat 23 via Alire
-        alr index --add git+https://github.com/alire-project/alire-index#adacore_lib_23-0 --before community
-            still als 22
-
-    try als 22
-        /Projects/Alire/ada_language_server
-        (setq gnat-lsp-server-exec "c:/home/stephe/.local/bin/ada_language_server.exe")
-
-    plain eglot adds :initializeOptions; an empty hash table
-        from eglot-initialization-options, stored in server object saved-initargs
-        set by eglot--connect; result of make-process !?
-
-    in doc string for eglot-server-programs:
-    If OPTIONS is a unary function, it
-  is called with the server instance and should return a JSON
-  object.
-
-for elpa/README and elpa/admin/README:
-    For packages with a nil `:url`, the `:release-branch` happens to act
-only as a boolean and the branch from which the code is fetched is
-always `externals-release/<PKG>` for GNU ELPA and `elpa-release/<PKG>`
-for NonGNU ELPA.
-    see emacs-devel
-
 See Manuel Gomez email
 
 Add:
@@ -128,15 +93,42 @@ publish elpa
 
 
 
+ after release
+test eglot with initializationOptions in initialize
+    see IMPROVME: in ada-eglot.el
+    (progn
+     (setq ada-face-backend   'none)
+     (setq ada-indent-backend 'none)
+     (setq ada-xref-backend   'eglot))
+
+    (progn
+     (setq ada-face-backend   'wisi)
+     (setq ada-indent-backend 'wisi)
+     (setq ada-xref-backend   'wisi))
+
+    (find-file "build/Makefile")
+    (find-file "wisi-ada.adb")
+
+    GNAT GPL 2021 als: still get "multiple gpr files" message, then CONSTRAINT_ERROR
+
+    try als 22
+        /Projects/Alire/ada_language_server
+        (setq gnat-lsp-server-exec "c:/home/stephe/.local/bin/ada_language_server.exe")
+        CONSTRAINT_ERROR
 
 test elpa/als with devel versions
     for semantic tokens
     (dvc-status "/Projects/ada_language_server/")
     /Projects/ada_language_server/alire.toml
-    (let ((default-directory "/Projects/ada_language_server/"))
-       (load-file "prj.el"))
 
-    exe is /Projects/ada_language_server/.obj/server/ada_language_server
+    debian:
+    (let ((default-directory "/Projects/ada_language_server/")) (load-file "prj.el"))
+    (setq gnat-lsp-server-exec "/Projects/ada_language_server/.obj/server/ada_language_server")
+
+    Windows:
+    (let ((default-directory "c:/Projects/Alire/ada_language_server_22.0.0_ef4bdf41/")) (load-file "prj.el"))
+    (setq gnat-lsp-server-exec "c:/home/stephe/.local/bin/ada_language_server.exe")
+        gnat-alire project broken
 
     eglot
         https://github.com/joaotavora/eglot/issues/615
