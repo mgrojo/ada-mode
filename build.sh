@@ -9,7 +9,8 @@
 
 if type alr; then
     echo "building gpr-mode executables via Alire"
-    alr get emacs_gpr_mode
+    alr get emacs_gpr_mode~1.0.1
+    cd emacs_gpr_mode_*; alr build --release
 
 elif type gprbuild; then
     echo "building gpr-mode executables via gnat compiler"
