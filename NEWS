@@ -24,6 +24,10 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 ** Declared user configuration variable ada-language-version obsolete;
    it is no longer used (Ada 2022 is assumed).
 
+** ada-build-prompt-select-prj-file now takes a filename argument; it
+   can be used to specify a project file on the Emacs command line:
+   emacs --eval "(ada-build-prompt-select-prj-file \"hello.gpr\")" hello.adb
+
 ** Minor bug fixes.
 
 * Ada Mode 7.3.beta

@@ -55,7 +55,13 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-See Manuel Gomez email
+See Manuel Gomez email in ada-mode group
+    edited ada-build.el to add filename arg in ada-build-prompt-select-prj-file
+        test via 'make three'
+        --eval
+
+    move to wisi
+    mention in manual (ada-mode and wisi)
 
 Add:
     import_env_var=HOME

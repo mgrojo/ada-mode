@@ -1410,11 +1410,19 @@ The current project file is shown by the menu command
 @key{Ada | Project Files | Show project}.
 
 To set the project file, use the menu command @key{Ada | Project Files | Find and
-select Project ...}, or one of the elisp functions described in
-@ref{Selecting Projects,,, wisi, Wisi User Guide}.
+select Project ...}.
 
-The project file may also be a GNAT project file (with file extension
-is @code{.gpr}).
+You can also set the project file on the Emacs command line. For
+@code{Example_2} in @xref{Compiling Examples}:
+@example
+cd .../Example_2
+emacs --eval "(ada-build-prompt-select-prj-file \"hello.gpr\")" hello.adb
+@end example
+
+Finally, you can set the project file in some lisp startup code
+using one of the elisp functions described in @ref{Selecting
+Projects,,, wisi, Wisi User Guide}.  The project file may also be a
+GNAT project file (with file extension is @code{.gpr}).
 
 @node Project file variables,  , Project file overview, Project files
 @section Project file variables

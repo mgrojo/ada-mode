@@ -205,8 +205,8 @@ nil, only the file name."
     (define-key map "\C-cr4" 'ada-refactor-4)
     (wisi-case-activate-keys map)
 
-    map
-  )  "Local keymap used for Ada mode.")
+    map)
+  "Local keymap used for Ada mode.")
 
 (defvar ada-mode-menu (make-sparse-keymap "Ada"))
 (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode"
@@ -219,21 +219,21 @@ nil, only the file name."
     ["Customize"                  (customize-group 'ada)    t]
     ("Project files"
      ["Find and select project ..."   ada-build-prompt-select-prj-file t]
-     ["Show project"                  wisi-prj-show                    t]
-     ["Show project file search path" wisi-prj-show-prj-path           t]
-     ["Show source file search path"  wisi-prj-show-src-path           t]
-     ["Clear current project"         wisi-prj-clear-current           t]
+     ["Show project"                  wisi-prj-show 		       t]
+     ["Show project file search path" wisi-prj-show-prj-path 	       t]
+     ["Show source file search path"  wisi-prj-show-src-path 	       t]
+     ["Clear current project"         wisi-prj-clear-current 	       t]
     )
     ("Build"
-     ["Next compilation error"     next-error                t]
-     ["Show secondary error"       ada-show-secondary-error  t]
-     ["Fix compilation error"      wisi-fix-compiler-error   t]
-     ["Show last parse error"      wisi-show-parse-error     t]
-     ["Check syntax"               ada-build-check       t]
-     ["Show main"                  ada-build-show-main   t]
-     ["Build"                      ada-build-make        t]
-     ["Set main and Build"         ada-build-set-make    t]
-     ["Run"                        ada-build-run         t]
+     ["Next compilation error"     next-error 		    t]
+     ["Show secondary error"       ada-show-secondary-error t]
+     ["Fix compilation error"      wisi-fix-compiler-error  t]
+     ["Show last parse error"      wisi-show-parse-error    t]
+     ["Check syntax"               ada-build-check 	    t]
+     ["Show main"                  ada-build-show-main 	    t]
+     ["Build"                      ada-build-make 	    t]
+     ["Set main and Build"         ada-build-set-make 	    t]
+     ["Run"                        ada-build-run 	    t]
      )
     ("Navigate"
      ["Other file"                    ada-find-other-file          t]
@@ -248,32 +248,32 @@ nil, only the file name."
      ["Show parent declarations"        wisi-show-declaration-parents 	     (eq ada-xref-backend 'gpr_query)]
      ["Show all references (classwide)" xref-find-references                 t]
      ["Show all direct references"      wisi-show-references                 t]
-     ["Show local references"         wisi-show-local-references    (eq ada-xref-backend 'gpr_query)]
-     ["Show overriding"               wisi-show-overriding          (eq ada-xref-backend 'gpr_query)]
-     ["Show overridden"               wisi-show-overridden          (eq ada-xref-backend 'gpr_query)]
-     ["Goto prev position current buffer" pop-to-mark-command  t]
-     ["Goto prev position other buffer"   pop-global-mark      t]
-     ["Next placeholder"              wisi-skel-next-placeholder    t]
-     ["Previous placeholder"          wisi-skel-prev-placeholder    t]
+     ["Show local references"         wisi-show-local-references (eq ada-xref-backend 'gpr_query)]
+     ["Show overriding"               wisi-show-overriding       (eq ada-xref-backend 'gpr_query)]
+     ["Show overridden"               wisi-show-overridden       (eq ada-xref-backend 'gpr_query)]
+     ["Goto prev position current buffer" pop-to-mark-command 	 t]
+     ["Goto prev position other buffer"   pop-global-mark 	 t]
+     ["Next placeholder"              wisi-skel-next-placeholder t]
+     ["Previous placeholder"          wisi-skel-prev-placeholder t]
      )
     ("Edit"
      ["Complete name at point"      completion-at-point     t]
      ["Expand skeleton"             wisi-skel-expand        t]
      ["Indent line or selection"    indent-for-tab-command  t]
      ["Indent current statement"    wisi-indent-statement   wisi-parser-shared]
-     ["Indent containing statement" wisi-indent-containing-statement    wisi-parser-shared]
-     ["Indent file"            (indent-region (point-min) (point-max))  t]
-     ["Align"                       ada-align               t]
-     ["Comment/uncomment selection" comment-dwim            t]
-     ["Fill comment paragraph"         ada-fill-comment-paragraph           t]
+     ["Indent containing statement" wisi-indent-containing-statement        wisi-parser-shared]
+     ["Indent file"            (indent-region (point-min) (point-max)) 	    t]
+     ["Align"                       ada-align 				    t]
+     ["Comment/uncomment selection" comment-dwim 			    t]
+     ["Fill comment paragraph"         ada-fill-comment-paragraph 	    t]
      ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   t]
      ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) t]
-     ["Make body for subprogram"    ada-make-subprogram-body     wisi-parser-shared]
+     ["Make body for subprogram"    ada-make-subprogram-body                wisi-parser-shared]
      )
     ("Refactor"
      ["Method (Object) => Object.Method"   ada-refactor-1 wisi-parser-shared]
-     ["Object.Method   => Method (Object)" ada-refactor-2 wisi-parser-sharedt]
-     ["Element (Object, Index) => Object (Index)" ada-refactor-3 wisi-parser-sharedt]
+     ["Object.Method   => Method (Object)" ada-refactor-2 wisi-parser-shared]
+     ["Element (Object, Index) => Object (Index)" ada-refactor-3 wisi-parser-shared]
      ["Object (Index) => Element (Object, Index)" ada-refactor-4 wisi-parser-shared]
      )
     ("Casing"
