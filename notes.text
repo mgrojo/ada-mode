@@ -11,38 +11,6 @@ o.e.gpr-query: release, in use
   (xgit . "/Projects/org.emacs.gpr-query/")))
 
  current work
-for *.texi:
-    ----------------------
-    gpr-query relies on the cross reference information output by the
-    compiler; it assumes the code is compiled.
-
-    When gpr-query reads the compiler output, it caches the results in a
-    database.
-
-    This error message indicates that the cached cross reference database does not
-    contain the requested symbol. This is due to one of three things:
-
-    - the code has never been compiled, or changed but not compiled
-
-        solution; compile it and try again
-
-    - the code has been changed and compiled since the database was
-    refreshed
-
-        solution: refresh the database with C-c C-q (wisi-refresh-prj-cache)
-
-    - the compiler does not output information for this symbol.
-
-        give up
-
-    AdaCore is moving to a different cross reference system, so they are not
-    likely to make changes in the compiler output info to support new
-    features.
-    -----------
-
-
-    if package install complains about wisi--lexer-error undefined,
-    check for old copies of wisi or ada-mode on your load-path.
 
  release process
 keep status in ~/projects.text

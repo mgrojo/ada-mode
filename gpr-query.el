@@ -87,7 +87,7 @@ Must match gpr_query.adb Version.")
 
   symbol-locs ;; alist completion table, with locations; see gpr-query--symbols-filter
   symbols ;; symbols completion table.
-  symbols-valid ;; t when symbols valid
+  symbols-valid ;; nil initialy, 'waiting when getting symbols, t when symbols valid
   symbols-count-total
   )
 
@@ -256,8 +256,8 @@ Must match gpr_query.adb Version.")
 	(forward-line -1)
 	(when (re-search-forward gpr-query-prompt (point-max) t)
 	  (cond
-	   ((null (gpr-query--session-symbols gpr-query--local-session))
-	    ;; startup complete; get symbols
+	   ((null (gpr-query--session-symbols-count-total gpr-query--local-session))
+	    ;; startup complete; waiting for symbol count
 	    (when gpr-query--debug
 	      (message "gpr-query symbols: startup complete"))
 	     (gpr-query--check-startup)
@@ -265,10 +265,13 @@ Must match gpr_query.adb Version.")
 	     (set-marker (process-mark process) (point-min))
 	     (setf (gpr-query--session-symbols-count-total gpr-query--local-session) nil)
 	     (process-send-string process "complete \"\"\n")
-	     (setq gpr-query--symbols-progress "0%"))
+	     (setq gpr-query--symbols-progress "0%")
+	     (setf (gpr-query--session-symbols-valid gpr-query--local-session) 'waiting))
 
 	   (t
 	    ;; All symbols received; done
+	    (when gpr-query--debug
+	      (message "gpr-query symbols: all symbols received"))
 	    (setf (gpr-query--session-symbols-valid gpr-query--local-session) t)
 	    (set-process-filter process nil)
 	    (process-send-string process "exit\n"))

@@ -46,8 +46,15 @@ gpr-query is an Emacs minor mode that provides an xref backend using
 cross-reference information output by the GNAT compiler. It uses an
 external program @code{gpr_query} to interface to the information.
 
+It can also be used with the wisi package, as ada-mode does.
+
 @code{gpr_query} is similar to the AdaCore utility @code{gnatxref},
 but supports additional queries.
+
+When @code{gpr_query} reads the compiler output, it caches the results in a
+database. As the code is edited and compiled, that database gets out
+of date. It can be refreshed by invoking @key{C-c C-q}, which is bound
+to @code{wisi-refresh-prj-cache}.
 
 @node Installation
 @chapter Installation
@@ -56,9 +63,33 @@ The easiest way to install @code{gpr_query} is via the Ada package
 mangager Alire. You can also install the required libraries manually,
 and then build @code{gpr_query} manually.
 
-In either case, the final step is:
+If you are building with Alire, and planning to use gpr-query with the
+system Ada compiler (ie, not one provided by Alire), then you must
+first tell Alire to use that compiler to compile and install
+gpr-query. To do this:
 @example
-cd ~/.emacs.d/elpa/ada-mode-6.0.xx
+alr toolchain --select --local gnat_external
+@end example
+
+Sometimes Alire does not properly detect a corresponding external
+gprbuild; then you must use the toolchain assistant:
+@example
+alr toolchain --select --local
+@end example
+
+You can also install a compiler provided by Alire in an external
+directory, to be used outside Alire:
+@example
+alr toolchain --install --install-dir $HOME/.local gnat_native
+alr toolchain --install --install-dir $HOME/.local gprbuild
+@end example
+
+Then add the installed @code{bin} directories to your @code{PATH}.
+
+
+In any case, after installing the gpr-query ELPA package:
+@example
+cd ~/.emacs.d/elpa/gpr-query-1.0.x
 ./build.sh
 ./install.sh
 @end example
@@ -66,12 +97,14 @@ cd ~/.emacs.d/elpa/ada-mode-6.0.xx
 Both scripts will use Alire if @code{alr} is found in @code{PATH};
 otherwise, they use @code{gprbuild} and @code{gprinstall}.
 
-By default, @file{install.sh} installs the parser executable in the same
-directory as the GNAT executable (using @file{gprinstall}). If you
-don't have write privileges there, or if you want to install somewhere
-else, use @code{install.sh --prefix=<dir>}.
+By default, @file{install.sh} installs the parser executable in the
+same directory as the GNAT executable (using @file{gprinstall}),
+because it depends on data output by the compiler, which can change
+with the compiler version. If you don't have write privileges there,
+or if you want to install somewhere else, use @code{install.sh
+--prefix=<dir>}.
 
-@code{gpr_query} requires the @code{GNATCOLL}
+When building manually, @code{gpr_query} requires the @code{GNATCOLL}
 library provided by AdaCore, distributed with GNAT GPL 2017 or later,
 and also available at Github
 (@url{https://github.com/AdaCore/gnatcoll}). The parser builds with
@@ -87,21 +120,6 @@ Windows, use mingw64 @code{bash} to run these commands.
 
 On some operating systems, we must install gnatcoll-iconv; other
 operating systems don't need it.
-
-On linux, some versions of the @code{GNATCOLL.iconv} package (used by
-@code{gpr_query}, but not the parser) explicitly
-require the @file{libiconv.so} library. GNAT provides the
-@file{libiconv.so} library in @file{<gnat>/lib64/libiconv.so}. On
-Debian, that directory is not in the standard load path, and iconv is
-provided by glibc, so @file{libiconv.so} is not found on the standard
-load path. So you must set @var{LD_LIBRARY_PATH}, but only when
-running @code{gpr-query}:
-
-@example
-(setq gpr-query-env '("LD_LIBRARY_PATH=/Projects/gnat/pro_19.2/lib64")
-@end example
-@c FIXME: is this done by gpr-query-mode or wisi-prj? give example for
-@c wisi-prj setting.
 
 In general, @code{gpr_query} should be compiled with the compiler
 version that is used to generate the user project @file{.ali} files;
@@ -186,5 +204,9 @@ make -C xref install
 @c directories to GPR_PROJECT_PATH, add @code{BUILD=DEBUG} to the
 @c command line, edit the .gpr files to set OS. Sigh; that still
 @c doesn't work.
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @end ifnottex
