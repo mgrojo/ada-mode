@@ -100,6 +100,7 @@ elpa-archive-zip : wisi-elpa-archive-$(DATE).tar.bz2
 MANUALS := wisi
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
+info : $(INFO_FILES)
 html : $(addsuffix .html, $(MANUALS))
 
 VPATH := ..

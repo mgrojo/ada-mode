@@ -754,6 +754,13 @@ Else return nil."
 		(wisi-prj-file-env project)))
     t)
 
+   ((string= name "import_env_var")
+    ;; Copy an env var from parent.
+    (setf (wisi-prj-file-env project)
+	  (cons (concat value "=" (getenv value))
+		(wisi-prj-file-env project)))
+    t)
+
    ))
 
 (defvar-local wisi-prj-parse-undefined-function nil

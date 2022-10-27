@@ -961,8 +961,16 @@ List of files containing casing exceptions, either absolute, relative
 to the project file directory, or found on the project file
 path. @xref{Casing exception files}.
 
+@item @code{import_env_var} [slot: @code{file-env}]
+Copies an environment variable from @code{process-environment}.
+
 @item @code{src_dir}        [slot: @code{source-path}]
 A list of directories to search for source files.
+
+@item @code{$<name>}        [slot: @code{file-env}]
+Set an environment variable @code{name} in the local @code{file-env};
+it may be referenced in subsequent project file statements, and in
+processes spawned by the project.
 
 @end table
 
