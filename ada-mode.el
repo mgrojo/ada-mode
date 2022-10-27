@@ -1612,13 +1612,6 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   ;; indent-region to use it for all indentation. See
   ;; ada-fill-comment-paragraph.
 
-  ;; AdaCore standard style (enforced by -gnaty) requires two spaces
-  ;; after '--' in comments; this makes it easier to distinguish
-  ;; special comments that have something else after '--'
-  (set (make-local-variable 'comment-padding) "  ")
-
-  (set (make-local-variable 'require-final-newline) t)
-
   (setq font-lock-defaults
 	'(ada-font-lock-keywords ;; keywords
 	  nil ;; keywords-only; font-lock does keywords, comment, string faces via regexp. parser does identifiers.

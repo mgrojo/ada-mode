@@ -55,16 +55,8 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-See Manuel Gomez email in ada-mode group
-    edited ada-build.el to add filename arg in ada-build-prompt-select-prj-file
-        test via 'make three'
-        --eval
-
-    move to wisi
-    mention in manual (ada-mode and wisi)
-
-Add:
-    import_env_var=HOME
+allow lsp-mode
+    at least don't try to start eglot!
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.gpr-query -type f -print | \"xargs\" grep  -nH --null FIXME")
@@ -73,6 +65,9 @@ review FIXMEs
 
     (grep-find "find c:/Projects/org.emacs.gpr-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
+
+run all tests
+    test/subdir/aa_mode-gnatxref should fail; xref_tool should be xref_backend
 
 publish alire
     https://github.com/alire-project/alire-index/pull/659
@@ -1795,23 +1790,45 @@ post on:
     c.l.a newsgroup
 
 -------------------
-Gnu Emacs Ada mode 7.3.beta released.
+Gnu Emacs Ada mode 8.0 beta released.
 -------------------
 
-Gnu Emacs Ada mode 7.3.beta is now available in GNU ELPA devel for
+Gnu Emacs Ada mode 8.0 beta is now available in GNU ELPA devel for
 beta testing.
 
-ada-mode and wisi are now compatible with recent gnat versions. The
-grammar is updated to the proposed Ada 2022 version.
+All Ada mode executables can now be built with Alire
+(https://alire.ada.dev/); this greatly simplifies that process.
 
-Incremental parse is provided. It still has some bugs, so it is not
-enabled by default. To try it:
+gpr-query and gpr-mode are split out into separate GNU ELPA packages.
+You must install them separately (Emacs install-package doesn't
+support "recommended packages" like Debian does).
 
-(setq-default wisi-incremental-parse-enable t).
+Ada mode can now be used with Eglot; this is controlled by new variables:
 
-Incremental parse often gets confused; to recover, use M-x
-wisi-reset-parser. That does a full parse of the entire buffer, which
-can be noticeably slow in large buffers.
+ada-face-backend - one of wisi, eglot, none
+
+ada-xref-backend - one of gnat, gpr_query, eglot, none
+
+ada-indent-backend - one of wisi, eglot, none
+
+The the indent and face backends default to wisi if the wisi parser is
+found in PATH, to eglot if the Ada LSP server is found, and none
+otherwise. The xref backend also looks for the gpr_query executable in
+PATH.
+
+The current AdaCore language server does not support face or indent,
+so it only provides xref. Feel free to submit enhancement requests to
+AdaCore; that works better if they come with money.
+
+THe AdaCore language server ada_language_server is installed with
+GNATStudio (which ada-mode will find by default), or can be built with
+Alire. If you build it with Alire, either put it in PATH, or set
+gnat-lsp-server-exec.
+
+I have not tested ada-mode with lsp-mode. If you set the
+ada-xref-backend to 'eglot, ada-mode will try to start eglot. FIXME: add ada-no-eglot or something. If you
+set it to 'lsp, ada-mode will complain. So If you use lsp-mode, let me
+know if that works or needs improvement.
 
 To access the beta version via Gnu ELPA, add the devel archive to
 package-archives:
@@ -1819,15 +1836,14 @@ package-archives:
 (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel/"))
 
 Then M-x list-packages; the beta release shows as ada-mode version
-7.3beta1.0.20220711.185004, wisi version 4.0beta1.0.20220711.185552.
+8.0.1.0.20221111.185004, wisi version similarly.
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.3beta* and
-wisi-4.0beta*, or at https://elpa.gnu.org/packages/ada-mode.html, for
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-8.0.1* and
+wisi-4.0.0*, or at https://elpa.gnu.org/devel/ada-mode.html, for
 more details.
 
 Please report success and issues to the Emacs ada-mode mailing list
 https://lists.nongnu.org/mailman/listinfo/ada-mode-users.
-
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation:
@@ -1836,12 +1852,9 @@ cd ~/.emacs.d/elpa/ada-mode-7.3beta*
 ./build.sh
 ./install.sh
 
-This requires AdaCore gnatcoll packages which you may not have
-installed; see ada-mode.info Installation for help in installing them.
-
-build.sh will take longer than in previous releases, up to several
-minutes; the ada-mode LR1 parse table is now too big to store in ELPA,
-so build.sh generates it.
+If you have Alire installed, these scripts use it. Otherwise, this
+requires AdaCore gnatcoll packages which you may not have installed;
+see ada-mode.info Installation for help in installing them.
 
 -------------------
 

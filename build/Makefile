@@ -351,11 +351,8 @@ ada-mode-elpa-archive-$(DATE).tar.bz2 : $(ELPA_ROOT)/archive/packages/archive-co
 MANUALS := ada-mode
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
-info : ../dir-ada-mode
+info : $(INFO_FILES)
 html : $(addsuffix .html, $(MANUALS))
-
-../dir-ada-mode : $(INFO_FILES)
-	for file in $(INFO_FILES); do install-info ../$$file ../dir-ada-mode; done
 
 VPATH := ..
 

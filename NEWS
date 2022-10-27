@@ -24,9 +24,24 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 ** Declared user configuration variable ada-language-version obsolete;
    it is no longer used (Ada 2022 is assumed).
 
+** The default header comment is no longer inserted in new files by
+   default; you must enable auto-insert-mode to enable that. This
+   makes it easier to turn off.
+
+** ada-mode no longer sets comment-padding; to restore previous
+  behavior, add this to your ada-mode init:
+  (setq-local comment-padding " ")
+
+** ada-mode no longer sets require-final-newline; to restore previous
+  behavior, add this to your ada-mode init:
+  (setq-local require-final-newline t)
+
 ** ada-build-prompt-select-prj-file now takes a filename argument; it
    can be used to specify a project file on the Emacs command line:
    emacs --eval "(ada-build-prompt-select-prj-file \"hello.gpr\")" hello.adb
+
+** In wisi project files, import_env_var=<name> can be used to inherit
+   an environment variable from the Emacs process.
 
 ** Minor bug fixes.
 

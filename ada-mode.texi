@@ -63,6 +63,7 @@ Ada Mode Version 8.0.1
 Overview
 
 * wisi parser vs LSP::
+* Supported features::
 
 Installation
 
@@ -140,6 +141,7 @@ information on debugging.
 
 @menu
 * wisi parser vs LSP::
+* Supported features::
 @end menu
 
 @node wisi parser vs LSP
@@ -176,11 +178,11 @@ You can override the default choices by setting the elisp variables
 @code{ada-xref-backend, ada-indent-backend, ada-face-backend}.
 
 @node Supported features
+@section Supported features
 The following table lists features supported in either wisi or LSP,
 and whether LSP, wisi, @code{ada_language_server} version 22, eglot
 version 1.8 supports them.
 
-@section Supported features
 @multitable {wisi}{LSP}{als 22}{eglot 1.8}{ada-find-other-file moves to corresponding declaration}
 @headitem wisi @tab LSP @tab als 22 @tab eglot 1.8 @tab feature
 @item     t    @tab t   @tab nil    @tab t   @tab line/region indent; needs documentRangeFormattingProvider
@@ -1435,26 +1437,23 @@ that are lists are elisp lists.
 wisi defines some project variables, Ada mode defines some, others are
 defined by the compiler and the cross reference tool.
 
-Here is the list of variables valid defined by wisi and Ada mode. In
+Here is the list of variables valid defined by Ada mode; @ref{Project
+files,,, wisi, Wisi User Guide} for the variables defined by wisi. In
 the default values, the current directory @code{"."} is the directory
 containing the project file.
 
 @table @asis
 @c These are the names that appear in the .prj file.
 @c
-@c defined in wisi-prj.el and ada-mode.el wisi-prj-parse-one.
-@c defaults defined in ada-mode.el ada-prj-default
+@c defined in wisi-prj.el and ada-core.el wisi-prj-parse-one.
+@c defaults defined in ada-core.el ada-prj-default
 
 @item @code{ada_compiler}   [default: @code{ada-compiler, gnat}]
 Ada compiler for this project.
 
 Setting this in the project file reinitializes all options for the
-xref tool, so it must occur before any compiler-specific project
+compiler, so it must occur before any compiler-specific project
 variable.
-
-@item @code{casing}
-List of files containing casing exceptions.
-@xref{Automatic casing,,, wisi, Wisi User Guide}.
 
 @item @code{gnat-stub-args}
 List of strings passed to @code{gnat stub} when it is run.
@@ -1464,31 +1463,28 @@ List of strings passed to @code{gnat stub} after @code{-cargs}.
 
 @item @code{obj_dir}
 A list of directories to search for object and cross-reference
-files. Only needed if you are not using GPR files.
+files. Only needed if you are not using gpr files.
 
-@item @code{src_dir}
-A list of directories to search for source files. Added to the source
-directories from a gpr file (if any).
-
-@item @code{xref_tool}      [default: @code{ada-xref-tool}]
-Cross reference tool for this project.
+@item @code{xref_backend}      [default: @code{ada-xref-backend}]
+Cross reference backend for this project.
 
 Setting this in the project file reinitializes all options for the
-xref tool, so it must occur in the project file before any other
-settings that affect the xref tool.
-
-If @file{gpr_query} is found in @code{PATH}, @code{ada-xref-tool}
-defaults to @code{'gpr_query}. Otherwise, it defaults to @code{'gnat},
-which uses @code{gnat find}.
-
+xref backend, so it must occur in the project file before any other
+settings that affect the xref backend.
 @end table
 
 The following project file variables are defined by the GNAT compiler:
 
 @table @asis
-@c defined in gnat-core.el wisi-compiler-parse-one.
+@c defined in gnat-compiler.el wisi-compiler-parse-one.
 @item @code{ada_project_path}   [default: ]
 Same as @code{gpr_project_path}; see below.
+
+@item @code{gnat-stub-cargs}    [default: nil]
+Arguments passed to @code{gnat stub --cargs}.
+
+@item @code{gnat-stub-opts}    [default: nil]
+Arguments passed to @code{gnat stub}.
 
 @item @code{gpr_file}   [default: ]
 The GNAT project file for the project.
@@ -1499,7 +1495,7 @@ project file are appended to @code{src_dir} and
 with a GNAT project file, and other source directories with the Emacs
 project file.
 
-@item @code{gpr_project_path}   [default: ]
+@item @code{gpr_project_path}   [default: nil]
 A list of directories to
 search for GNAT project files. The list is passed to tools via the
 @code{GPR_PROJECT_PATH} process environment variable in the process
