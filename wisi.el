@@ -201,10 +201,6 @@ nil - no deletions since reset
 
 Set by `wisi-before-change', used and reset by `wisi--post-change'.")
 
-(defvar-local wisi-indenting-p nil
-  "Non-nil when `wisi-indent-region' is actively indenting.
-Used to ignore whitespace changes in before/after change hooks.")
-
 (defvar-local wisi--affected-text 0
   "Cached text of range passed to `wisi-before-change',
 used by `wisi-after-change' to get byte count of actual
@@ -497,7 +493,6 @@ For debugging."
   (setq wisi--change-beg most-positive-fixnum)
   (setq wisi--change-end nil)
   (setq wisi--deleted-syntax nil)
-  (setq wisi-indenting-p nil)
 
   (setq wisi--cached-regions ;; necessary instead of wisi-invalidate after ediff-regions
 	(list
@@ -534,35 +529,34 @@ For debugging."
     (when wisi-incremental-parse-enable
       (setq wisi--affected-text (buffer-substring-no-properties begin end)))
 
-    (unless wisi-indenting-p;; FIXME: delete this or justify it
-      (setq wisi--change-beg (min wisi--change-beg begin))
+    (setq wisi--change-beg (min wisi--change-beg begin))
 
-      ;; `buffer-base-buffer' deals with edits in indirect buffers
-      ;; created by ediff-regions-*
+    ;; `buffer-base-buffer' deals with edits in indirect buffers
+    ;; created by ediff-regions-*
 
+    (cond
+     ((null wisi--change-end)
+      (setq wisi--change-end (make-marker))
+      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+
+     ((> end wisi--change-end)
+      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+     )
+
+    (unless (= begin end)
       (cond
-       ((null wisi--change-end)
-	(setq wisi--change-end (make-marker))
-	(set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+       ((or (null wisi--deleted-syntax)
+	    (= 0 wisi--deleted-syntax))
+	(save-excursion
+	  (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
+		  (= end (skip-syntax-forward " " end)));; whitespace
+	      (setq wisi--deleted-syntax 0)
+	    (setq wisi--deleted-syntax 2))))
 
-       ((> end wisi--change-end)
-	(set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
-       )
-
-      (unless (= begin end)
-	(cond
-	 ((or (null wisi--deleted-syntax)
-	      (= 0 wisi--deleted-syntax))
-	  (save-excursion
-	    (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
-		    (= end (skip-syntax-forward " " end)));; whitespace
-		(setq wisi--deleted-syntax 0)
-	      (setq wisi--deleted-syntax 2))))
-
-	 (t
-	  ;; wisi--deleted-syntax is 2; no change.
-	  )
-	 )))
+       (t
+	;; wisi--deleted-syntax is 2; no change.
+	)
+       ))
     ))
 
 (defun wisi-after-change (begin end length)
@@ -1509,30 +1503,28 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	  ;; wisi--get-cached-indent.
 	  (goto-char (1- end)) ;; end is exclusive
 	  (goto-char (line-beginning-position))
-	  (let ((wisi-indenting-p t))
-	    (while (and (not (bobp))
-			(or (and (= begin end) (= (point) end))
-			    (>= (point) begin)))
-	      (when (or indent-blank-lines (not (eolp)))
-		;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
-		(let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
-		  (indent-line-to indent))
-		)
-	      (forward-line -1))
+	  (while (and (not (bobp))
+		      (or (and (= begin end) (= (point) end))
+			  (>= (point) begin)))
+	    (when (or indent-blank-lines (not (eolp)))
+	      ;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
+	      (let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
+		(indent-line-to indent))
+	      )
+	    (forward-line -1))
 
-	    ;; Run wisi-indent-calculate-functions
-	    (when wisi-indent-calculate-functions
-	      (goto-char begin)
-	      (while (and (not (eobp))
-			  (< (point) end-mark))
-		(back-to-indentation)
-		(let ((indent
-		       (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
-		  (when indent
-		    (indent-line-to indent)))
+	  ;; Run wisi-indent-calculate-functions
+	  (when wisi-indent-calculate-functions
+	    (goto-char begin)
+	    (while (and (not (eobp))
+			(< (point) end-mark))
+	      (back-to-indentation)
+	      (let ((indent
+		     (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
+		(when indent
+		  (indent-line-to indent)))
 
-		(forward-line 1)))
-	    )
+	      (forward-line 1)))
 
 	  (when
 	      (and prev-indent-failed

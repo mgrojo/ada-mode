@@ -108,7 +108,6 @@ ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
 # ELPA builds .info from .texinfo; if add new here, add to ../../elpa/elpa-packages
 pub-wisi : force
-# FIXME: add git push o.e.w -> elpa git
 	rm -rf $(ELPA_ROOT)/packages/wisi/*
 	cp ../NEWS $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../README $(ELPA_ROOT)/packages/wisi/README

@@ -1646,6 +1646,33 @@ Do The Right Thing to make PRJ-FILE active and selected; return the project."
       (memq #'wisi-prj-current-cached project-find-functions)
       (memq #'wisi-prj-current-parse project-find-functions)))
 
+(defun wisi-prompt-prj-file ()
+  "Prompt for a project file.
+Return nil if no file selected, the absolute file name
+otherwise. The file must have an extension from
+`wisi-prj-file-extensions'."
+  (let ((filename
+	 (condition-case-unless-debug nil
+	     (read-file-name
+	      "Project file: " ; prompt
+	      nil ; dir
+	      "" ; default-filename
+	      t   ; mustmatch
+	      nil; initial
+	      (lambda (name)
+		;; this allows directories, which enables navigating
+		;; to the desired file. We just assume the user won't
+		;; return a directory.
+		(or (file-accessible-directory-p name)
+		    (member (file-name-extension name) wisi-prj-file-extensions))))
+	   (error nil)
+	   )))
+
+  (unless (or (null filename)
+	      (file-name-absolute-p filename))
+    (setq filename (expand-file-name filename)))
+  filename))
+
 ;;;; project menu
 
 (defun wisi-prj--menu-compute ()

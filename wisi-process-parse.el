@@ -830,8 +830,7 @@ Source buffer is current."
     ;; executable is not reading command input.
 
     ;; Don't let font-lock start a parse for face while waiting for
-    ;; the process to die. FIXME: that just means font-lock will
-    ;; restart the process immediately; tell font-lock not to do that?
+    ;; the process to die.
     (setf (wisi-process--parser-busy parser) t)
     (wisi-parse-log-message parser "kill process")
     (kill-process (wisi-process--parser-process parser)))

@@ -97,7 +97,7 @@ FACE may be a list."
 			 (memq token-face face))
 		    (eq token-face face))
 	  (error "found face %s, expecting %s for '%s'" token-face face token))
-	))))
+	)))))
 
 (defun test-face-1 (search token face)
   "Move to end of comment, search for SEARCH, call `test-face'."
