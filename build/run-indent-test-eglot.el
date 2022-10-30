@@ -10,7 +10,7 @@
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
-;; FIXME: when alire supports "install", install this somewhere more standard
+;; when alire supports "install", install this somewhere more standard
 (setq gnat-lsp-server-exec "/Projects/alire/ada_language_server_22.0.0_ef4bdf41/.obj/server/ada_language_server")
 
 (require 'run-indent-test)

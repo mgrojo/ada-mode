@@ -1027,7 +1027,7 @@ iterated_element_association
                                ada-indent-broken]))%
   ;
 
-AND_relation_list ;;:new, split out from expression for action. FIXME: put back
+AND_relation_list ;;:new, split out from expression for action.
   : 'and' relation
   | AND_relation_list 'and' relation
   ;

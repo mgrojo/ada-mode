@@ -196,11 +196,8 @@ Returns the project if a file is selected, nil otherwise."
   "Create a default project with source-path set current directory, select it."
   (let* ((prj-file (expand-file-name "default_.adp" default-directory)) ;; we assume this does not exist
  	 (ada-xref-backend
-	  (cl-ecase ada-xref-backend
-	    (none nil)
-	    (gpr_query 'gnat) ;; since we are not specifying a gpr file.
-	    (gnat 'gnat)
-	    (eglot 'eglot)))
+	  (if (eq ada-xref-backend 'gpr_query) 'gnat ;; since we are not specifying a gpr file.
+	    ada-xref-backend))
 	 (project (ada-prj-default default-directory)))
 
     ;; We use buffer-file-name as the dominating file (nominally the

@@ -3,7 +3,7 @@
 ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
-# FIXME: this is still failing
+# IMPROVEME: this is still failing
 ADA_TEST_FILES := $(filter-out mixed_unix_dos_line_ends.adb, $(ADA_TEST_FILES))
 
 GNATXREF_TEST_FILES := $(shell cd ../test; grep -l wisi-prj-select-cache *.ad[sb])
@@ -59,7 +59,7 @@ endif
 	cd ./$(<D); $(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --verbosity "time=1" --output_bnf $(<F)
 	cd ./$(<D); dos2unix -q $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
 	mkdir -p bin
-	if [ -f $(*F)_parse_table.txt ] ; then mv -f $(*F)_parse_table.txt bin fi
+	if [ -f $(*F)_parse_table.txt ] ; then mv -f $(*F)_parse_table.txt bin; fi
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
@@ -82,11 +82,10 @@ autoloads : force
 #
 # All gpr-query functions run "gpr_query" in a background process.
 # That fails in batch mode; batch mode does not support background
-# processes. FIXME: not true in Emacs 25? So we don't run tests in
-# batch mode. We can't use -nw here because the standard input is not
-# a tty (at least on Windows). We don't include any other
-# dependencies, because the complete list is complex, and we sometimes
-# want to ignore it.
+# processes. So we don't run tests in batch mode. We can't use -nw
+# here because the standard input is not a tty (at least on Windows).
+# We don't include any other dependencies, because the complete list
+# is complex, and we sometimes want to ignore it.
 %.tmp : %
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))' $(RUN_ARGS)
 
@@ -112,8 +111,6 @@ compile-ada-test : force
 
 %.html : %.texi
 	makeinfo --html --no-split $< -o ../$@
-
-# (grep-find "find .. -type f -print | xargs grep -n FIXME")
 
 # for recompiling with release options
 recursive-clean : force

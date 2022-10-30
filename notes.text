@@ -55,26 +55,67 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-allow lsp-mode
-    at least don't try to start eglot!
-
-review FIXMEs
-    (grep-find "find c:/Projects/org.emacs.gpr-query -type f -print | \"xargs\" grep  -nH --null FIXME")
-        install.sh use alr;
-            if it's intended to be used with the external system gnat, we need to tell alr that.
-
-    (grep-find "find c:/Projects/org.emacs.gpr-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
-    (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
-
 run all tests
-    test/subdir/aa_mode-gnatxref should fail; xref_tool should be xref_backend
+ ../org.stephe_leake.sal    done
+ ../org.wisitoken           done
+ ../org.emacs.gnat-compiler none
+ ../org.emacs.wisi          done
+ ../org.emacs.gpr-mode      done
+ ../org.emacs.ada-mode
 
-publish alire
-    https://github.com/alire-project/alire-index/pull/659
-    waiting on pull request approval
+    test/subdir/ada_mode-gnatxref should fail; xref_tool should be xref_backend
 
-    add badge to websites:
-[![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/YOUR_CRATE.json)](https://alire.ada.dev/crates/YOUR_CRATE.html)
+test/ada_mode-expression_functions.ads:33: test (test-all-defs "type Result") ... signaled
+.. user-error: (gpr_query did not return any references; refresh?)
+    project is named "_default_", because that's the name of the init-prj
+    ada_mode_parent.gpr is in test/subdir
+    turn on gpr_query trace; no help? not parsing any ada files!?
+        (setq gpr-query--debug 1)
+        should be one message per .ali file
+
+    look in symbols?
+
+    works in ada_mode-find_file.adb
+        no it doesn't!
+
+    works in gpr_query.adb
+        id, shows references
+        still no trace from parse file
+
+    not in ada_mode.child_procedure
+        something to do with /subdir
+        what sets default-directory?
+            wisi-prj-parse-file (default-directory (file-name-directory prj-file))
+            in gpr-query--start-process at start-process:
+                gpr-file is ada-mode/test/subdir/ada_mode_parent.gpr
+                default-directory is ada-mode/test/subdir
+                in gpr-query-xref buffer
+                GPR_PROJECT_PATH is correct
+                db is ada-mode/test/gpr_query.db!?
+
+            in gpr_query trace output:
+                current directory ada-mode\test\subdir
+                GPR_PROJECT_PATH is correct
+                db is in test
+                    from tree.root_project.object_dir, which is ..
+
+run from shell
+    cd ../test/subdir
+    export GPR_PROJECT_PATH="c:/Projects/org.emacs.ada-mode/test;c:/Projects/org.emacs.ada-mode/test/subdir"
+    c:/Projects/org.emacs.gpr-query/bin/gpr_query.exe -P ada_mode_parent.gpr --tracefile gpr_query.trace
+       => no files parsed
+       or they are parsed; lists errors for non-ascii. trace is broken!?
+
+    cd ada-mode/test
+    export GPR_PROJECT_PATH=
+    c:/Projects/org.emacs.gpr-query/bin/gpr_query.exe -P ada_mode.gpr --tracefile gpr_query.trace
+        similar list of illegal chars, no list of files parsed
+    tree_refs Result:ada_mode-expression_functions.ads:35:9 short_file_names
+        entity not found
+
+    delete files that give errors in gprls; no help
+
+publish alire done
 
 publish elpa
     need new beta branches, with corresponding release branches
@@ -95,6 +136,14 @@ publish elpa
 
 
  after release
+start wisitoken-grammar-mode hangs emacs; must use windows task manager to kill
+
+Patch alr to return error status, submit pull request.
+
+test gnat pro 23 beta
+    see email in home
+    ask Eurocontrol about beta?
+
 test eglot with initializationOptions in initialize
     see IMPROVME: in ada-eglot.el
     (progn
@@ -105,7 +154,7 @@ test eglot with initializationOptions in initialize
     (progn
      (setq ada-face-backend   'wisi)
      (setq ada-indent-backend 'wisi)
-     (setq ada-xref-backend   'wisi))
+     (setq ada-xref-backend   'gpr_query))
 
     (find-file "build/Makefile")
     (find-file "wisi-ada.adb")
@@ -459,8 +508,6 @@ test Manuel Gomez use case
 
     add filename arg to wisi-prj-dtrt-parse-file, doc in wisi.info
 
-improve compilation-error-regexp-alist; see FIXME in gnat-core.el
-
 see ELPA pdf-tools for automatic compile, install
     (pdf-tools-install)
     (pdf-loader-install) in user .emacs
@@ -472,7 +519,7 @@ send bug report on wisitoken keeps binding wisitoken-bnf-generate
 
 wisi-prj-delete needs to kill gpr-query buffers for local process-env
 
-add Ada code to decrement byte_pos by one char, use in emacs_common, run_common FIXMEs
+add Ada code to decrement byte_pos by one char, use in emacs_common, run_common
     just reference wikipedia
 
 move Trace from Parser to Lexer
@@ -647,7 +694,7 @@ incremental parse
         if parse succeeds, delete errors in regions parsed
         could do that in ada, send current list of errors (aka diagnostics) on request?
 
-    see wisitoken notes, FIXMEs
+    see wisitoken notes
 
     redesign navigation?
         on another branch
@@ -1140,14 +1187,6 @@ improve test/ada_mode-recover_32.adb
 speed up lalr compile
     decrease subprog size?
 
-replace ada.wy with ada_annex_p.wy
-    too many conflicts
-    ada.wy:774: ;; FIXME: | digits_constraint
-    ada.wy:775: ;; FIXME: | delta_constraint
-    ada.wy:1015:;; FIXME: leaving out [renaming] [aspect_specification]
-    ada.wy:1245:      ;; FIXME: indentation of comment after 'is' (and 'with' in
-    ada.wy:1929: ;; allocator, FIXME: leaving out subpool_specification.
-
 Adjust-indent loop on each token, handle 'end <keyword>'
 
 Eurocontrol/debbugs bugs
@@ -1594,7 +1633,6 @@ bump versions
 
         echoed to savannah web page on CVS commit.
         other files in that dir updated by ~/web/Makefile
-        FIXME; need a savannah wisi package
 
     _not_ d:/Web/stephe-leake/ada/wisitoken.html - done in wisitoken release
 
@@ -1614,7 +1652,7 @@ On Debian
       overwrite existing file; it appends an integer. pay attention to
       the status message!
 
-    FIXME: patch als to store URL host/dir in alire.toml, or in config. also use ssh to push .tgz there.
+    IMPROVEME: patch als to store URL host/dir in alire.toml, or in config. also use ssh to push .tgz there.
         on the other hand, just use git
 
     (dvc-status "~/.config/alire/indexes/stephe/repo")
@@ -1679,7 +1717,7 @@ Debian testing has elpa checkout
 
     upgrade debian (to avoid eventually needing to reinstall from scratch)
 
-    FIXME: test with the latest Debian gnat release
+    test with the latest Debian gnat release
         bugs to https://gcc.gnu.org/bugzilla/buglist.cgi?quicksearch=comp%3Aada
 
     if new machine, install gnat CE 2019, gnatcoll
@@ -1692,7 +1730,7 @@ Debian testing has elpa checkout
     build/Makefile
         # no ARM_INFO on Debian
         docs pub-ada pub-wisi clean-elpa
-        # build-elpa uses latest commit; FIXME: change that?
+        # build-elpa uses latest commit
         (dvc-state-multiple "/Projects/elpa/packages")
         build-elpa uninstall-elpa
         install-elpa
@@ -1825,10 +1863,9 @@ GNATStudio (which ada-mode will find by default), or can be built with
 Alire. If you build it with Alire, either put it in PATH, or set
 gnat-lsp-server-exec.
 
-I have not tested ada-mode with lsp-mode. If you set the
-ada-xref-backend to 'eglot, ada-mode will try to start eglot. FIXME: add ada-no-eglot or something. If you
-set it to 'lsp, ada-mode will complain. So If you use lsp-mode, let me
-know if that works or needs improvement.
+I have not tested ada-mode with lsp-mode. You can set ada-*-backend to
+'other to expermiment with that, or tree-sitter, or some other
+backend.
 
 To access the beta version via Gnu ELPA, add the devel archive to
 package-archives:
@@ -1915,7 +1952,7 @@ mark fixed bugs
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 
-not found by search:
+bugs:
     https://debbugs.gnu.org/cgi/bugreport.cgi?bug=56236
 
 check https://www.emacswiki.org/emacs/AdaMode

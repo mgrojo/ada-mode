@@ -56,10 +56,10 @@ slower to load on first use, but gives better error recovery."
    ((locate-file ada-process-parse-exec exec-path '("" ".exe")) 'wisi)
    ((gnat-find-als nil t) 'eglot)
    (t 'none))
-  "Face backend to use for Ada; none, eglot or wisi."
-  ;; could be extended to tree-sitter
+  "Face backend to use for Ada."
+  ;; Could be extended to tree-sitter, lsp-mode ...; use `other' for that.
   :type 'symbol
-  :options '(none eglot wisi)
+  :options '(none eglot wisi other)
   :group 'ada)
 
 (defcustom ada-indent-backend
@@ -67,9 +67,9 @@ slower to load on first use, but gives better error recovery."
    ((locate-file ada-process-parse-exec exec-path '("" ".exe")) 'wisi)
    ((gnat-find-als nil t) 'eglot)
    (t 'none))
-  "Indent backend to use for Ada; none, eglot or wisi."
+  "Indent backend to use for Ada."
   :type 'symbol
-  :options '(none eglot wisi)
+  :options '(none eglot wisi other)
   :group 'ada)
 
 (defconst ada-operator-re
@@ -356,7 +356,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     (interactive)
     (when wisi-parser-shared
       (condition-case-unless-debug nil
-	  ;; FIXME: this aborts if missing close paren, but incremental parse can handle that
+	  ;; IMPROVEME: this aborts if missing close paren, but incremental parse can handle that
 	  (wisi-goto-open-paren)
 	(error
 	 (user-error "Not in parameter list")))
@@ -382,7 +382,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
       (ada-refactor ada-refactor-format-paramlist)))
 
 ;;;; fix compiler errors
-  (defun ada-fix-context-clause ()
+  (defun ada-context-clause-region ()
     "Return the region containing the context clause for the current buffer,
 excluding leading pragmas."
     ;; FIXME: rename this - no 'fix'
@@ -467,10 +467,10 @@ Returns non-nil if a should preceed b in buffer."
   "Add a with_clause for PACKAGE_NAME.
 If ada-fix-sort-context-clause, sort the context clauses using
 sort-lines."
-  ;; FIXME: see als issue #1039
-  (unless wisi-parser-shared ;; FIXME: define capabilities
-    (user-error "ada-fix-add-use not supported by this parser; add use clause manually"))
-  (let ((context-clause (ada-fix-context-clause)))
+  ;; IMPROVEME: https://github.com/AdaCore/ada_language_server/issues/1039
+  (unless wisi-parser-shared
+    (user-error "ada-fix-add-With-clause not supported by this parser; add use clause manually"))
+  (let ((context-clause (ada-context-clause-region)))
     (when (not context-clause)
       (error "no compilation unit found"))
 
@@ -486,8 +486,8 @@ sort-lines."
 
 (defun ada-fix-add-use-type (type)
   "Insert `use all type' clause for TYPE."
-  (unless wisi-parser-shared ;; FIXME: define capabilities
-    (user-error "ada-fix-add-use not supported by this parser; add use clause manually"))
+  (unless wisi-parser-shared
+    (user-error "ada-fix-add-use-type not supported by this parser; add use clause manually"))
   (ada-goto-declarative-region-start); leaves point after 'is'
   (newline-and-indent)
   (insert "use all type ")
@@ -503,7 +503,7 @@ sort-lines."
 
 (defun ada-fix-add-use (package)
   "Insert `use' clause for PACKAGE."
-  (unless wisi-parser-shared ;; FIXME: define capabilities
+  (unless wisi-parser-shared
     (user-error "ada-fix-add-use not supported by this parser; add use clause manually"))
   (ada-goto-declarative-region-start); leaves point after 'is'
   (newline-and-indent)
@@ -511,8 +511,8 @@ sort-lines."
 
 ;;;; xref
 
-(defconst ada-xref-known-backends '(gpr_query gnat eglot)
-  "Supported xref tools")
+(defconst ada-xref-known-backends '(gpr_query gnat eglot other)
+  "Supported xref backends.")
 
 (defcustom ada-xref-backend
   (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr_query 'gnat)
@@ -718,7 +718,7 @@ Throw an error if current project is not an ada-prj."
 	(setf (ada-prj-xref project) (ada-prj-make-xref xref-label)))
 
        (t
-	(user-error "'%s' is not a recognized xref tool (must be one of %s)"
+	(user-error "'%s' is not a recognized xref backend (must be one of %s)"
 		    xref-label ada-xref-known-backends))
       )))
    ))

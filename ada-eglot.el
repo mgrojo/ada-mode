@@ -82,9 +82,10 @@
 	   ;; 2021 and GNAT 22 als.
 	   (eglot-workspace-configuration nil))
 
-      (setq process-environment
-	    (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
-		    process-environment))
+      (when (wisi-prj-p prj)
+	(setq process-environment
+	      (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
+		      process-environment)))
 
       (when gpr-file
 	(setq eglot-workspace-configuration
@@ -106,31 +107,21 @@
 	       )
 
 	(when (eglot-current-server)
-	  (cl-ecase ada-face-backend
-	    ((none wisi) nil)
-	    (eglot
-	     ;; FIXME: use (eglot--server-capable :semanticTokensProvider :range)?
-	     (let ((stcap (plist-get (oref (eglot-current-server) capabilities) :semanticTokensProvider)))
-	       (unless (and stcap
-			    (plist-get stcap :range))
-		 (display-warning 'ada "LSP server does not support faces; change ada-face-backend"))
-	       (unless (boundp 'eglot-enable-semantic-tokens)
-		 (display-warning 'ada "current version of eglot does not support faces"))
-	       )
-	     ))
+	  (when (eq ada-face-backend 'eglot)
+	    (unless (eglot--server-capable :semanticTokensProvider :range)
+	      (display-warning 'ada "LSP server does not support faces; change ada-face-backend"))
+	    (unless (boundp 'eglot-enable-semantic-tokens)
+	      (display-warning 'ada "current version of eglot does not support faces"))
+	    ))
 
-	  (cl-ecase ada-indent-backend
-	    ((none wisi) nil)
-	    (eglot
-	     ;; :documentFormattingProvider does the whole file at once; not
-	     ;; useful for indent-region. IMPROVEME: in als devel version? fix it!
-	     (unless (plist-get (oref (eglot-current-server) capabilities) :documentRangeFormattingProvider)
-	       (display-warning 'ada "LSP server does not support line or range indent; change ada-indent-backend"))
+	(when (eq ada-indent-backend 'eglot)
+	  ;; :documentFormattingProvider does the whole file at once; not
+	  ;; useful for indent-region. IMPROVEME: in als devel version? fix it!
+	  (unless (plist-get (oref (eglot-current-server) capabilities) :documentRangeFormattingProvider)
+	    (display-warning 'ada "LSP server does not support line or range indent; change ada-indent-backend"))
 
-	     (setq-local indent-line-function #'ada-eglot-indent-line)
-	     (setq-local indent-region-function #'eglot-format)))
-	  )
-
+	  (setq-local indent-line-function #'ada-eglot-indent-line)
+	  (setq-local indent-region-function #'eglot-format))
 	;; We just assume the language server supports xref, completion
 	))))
 
@@ -157,7 +148,7 @@
        (when-let ((item (assoc "defaultLibrary" eglot-semantic-token-modifier-faces)))
 	 ;; No need to distinguish "Ada" from other packages.
 	 (setq eglot-semantic-token-modifier-faces
-	     (cl-delete item eglot-semantic-token-modifier-faces))))
+	       (cl-delete item eglot-semantic-token-modifier-faces))))
 
      ;; LSP defines Semantic Tokens for syntactic
      ;; highlighting/font-lock. Not supported in eglot.el 1.8,
@@ -174,6 +165,9 @@
     (wisi
      ;; wisi-setup does the work
      (setq-local wisi-disable-face nil))
+
+    (other
+     (setq-local wisi-disable-face t))
     )
 
   (cl-ecase ada-indent-backend
@@ -189,6 +183,9 @@
     (wisi
      ;; wisi-setup does the work
      (setq-local wisi-disable-indent nil))
+
+    (other
+     (setq-local wisi-disable-indent t))
     )
 
   (cl-ecase ada-xref-backend
@@ -204,9 +201,13 @@
      ;; test cases.
      (add-hook 'xref-backend-functions #'eglot-xref-backend -10 t)
 
-     ;; FIXME: don't bind C-c C-d? move to gpr-query minor mode
+     ;; IMPROVEME: don't bind C-c C-d? move to gpr-query minor mode
      ;; or implement via als extensions
-     ))
+     )
+
+    (other
+     (setq-local wisi-disable-face t))
+    )
 
   ;; eglot is always better at completion, so no separate user
   ;; config for this.
@@ -214,7 +215,7 @@
 
   (when (and wisi-disable-face
 	     wisi-disable-indent
-	     (eq ada-xref-backend 'eglot))
+	     (not (eq ada-xref-backend 'wisi)))
     (setq wisi-disable-parser t)))
 
 (cl-defmethod wisi-select-prj :after (_project)
@@ -234,8 +235,7 @@
 
 ;; create-ada-prj runs create-%s-xref, where %s is ada-xref-backend. So
 ;; we need create-eglot-xref. It returns nil, since we don't use any
-;; wisi xref functions; just the ones provided by eglot. FIXME: except
-;; wisi-xref-other.
+;; wisi xref functions; just the ones provided by eglot.
 ;;;###autoload
 (defun create-eglot-xref () nil)
 

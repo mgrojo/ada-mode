@@ -46,15 +46,15 @@
 ;; `ada-compiler' selects which compiler to use; it can be overridden
 ;; by the "ada_compiler" setting in project files.
 ;;
-;; We also support a cross reference tool (also called xref tool) that
-;; is different from the compiler. For example, you can use a local
-;; GNAT compiler to generate and access cross-reference information,
-;; while using a cross-compiler for compiling the final
+;; We also support a cross reference backend (also called xref
+;; backend) that is different from the compiler. For example, you can
+;; use a local GNAT compiler to generate and access cross-reference
+;; information, while using a cross-compiler for compiling the final
 ;; executable. The user variable `ada-xref-backend' selects the xref
-;; tool; it can be overridden by the "xref_backend" setting in project
-;; files.
+;; backend; it can be overridden by the "xref_backend" setting in
+;; project files.
 ;;
-;; The indentation engine and skeleton tools are from the wisi
+;; The indentation engine and skeleton backends are from the wisi
 ;; package.
 ;;
 ;;; History:
@@ -691,9 +691,10 @@ Also sets `ff-function-name' for `ff-pre-load-hook'."
 	 (error ""))))
 
     (eglot
-     (user-error "als version 22 does not support which-function")
-     ;; eglot/LSP maybe supports "which function" via DocumentSymbol, which
-     ;; ada_language_server version 22 does not support.
+     (when (eglot--server-capable :DocumentSymbol)
+	 ;; eglot/LSP maybe supports "which function" via DocumentSymbol, which
+	 ;; ada_language_server version 22 does not support.
+	 (display-warning 'ada "ada-mode which-function via eglot not yet implemented."))
      )
 
     (none "")
@@ -952,7 +953,7 @@ compiler-specific compilation filters."
 subprogram, or task declaration point is currently in or just
 after.  For `beginning-of-defun-function'."
   (interactive)
-  (unless wisi-parser-shared ;; FIXME: define capabilities
+  (unless wisi-parser-shared
     (user-error "goto-declaration-* not supported by this parser; add use clause manually"))
   (push-mark)
   (ada-validate-enclosing-declaration t 'navigate)
@@ -1575,6 +1576,12 @@ Prompts with completion, defaults to filename at point."
 (defvar which-func-functions) ;; which-func.el
 (defvar which-func-non-auto-modes) ;; ""
 
+(defvar ada-other-backend-setup-function nil
+  "When non-nil, called with no args from ada-mode if any of
+`ada-face-backend',
+`ada-indent-backend', `ada-xref-backend' are set to other.
+See `ada-eglot-setup' in ada-eglot.el for a similar function.")
+
 ;;;###autoload
 (cl-defun ada-parse-require-process (&key wait)
   "Start the Ada parser in an external process, if not already started.
@@ -1713,12 +1720,20 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   ;;; See comment in ada-mode on startup cases for rationale on doing
   ;;; ada-eglot-setup here.
 
+  (setq-local wisi-disable-parser nil)
+
   (when (or (eq ada-xref-backend   'eglot)
 	    (eq ada-indent-backend 'eglot)
 	    (eq ada-face-backend   'eglot))
     (require 'ada-eglot)
     (when (fboundp 'ada-eglot-setup)
       (ada-eglot-setup)))
+
+  (when (or (eq ada-xref-backend   'other)
+	    (eq ada-indent-backend 'other)
+	    (eq ada-face-backend   'other))
+    (when ada-other-backend-setup-function
+      (funcall ada-other-backend-setup-function)))
 
   ;; We want at least one warning for missing ada-process-parse-exec,
   ;; to give users a reminder to build/install it. But avoid that
