@@ -186,9 +186,9 @@ procedure Gpr_Query is
    procedure Process_Overriding is new Process_Command_Multiple (GNATCOLL.Xref.Overridden_By);
    procedure Process_Parent_Types is new Process_Command_Multiple (GNATCOLL.Xref.Parent_Types);
    procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List);
-   procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
-   procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List);
-   procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
+   procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);      -- wisi-xref-all
+   procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List); -- wisi-xref-definitions
+   procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List); -- wisi-xref-references
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List);
 
    type Command_Descr is record
@@ -1171,6 +1171,7 @@ begin
         (Filename         => Traces_Config_File.all,
          Force_Activation => False);
       GNATCOLL.Traces.Trace (Me, "trace enabled");
+      GNATCOLL.Traces.Trace (Me, "current directory: " & Ada.Directories.Current_Directory);
    end if;
 
    GNATCOLL.Projects.Initialize (Env); -- for register_default_language
