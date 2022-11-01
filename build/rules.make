@@ -24,8 +24,6 @@ autoloads : force
 %.html : %.texi
 	makeinfo --html --no-split $< -o ../$@
 
-# (grep-find "find .. -type f -print | xargs grep -n FIXME")
-
 # for recompiling with release options
 recursive-clean : force
 	gprclean -r -P ../ada_mode_wisi_parse.gpr

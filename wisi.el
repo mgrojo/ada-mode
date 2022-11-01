@@ -1856,11 +1856,12 @@ with incremental parse after each key event."
     (when (not wisi-disable-indent)
       (setq-local indent-line-function #'wisi-indent-line)
       (setq-local indent-region-function #'wisi-indent-region)
-      (setq-local forward-sexp-function #'wisi-forward-sexp)
       (setq-local comment-indent-function #'wisi-comment-indent))
 
     (when (not wisi-disable-completion) ;; FIXME; check that (wisi-prj-xref prj) is valid?
       (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t))
+
+    (setq-local forward-sexp-function #'wisi-forward-sexp)
 
     (when wisi-incremental-parse-enable
       (when wisi-save-all-changes

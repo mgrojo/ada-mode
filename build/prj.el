@@ -3,7 +3,7 @@
 (wisi-prj-select-cache
  "wisi.prj"
  (create-ada-prj
-  :name "wisi main
+  :name "wisi main"
   :compile-env
   (list
    (concat "SAL="       (expand-file-name "../../org.stephe_leake.sal"))

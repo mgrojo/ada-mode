@@ -1479,15 +1479,16 @@ project is current."
   (when (or dominating-file (buffer-file-name))
     ;; buffer-file-name is nil in *compilation* buffer
     (let ((prj-file (cdr (assoc (or dominating-file (buffer-file-name)) wisi-prj--dominating-alist))))
-      (unless (string-equal prj-file wisi-prj--current-file)
-	(message "Switching to project file '%s'" prj-file)
-	(let ((old-prj (cdr (assoc  wisi-prj--current-file wisi-prj--cache)))
-	      (new-prj (cdr (assoc prj-file wisi-prj--cache))))
-	  (when (wisi-prj-p old-prj)
-	    (wisi-prj-deselect old-prj))
-	  (when (wisi-prj-p new-prj)
-	    (wisi-prj-select new-prj))
-	  (setq wisi-prj--current-file prj-file))))))
+      (when prj-file ;; don't switch if dominating-file not recognized.
+	(unless (string-equal prj-file wisi-prj--current-file)
+	  (message "Switching to project file '%s'" prj-file)
+	  (let ((old-prj (cdr (assoc  wisi-prj--current-file wisi-prj--cache)))
+		(new-prj (cdr (assoc prj-file wisi-prj--cache))))
+	    (when (wisi-prj-p old-prj)
+	      (wisi-prj-deselect old-prj))
+	    (when (wisi-prj-p new-prj)
+	      (wisi-prj-select new-prj))
+	    (setq wisi-prj--current-file prj-file)))))))
 
 ;;;###autoload
 (defun wisi-prj-current-cached (_dir)

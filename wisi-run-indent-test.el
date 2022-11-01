@@ -52,7 +52,9 @@ FACE may be a list."
        (error "can't find '%s'" token)))
 
     (when (not skip-recase-test) ;; should be t when wisi-disable-face is t
-      (save-match-data
+      (let ((token (match-string 0))
+	    (test-pos (match-beginning 0)))
+
 	(when wisi-parser-shared
 	  (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'face))
 
@@ -61,43 +63,41 @@ FACE may be a list."
 	(when test-face-wait-fn
 	  (funcall test-face-wait-fn))
 
-      ;; We don't use face-at-point, because it doesn't respect
-      ;; font-lock-face set by the parser! And we want to check for
-      ;; conflicts between font-lock-keywords and the parser.
+	;; We don't use face-at-point, because it doesn't respect
+	;; font-lock-face set by the parser! And we want to check for
+	;; conflicts between font-lock-keywords and the parser.
 
-      ;; font-lock-keywords sets 'face property, parser sets 'font-lock-face.
+	;; font-lock-keywords sets 'face property, parser sets 'font-lock-face.
 
-      ;; In emacs < 27, if we use (get-text-property (point) 'face), we
-      ;; also get 'font-lock-face, but not vice-versa. So we have to use
-      ;; text-properties-at to check for both.
-      (let* ((token (match-string 0))
-	     (props (text-properties-at (match-beginning 0)))
-	     key
-	     token-face)
+	;; In emacs < 27, if we use (get-text-property (point) 'face), we
+	;; also get 'font-lock-face, but not vice-versa. So we have to use
+	;; text-properties-at to check for both.
+	(let ((props (text-properties-at test-pos))
+	      key
+	      token-face)
+	  (cond
+	   ((plist-get props 'font-lock-face)
+	    (setq key 'font-lock-face)
+	    (setq token-face (plist-get props 'font-lock-face)))
 
-	(cond
-	 ((plist-get props 'font-lock-face)
-	  (setq key 'font-lock-face)
-	  (setq token-face (plist-get props 'font-lock-face)))
+	   ((plist-get props 'face)
+	    (setq key 'face)
+	    (setq token-face (plist-get props 'face)))
+	   )
 
-	 ((plist-get props 'face)
-	  (setq key 'face)
-	  (setq token-face (plist-get props 'face)))
-	 )
+	  (when (and (memq 'font-lock-face props)
+		     (memq 'face props))
+	    (describe-text-properties test-pos)
+	    (error "mixed font-lock-keyword and parser faces for '%s'" token))
 
-	(when (and (memq 'font-lock-face props)
-		   (memq 'face props))
-	  (describe-text-properties (match-beginning 0))
-	  (error "mixed font-lock-keyword and parser faces for '%s'" token))
+	  (when (text-property-not-all test-pos (+ test-pos (length token)) key token-face)
+       	    (error "mixed faces, expecting %s for '%s'" face token))
 
-	(unless (not (text-property-not-all 0 (length token) key token-face token))
-	  (error "mixed faces, expecting %s for '%s'" face token))
-
-	(unless (or (and (listp face)
-			 (memq token-face face))
-		    (eq token-face face))
-	  (error "found face %s, expecting %s for '%s'" token-face face token))
-	)))))
+	  (unless (or (and (listp face)
+			   (memq token-face face))
+		      (eq token-face face))
+	    (error "found face %s, expecting %s for '%s'" token-face face token))
+	  )))))
 
 (defun test-face-1 (search token face)
   "Move to end of comment, search for SEARCH, call `test-face'."
@@ -222,7 +222,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 	;; Test files use wisi-prj-select-cached to parse and select a project file.
 	(setq project-find-functions (list #'wisi-prj-current-cached))
-	(setq xref-backend-functions (list #'wisi-prj-xref-backend))
+
+	(unless (memq 'eglot-xref-backend xref-backend-functions)
+	  (setq xref-backend-functions (list #'wisi-prj-xref-backend)))
 
 	(when (stringp save-edited-text)
 	  (wisi-process-parse-save-text wisi-parser-shared save-edited-text t))
@@ -422,18 +424,29 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
      (signal (car err) (cdr err)))
     ))
 
-(defvar cl-print-readably); cl-print.el, used by edebug
+;; Let edebug display strings full-length, and show internals of records
+(defvar cl-print-readably t); cl-print.el, used by edebug
+(setq read-buffer-completion-ignore-case t) ;; for "*Messages*"
 
 (defun wisi-half-screen ()
   (interactive)
   (modify-frame-parameters
-      nil
+   nil
+   (cl-case system-type
+     (gnu/linux
       (list
        (cons 'font "DejaVu Sans Mono-8")
        (cons 'width 120) ;; characters; fringe extra
        (cons 'height 94) ;; characters
        (cons 'left 0)
-       (cons 'top 0))))
+       (cons 'top 0)))
+     (windows-nt
+      (list
+       (cons 'font "DejaVu Sans Mono-8")
+       (cons 'width 120) ;; characters; fringe extra
+       (cons 'height 103) ;; characters
+       (cons 'left 0)
+       (cons 'top 0))))))
 (define-key global-map "\C-cp" 'wisi-half-screen)
 
 (defun wisi-first-error ()
@@ -455,9 +468,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (interactive "f")
 
   (setq-default indent-tabs-mode nil) ;; no tab chars in files
-
-  ;; Let edebug display strings full-length, and show internals of records
-  (setq cl-print-readably t)
 
   ;; we'd like to run emacs from a makefile as:
   ;;

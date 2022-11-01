@@ -93,10 +93,6 @@ wisi-elpa-$(DATE).tar.gz :
 # tarball to create local ELPA archive
 elpa-archive-zip : wisi-elpa-archive-$(DATE).tar.bz2
 
-# FIXME; update to git
-# tag :
-# 	git tag h:org.emacs.wisi org.emacs.wisi-$(WISI_VERSION)
-
 MANUALS := wisi
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
