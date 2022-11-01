@@ -73,7 +73,7 @@
 (cl-defmethod wisi-xref-completion-table ((_xref gnat-xref) _project)
   (wisi-names t t))
 
-(cl-defgeneric wisi-xref-completion-regexp (_xref)
+(cl-defmethod wisi-xref-completion-regexp ((_xref gnat-xref))
   wisi-names-regexp)
 
 (defun gnat-xref-adj-col (identifier col)
@@ -183,10 +183,10 @@ elements of the result may be nil."
 	  (nreverse result) ;; specs first.
 	  )))))
 
-(cl-defmethod wisi-xref-definitions (_xref project item)
+(cl-defmethod wisi-xref-definitions ((_xref gnat-xref) project item)
   (gnat-xref-refs project item nil))
 
-(cl-defmethod wisi-xref-references (_xref project item)
+(cl-defmethod wisi-xref-references ((_xref gnat-xref) project item)
   (gnat-xref-refs project item t))
 
 (cl-defmethod wisi-xref-other ((_xref gnat-xref) project &key identifier filename line column)
