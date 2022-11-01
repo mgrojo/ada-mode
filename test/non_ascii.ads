@@ -46,7 +46,7 @@ package Non_ASCII is
 
    ["03c0"]_ASCII : constant := 3.14159;
    --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
-   --EMACSRESULT: (unless (eq ada-xref-backend 'eglot) "[\"03c0\"]_ASCII")
+   --EMACSRESULT: "[\"03c0\"]_ASCII"
 
    --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(insert "θ"))
    --EMACSCMD:(progn (end-of-line 3)(forward-word -1)(kill-word 1)(insert "0"))

@@ -1,7 +1,7 @@
 -- An Emacs Ada project file for use with gnatxref
 
 -- Test processing of xref_tool in prj file
-xref_tool=gnat
+xref_backend=gnat
 
 src_dir=..
 src_dir=.
