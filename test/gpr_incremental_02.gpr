@@ -1,5 +1,5 @@
 --  From a real editing session, applying a patch manually.
---  Encountered a FIXME: in Syntax_Trees.Left_Breakdown.
+--  Encountered a missing feature in Syntax_Trees.Left_Breakdown.
 
 -- EMACSCMD:(setq skip-recase-test t)
 project Gpr_Incremental_02 is

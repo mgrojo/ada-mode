@@ -4,9 +4,6 @@
 
 (require 'wisi-run-indent-test)
 
-;;; Settings for all tests; can be overridden on make command line via
-;;; ELISP, or in file via EMACSCMD or Local Variables.
-
 (setq gpr-mode-dir (file-name-directory (locate-file "gpr-mode.el" load-path)))
 (setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" gpr-mode-dir))
 

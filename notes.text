@@ -39,8 +39,6 @@ o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): eglot
    ("../org.emacs.gpr-mode.stephe-2"   . "../org.emacs.gpr-mode")))
 
  current work
-review FIXMEs
-    (grep-find "find c:/Projects/org.emacs.gpr-mode -type f -print | \"xargs\" grep  -nH --null FIXME:")
 
  release process
 keep status in ~/projects.text
