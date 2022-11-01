@@ -16,8 +16,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 ** A bug in updating the fringe error marks is fixed.
 
 ** Support using eglot to replace some wisi functions; new user
-   configuration variables wisi-disable-completion,
-   wisi-disable-parser.
+   configuration variables wisi-disable-face, wisi-disable-completion,
+   wisi-disable-indent, wisi-disable-parser.
 
 ** In wisi project files, import_env_var=<name> can be used to inherit
    an environment variable from the Emacs process.
