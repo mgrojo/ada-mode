@@ -305,6 +305,7 @@ Must match gpr_query.adb Version.")
 	(with-current-buffer buffer
 	  (setq default-directory (file-name-directory gpr-file))
 	  (compilation-mode) ;; kills all local variables, requires default-directory
+	  (buffer-disable-undo)
 	  (setq gpr-query--local-session session)
 	  (setq buffer-read-only nil))))
 
