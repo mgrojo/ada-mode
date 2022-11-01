@@ -90,9 +90,12 @@ benchmark : RUN_ARGS ?= c:/eurocontrol/gnatcoll-xref.adb
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el $(RUN_ARGS)
 
+# For running a test with ELPA build
+#ADA_MODE_DIR := -L c:/Projects/elpa_release/ada-mode -l c:/Projects/elpa_release/ada-mode/autoloads.el -L c:/Projects/elpa_release/wisi -l c:/Projects/elpa_release/wisi/autoloads.el -l exclude-elpa.el
+
 ONE_TEST_FILE ?= debug.adb
-#one :: ELISP ?= (setq-default debug-on-error t wisi-parser-verbosity "debug=1" save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
-one :: ELISP ?= (setq-default debug-on-error t)
+#one :: ELISP ?= (setq-default save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
+one :: ELISP ?= (setq-default gpr-query--debug t debug-on-error t)
 one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 #one :: build_executables
 #one :: byte-compile autoloads
@@ -101,19 +104,21 @@ one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
+#one :: RUNTEST := run-indent-test-elpa.el
 #one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
-one :: RUNTEST := run-indent-test-eglot.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
+one :: RUNTEST := run-indent-test-eglot.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILE))
 one :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
 #one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+#one-debug :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one-debug :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 one-debug :: RUNTEST := run-indent-test-eglot.el
+one-debug :: ELISP ?= (setq-default debug-on-error t)
 one-debug :: force
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
-
 
 oneb :: one-clean
 #oneb :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el

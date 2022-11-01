@@ -1,42 +1,44 @@
 ;; project settings for building ada-mode with Alire/editing with eglot -*- no-byte-compile : t -*-
 
-(require 'ada-mode)
-;; This require is not needed for the following code, but is needed to
-;; ensure ada-mode-hook has sal-ada-mode-setup.
+;; update to current ada-eglot.el
 
-(setq ada-indent-backend 'wisi) ;; ada_language_server 22.0 doesn't support RangeFormatting
+;; (require 'ada-mode)
+;; ;; This require is not needed for the following code, but is needed to
+;; ;; ensure ada-mode-hook has sal-ada-mode-setup.
 
-(setq ada-face-backend 'eglot)
-(setq ada-xref-backend 'eglot)
+;; (setq ada-indent-backend 'wisi) ;; ada_language_server 22.0 doesn't support RangeFormatting
 
-(add-hook 'ada-mode-hook #'ada-eglot-setup)
+;; (setq ada-face-backend 'eglot)
+;; (setq ada-xref-backend 'eglot)
 
-(let* ((gpr-file (expand-file-name "emacs_ada_mode.gpr" (file-name-directory load-file-name)))
-       (prj-file (expand-file-name "prj-eglot.prj" (file-name-directory load-file-name)))
-       (eglot-workspace-configuration (list `(ada (projectFile . ,gpr-file))))
+;; (add-hook 'ada-mode-hook #'ada-eglot-setup)
 
-       (project
-	(create-alire-project
-	 :prj-name "ada-mode main Alire eglot"
-	 :prj-file prj-file
-	 :gpr-file gpr-file)))
+;; (let* ((gpr-file (expand-file-name "emacs_ada_mode.gpr" (file-name-directory load-file-name)))
+;;        (prj-file (expand-file-name "prj-eglot.prj" (file-name-directory load-file-name)))
+;;        (eglot-workspace-configuration (list `(ada (projectFile . ,gpr-file))))
 
-  (wisi-prj-select-cache prj-file nil "Makefile")
+;;        (project
+;; 	(create-alire-project
+;; 	 :prj-name "ada-mode main Alire eglot"
+;; 	 :prj-file prj-file
+;; 	 :gpr-file gpr-file)))
 
-  ;; ada_language_server gets GPR_PROJECT_PATH from its process
-  ;; environment, and the gpr file from eglot-workspace-configuration.
-  (let ((process-environment
-	 (append
-	  (copy-sequence process-environment)
-	  (wisi-prj-compile-env project)
-	  (wisi-prj-file-env project))))
+;;   (wisi-prj-select-cache prj-file nil "Makefile")
 
-    (eglot 'ada-mode ;; managed-major-mode
-	   project ;; project; project-root is server process directory
-	   'eglot-lsp-server ;; class
-	   'gnat-find-als ;; contact
-	   "Ada" ;; language-id
-	   ))
-  )
+;;   ;; ada_language_server gets GPR_PROJECT_PATH from its process
+;;   ;; environment, and the gpr file from eglot-workspace-configuration.
+;;   (let ((process-environment
+;; 	 (append
+;; 	  (copy-sequence process-environment)
+;; 	  (wisi-prj-compile-env project)
+;; 	  (wisi-prj-file-env project))))
+
+;;     (eglot 'ada-mode ;; managed-major-mode
+;; 	   project ;; project; project-root is server process directory
+;; 	   'eglot-lsp-server ;; class
+;; 	   (list (gnat-find-als)) ;; contact
+;; 	   "Ada" ;; language-id
+;; 	   ))
+;;   )
 
 ;; end of file

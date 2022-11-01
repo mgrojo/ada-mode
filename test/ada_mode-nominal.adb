@@ -7,7 +7,7 @@
 --EMACSCMD:(when wisi-parser-shared (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(= (point) (point-min)))
 --EMACSRESULT:(not (null wisi-parser-shared))
 
---EMACSCMD:(when wisi-parser-shared (goto-char (car (ada-fix-context-clause))) (looking-at "with Ada.Strings"))
+--EMACSCMD:(when wisi-parser-shared (goto-char (car (ada-context-clause-region))) (looking-at "with Ada.Strings"))
 --EMACSRESULT:(not (null wisi-parser-shared))
 pragma License (Unrestricted); -- for testing ada-wisi-context-clause
 

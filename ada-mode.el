@@ -1755,8 +1755,8 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
    :parser (unless wisi-disable-parser (ada-parse-require-process)))
 
   (when wisi-parser-shared
-    (set (make-local-variable 'beginning-of-defun-function) #'ada-goto-declaration-start)
-    (set (make-local-variable 'end-of-defun-function) #'ada-goto-declaration-end))
+    (setq-local beginning-of-defun-function #'ada-goto-declaration-start)
+    (setq-local end-of-defun-function #'ada-goto-declaration-end))
 
   )
 

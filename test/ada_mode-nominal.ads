@@ -72,9 +72,9 @@ with Ada_Mode.Library_Procedure;
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2; -- context_clause_end
 
---EMACSCMD:(when wisi-parser-shared (goto-char (car (ada-fix-context-clause)))(looking-at "with -- context_clause_start"))
+--EMACSCMD:(when wisi-parser-shared (goto-char (car (ada-context-clause-region)))(looking-at "with -- context_clause_start"))
 --EMACSRESULT:(not (null wisi-parser-shared))
---EMACSCMD:(when wisi-parser-shared (goto-char (cdr (ada-fix-context-clause)))(looking-at "package Ada_Mode.Nominal -- context_clause_end"))
+--EMACSCMD:(when wisi-parser-shared (goto-char (cdr (ada-context-clause-region)))(looking-at "package Ada_Mode.Nominal -- context_clause_end"))
 --EMACSRESULT:(not (null wisi-parser-shared))
 
 --EMACSCMD:(when wisi-parser-shared (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))

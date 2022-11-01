@@ -65,55 +65,15 @@ run all tests
 
     test/subdir/ada_mode-gnatxref should fail; xref_tool should be xref_backend
 
-test/ada_mode-expression_functions.ads:33: test (test-all-defs "type Result") ... signaled
-.. user-error: (gpr_query did not return any references; refresh?)
-    project is named "_default_", because that's the name of the init-prj
-    ada_mode_parent.gpr is in test/subdir
-    turn on gpr_query trace; no help? not parsing any ada files!?
-        (setq gpr-query--debug 1)
-        should be one message per .ali file
+    partial done
+    incremental done
+    gnatxref done
+    eglot
+        test/ada_mode-expression_functions.ads
+            crashing als; eglot repeatedly restarts.
+            no useful error message from als.
 
-    look in symbols?
-
-    works in ada_mode-find_file.adb
-        no it doesn't!
-
-    works in gpr_query.adb
-        id, shows references
-        still no trace from parse file
-
-    not in ada_mode.child_procedure
-        something to do with /subdir
-        what sets default-directory?
-            wisi-prj-parse-file (default-directory (file-name-directory prj-file))
-            in gpr-query--start-process at start-process:
-                gpr-file is ada-mode/test/subdir/ada_mode_parent.gpr
-                default-directory is ada-mode/test/subdir
-                in gpr-query-xref buffer
-                GPR_PROJECT_PATH is correct
-                db is ada-mode/test/gpr_query.db!?
-
-            in gpr_query trace output:
-                current directory ada-mode\test\subdir
-                GPR_PROJECT_PATH is correct
-                db is in test
-                    from tree.root_project.object_dir, which is ..
-
-run from shell
-    cd ../test/subdir
-    export GPR_PROJECT_PATH="c:/Projects/org.emacs.ada-mode/test;c:/Projects/org.emacs.ada-mode/test/subdir"
-    c:/Projects/org.emacs.gpr-query/bin/gpr_query.exe -P ada_mode_parent.gpr --tracefile gpr_query.trace
-       => no files parsed
-       or they are parsed; lists errors for non-ascii. trace is broken!?
-
-    cd ada-mode/test
-    export GPR_PROJECT_PATH=
-    c:/Projects/org.emacs.gpr-query/bin/gpr_query.exe -P ada_mode.gpr --tracefile gpr_query.trace
-        similar list of illegal chars, no list of files parsed
-    tree_refs Result:ada_mode-expression_functions.ads:35:9 short_file_names
-        entity not found
-
-    delete files that give errors in gprls; no help
+        test on Debian
 
 publish alire done
 
@@ -136,6 +96,18 @@ publish elpa
 
 
  after release
+test/ada_mode-interactive_04.adb
+    final indent: run-test-here: error: nil indent for line 20
+        reproduced in 'make one', but parse log shows indent 3 for line 20
+            line-begin-pos is wrong; that's line 22
+        reproduced in debug.cmd
+            18 is correct; lost new-line after that
+            run in 7.3.0; passes
+            every edit while attempting to simplify causes a different error; later.
+
+ada_mode-recover_partial_18.ads
+    similar
+
 start wisitoken-grammar-mode hangs emacs; must use windows task manager to kill
 
 Patch alr to return error status, submit pull request.

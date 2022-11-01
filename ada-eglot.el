@@ -100,9 +100,9 @@
 	       'eglot-ada        ;; class
 	       ;; IMPROVEME: see above
 	       ;; (if gpr-file
-	       ;; 	   (list (car (gnat-find-als))
+	       ;; 	   (list (gnat-find-als)
 	       ;; 		 :initializationOptions (list (list :ada (cons 'projectFile gpr-file))))
-	       (gnat-find-als)   ;; contact
+	       (list (gnat-find-als))   ;; contact
 	       "Ada" 		 ;; language-id
 	       )
 
@@ -218,7 +218,7 @@
 	     (not (eq ada-xref-backend 'wisi)))
     (setq wisi-disable-parser t)))
 
-(cl-defmethod wisi-select-prj :after (_project)
+(cl-defmethod wisi-prj-select :after ((_project wisi-prj))
   ;; Connect to or create an eglot instance, providing a gpr file if
   ;; declared.
   (when (or (eq ada-xref-backend   'eglot)
@@ -226,7 +226,7 @@
 	    (eq ada-face-backend   'eglot))
     (ada-eglot-require-eglot)))
 
-(cl-defmethod wisi-deselect-prj :after (_project)
+(cl-defmethod wisi-prj-deselect :after ((_project wisi-prj))
   ;; Shutdown a corresponding eglot instance (defined in
   ;; eglot-current-server by combination of major-mode and
   ;; current-project), to allow gpr file and other settings to change.

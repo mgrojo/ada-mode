@@ -4,8 +4,10 @@
 
 ;; Don’t require installing executables to run tests; use elpa if installed
 (setq ada-mode-dir (file-name-directory (locate-file "ada-mode.el" load-path)))
-(setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lalr_parse" ada-mode-dir))
-(setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" ada-mode-dir))
+(setq ada-process-parse-exec (expand-file-name "bin/ada_mode_wisi_lalr_parse" ada-mode-dir))
+
+(setq gpr-query-dir (file-name-directory (locate-file "gpr-query.el" load-path)))
+(setq gpr-query-exec (expand-file-name "bin/gpr_query" gpr-query-dir))
 
 (setq project-find-functions '(wisi-prj-current-cached))
 

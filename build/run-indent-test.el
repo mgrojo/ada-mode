@@ -8,7 +8,7 @@
 ;; this is also done in run-test; we do it here for 'make one-debug'
 
 (defun switch-to-lr1 ()
-  (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse" ada-mode-dir))
+  (setq ada-process-parse-exec (expand-file-name "bin/ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
   (ada-mode))
 
