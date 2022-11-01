@@ -108,16 +108,17 @@ Throw an error if current project does not have a gnat-compiler."
   ;; We maintain two project values for this;
   ;; project-path - a list of directories, for elisp find file
   ;; GPR_PROJECT_PATH in environment, for gnat-run
-  (let ((process-environment (copy-sequence (wisi-prj-file-env project))))
-    (cl-pushnew dir (gnat-compiler-project-path compiler) :test #'string-equal)
+  (when (file-directory-p dir)
+    (let ((process-environment (copy-sequence (wisi-prj-file-env project))))
+      (cl-pushnew dir (gnat-compiler-project-path compiler) :test #'string-equal)
 
-    (setenv "GPR_PROJECT_PATH"
-	    (mapconcat 'identity
-		       (gnat-compiler-project-path compiler) path-separator))
-    (setf (wisi-prj-file-env project) (copy-sequence process-environment))
-    ))
+      (setenv "GPR_PROJECT_PATH"
+	      (mapconcat 'identity
+			 (gnat-compiler-project-path compiler) path-separator))
+      (setf (wisi-prj-file-env project) (copy-sequence process-environment))
+      )))
 
-(defun gnat-get-paths (project &key ignore-prj-paths)
+(cl-defun gnat-get-paths (project &key ignore-prj-paths)
   "Set source and project paths in PROJECT from \"gnat list\"."
   (let* ((compiler (wisi-prj-compiler project))
 	 (src-dirs (unless ignore-prj-paths (wisi-prj-source-path project)))
@@ -209,7 +210,7 @@ source-path will include compiler runtime."
 
       (setf (gnat-compiler-gpr-file compiler) gpr-file)))
 
-  (gnat-get-paths project :ignore-project-paths t))
+  (gnat-get-paths project :ignore-prj-paths t))
 
 (defun gnat-parse-gpr-1 (gpr-file project)
   "For `wisi-prj-parser-alist'."
@@ -780,8 +781,9 @@ to AdaCore ada_language_server in `exec-path', then in a gnat
 installation found in `exec-path'.  If NO-ERROR, return nil if
 server executable not found; otherwise signal user-error."
   (if gnat-lsp-server-exec
+      (setq gnat-lsp-server-exec (locate-file gnat-lsp-server-exec exec-path exec-suffixes))
       (if (file-readable-p gnat-lsp-server-exec)
-	  (list gnat-lsp-server-exec)
+	  gnat-lsp-server-exec
 	(user-error "gnat-lsp-server-exec '%s' not a readable file"
 		    gnat-lsp-server-exec))
 
@@ -798,9 +800,9 @@ server executable not found; otherwise signal user-error."
 		   (expand-file-name
 		    "../libexec/gnatstudio/als"
 		    (file-name-directory gnat))))))
-    (let ((guess (locate-file "ada_language_server" path exec-suffixes 1)))
+    (let ((guess (locate-file "ada_language_server" path exec-suffixes)))
       (if guess
-	  (list guess)
+	  guess
 	(unless no-error
 	  (user-error "ada_language_server not found")))))))
 

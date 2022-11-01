@@ -45,7 +45,7 @@ VPATH := ..
 
 ### Publish Gnu ELPA package
 pub : force
-# FIXME: just git push
+# FIXME: copy stuff
 
 pub-install: build-elpa install-elpa
 
