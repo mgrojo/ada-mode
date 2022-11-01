@@ -173,6 +173,8 @@ Must match gpr_query.adb Version.")
   (let* ((count (line-number-at-pos (point)))
 	 (percent (/ (* 100 count) (gpr-query--session-symbols-count-total gpr-query--local-session))))
     (setq gpr-query--symbols-progress (format "%d%%" percent))
+    (when gpr-query--debug
+      (message "gpr-query update-progress %s" gpr-query--symbols-progress))
     ))
 
 (defun gpr-query--symbols-filter (process text)
@@ -379,6 +381,9 @@ If NO-SYMBOLS is non-nil, don't create the symbols process."
 (defun gpr-query-session-wait (session command-type)
   "Wait for the current COMMAND-TYPE command to complete.
 COMMAND-TYPE is one of xref or symbols."
+  (when gpr-query--debug
+    (message "gpr-query-session-wait %s" command-type))
+
   (when (and
 	 (eq command-type 'symbols)
 	 (null (gpr-query--session-symbols-process session)))
@@ -406,14 +411,14 @@ COMMAND-TYPE is one of xref or symbols."
 	 ;; The process filter is reading symbols text in the process
 	 ;; buffer; don't move point or otherwise modify the buffer.
 	 (cond
-	  ((gpr-query--session-symbols-valid session)
+	  ((eq (gpr-query--session-symbols-valid session) t)
 	   (setq done t))
 
 	  (t
 	   (message "gpr-query receiving symbols %s" gpr-query--symbols-progress))))
 
 	(xref
-	 (message (concat "running gpr_query ..." (make-string wait-count ?.)))
+	 (message "running gpr_query xref ... %d" wait-count)
 
 	 ;; process output is inserted before point, so move back over it to search it
 	 (with-current-buffer (process-buffer process)
