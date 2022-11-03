@@ -55,45 +55,6 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-run all tests
- ../org.stephe_leake.sal    done
- ../org.wisitoken           done
- ../org.emacs.gnat-compiler none
- ../org.emacs.wisi          done
- ../org.emacs.gpr-mode      done
- ../org.emacs.ada-mode
-
-    test/subdir/ada_mode-gnatxref should fail; xref_tool should be xref_backend
-
-    partial done
-    incremental done
-    gnatxref done
-    eglot
-        test/ada_mode-expression_functions.ads
-            crashing als; eglot repeatedly restarts.
-            no useful error message from als.
-
-        test on Debian
-
-publish alire done
-
-publish elpa
-    need new beta branches, with corresponding release branches
-        don't need 'beta' in version; just don't push to release branch!
-    /Projects/org.emacs.gnat-compiler/gnat-compiler.el
-    /Projects/org.emacs.gpr-query/gpr-query.el
-    /Projects/org.emacs.gpr-mode
-
-
-
-    /Projects/elpa/admin/README "** To add a package:"
-        posted on emacs-devel; send a reply referencing savannah git branches
-        stefan says ok
-
-        add elpa branches; the README assumes you are pushing from some repository, not starting from scratch
-            see windows git-notes "add new local branch for new project"
-
-
 
  after release
 test/ada_mode-interactive_04.adb
