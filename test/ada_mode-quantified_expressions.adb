@@ -54,7 +54,7 @@ begin
    begin
       --EMACSCMD:(test-face "Float" nil)
       --EMACSCMD:(test-face "reverse" 'font-lock-keyword-face)
-      --EMACSCMD:(test-face "Board" '(nil default))
+      --EMACSCMD:(test-face "Board" nil)
       for Element : Float of reverse Board
       loop
          Element := Element * 2.0;

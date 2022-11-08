@@ -38,25 +38,36 @@ o.e.a.stephe-7 (): available
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
   (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/org.emacs.gnat-compiler.stephe-1")
-  (xgit . "/Projects/org.emacs.gpr-query.stephe-1")
+  (xgit . "/Projects/elpa_work/gnat-compiler")
+  ;; (xgit . "/Projects/elpa_work/gpr-query.stephe-1")
   (xgit . "/Projects/org.emacs.wisi.stephe-4")
-  (xgit . "/Projects/org.emacs.gpr-mode/.stephe-4")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-4")))
+  ;;(xgit . "/Projects/org.emacs.gpr-mode/.stephe-4")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-4")
+  (xgit . "/Projects/eglot-stephe")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1"           . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"                  . "../org.wisitoken")
    ("../org.emacs.wisi.stephe-4"                 . "../org.emacs.wisi")
-   ("/Projects/org.emacs.gnat-compiler.stephe-1" . "/Projects/org.emacs.gnat-compiler")
-;;   ("/Projects/org.emacs.gpr-query.stephe-1"     . "/Projects/org.emacs.gpr-query")
+   ("/Projects/elpa_work/gnat-compiler" . "/Projects/elpa/packages")
+;;   ("/Projects/elpa_work/gpr-query"     . "/Projects/elpa/packages/gpr-query")
    ("../org.emacs.ada-mode.stephe-4"             . "../org.emacs.ada-mode")
 ;;   ("/Projects/org.emacs.gpr-mode.stephe-4/"     . "/Projects/org.emacs.gpr-mode/")
    ))
 
  current work
+refresh-xref alire project sets nil xref
 
- after release
+
+test eglot/als with semantic tokens
+    /Projects/ada_language_server/alire.make
+    (add-to-list 'load-path "/Projects/eglot-stephe")
+    (require 'eglot)
+
+    make one
+    textDocument/rangeFormatting gives an error with no message. sigh.
+
+
 test/ada_mode-interactive_04.adb
     final indent: run-test-here: error: nil indent for line 20
         reproduced in 'make one', but parse log shows indent 3 for line 20
@@ -96,13 +107,16 @@ test eglot with initializationOptions in initialize
 
     try als 22
         /Projects/Alire/ada_language_server
-        (setq gnat-lsp-server-exec "c:/home/stephe/.local/bin/ada_language_server.exe")
-        CONSTRAINT_ERROR
+        windows: (setq gnat-lsp-server-exec "c:/home/stephe/.local/bin/ada_language_server.exe")
+            CONSTRAINT_ERROR
+        debian: works
 
-test elpa/als with devel versions
-    for semantic tokens
-    (dvc-status "/Projects/ada_language_server/")
-    /Projects/ada_language_server/alire.toml
+test eglot/als with semantic tokens
+    /Projects/alire-workspace/ada_language_server_23.0.0_66f2e7fb
+        requires gnat 12; in alire, exported to ~/.local
+
+    /Projects/eglot-stephe
+        should change to emacs/scratch/eglot-semantic-tokens-2?
 
     debian:
     (let ((default-directory "/Projects/ada_language_server/")) (load-file "prj.el"))
@@ -122,6 +136,8 @@ test elpa/als with devel versions
     (require 'eglot)
 
     make test-ada-eglot.stamp
+        build/run-indent-test-eglot.el
+
     test/debug.adb
         als raises constraint_error
         capture eglot log
@@ -1278,6 +1294,21 @@ refactoring
 browse Alire source:
     (let ((default-directory "/Projects/alire-main/"))
        (load-file "prj.el"))
+
+run als tests:
+    	cd testsuite; ./run.sh $(TEST_NAME)
+    test output is in /Projects/ada_language_server/testsuite/.als/inout.txt
+    test will timeout if expected output does not match actual output.
+
+to run als in debugger, driven by tester:
+# $ cd testsuite
+# $ export ALS=../.obj/server/ada_language_server
+# $ ../.obj/tester/tester-run --debug ada_lsp/debug_semantic_tokens/test.json
+# that starts als; find its PID with:
+# $ ps -x | grep ada_language_server
+# run /Projects/gnat/pro-23.0w-20220523/bin/gdb
+# attach gdb to it
+
 
 https://github.com/alire-project/alire/blob/master/doc/catalog-format-spec.md
 

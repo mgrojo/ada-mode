@@ -102,7 +102,7 @@ is -- target 0
       --EMACSCMD:(progn (beginning-of-line)(forward-line -12)(ada-which-function))
       --EMACSRESULT:(if wisi-parser-shared "Function_Access_11" "")
 
-      --EMACSCMD:(test-face "Function_Access_1" '(nil default))
+      --EMACSCMD:(test-face "Function_Access_1" nil)
       return Function_Access_1'Access;
    end
      Function_Access_11;
@@ -153,7 +153,7 @@ is -- target 0
                      --EMACSCMD:(when wisi-parser-shared (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                      --EMACSRESULT:(not (null wisi-parser-shared))
 
-                  --EMACSCMD:(test-face "Integer" '(nil default))
+                  --EMACSCMD:(test-face "Integer" nil)
                   -- "Integer" is in fact a type, but it would require
                   -- name resolution to figure that out.
                   return Integer (Function_1a);
@@ -161,14 +161,14 @@ is -- target 0
                   --EMACSRESULT:(if wisi-parser-shared "Local_Function" "")
                exception
 
-                  --EMACSCMD:(test-face "Constraint_Error" '(nil default))
+                  --EMACSCMD:(test-face "Constraint_Error" nil)
                   when E : Constraint_Error =>
                      --EMACSCMD:(when wisi-parser-shared (forward-line -1) (back-to-indentation) (backward-sexp) (looking-at "begin -- 2"))
                      --EMACSRESULT:(not (null wisi-parser-shared))
                      --EMACSCMD:(when wisi-parser-shared (forward-line -3)(back-to-indentation)(forward-sexp)(looking-at "when -- 2"))
                      --EMACSRESULT:(not (null wisi-parser-shared))
                      --EMACSCMD:(test-face "raise" font-lock-keyword-face)
-                     --EMACSCMD:(test-face "Constraint_Error" '(nil default))
+                     --EMACSCMD:(test-face "Constraint_Error" nil)
                      --EMACSCMD:(test-face "with" font-lock-keyword-face)
                      raise Constraint_Error with
                        "help " &

@@ -93,7 +93,7 @@ is -- target 0
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
-   --EMACSCMD:(test-face "Ada_Mode" '(nil default))
+   --EMACSCMD:(test-face "Ada_Mode" nil)
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- Comment after one line of code; broken versions of the
@@ -211,9 +211,9 @@ is -- target 0
    --EMACSCMD:(test-face-1 "is" "access" font-lock-keyword-face)
    --EMACSCMD:(test-face "protected" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "function" font-lock-keyword-face)
-   --EMACSCMD:(test-face "(" '(nil default))
-   --EMACSCMD:(test-face "A_Param" '(nil default))
-   --EMACSCMD:(test-face ":" '(nil default))
+   --EMACSCMD:(test-face "(" nil)
+   --EMACSCMD:(test-face "A_Param" nil)
+   --EMACSCMD:(test-face ":" nil)
    --EMACSCMD:(test-face "in" font-lock-keyword-face)
    --EMACSCMD:(test-face "Float" font-lock-type-face)
    --EMACSCMD:(test-face "return" font-lock-keyword-face)
@@ -275,7 +275,7 @@ is -- target 0
            Standard.Float;
 
    --EMACSCMD:(test-face-1 "is" "array" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Integer" '(nil default))
+   --EMACSCMD:(test-face "Integer" nil)
    --EMACSCMD:(test-face "range" font-lock-keyword-face)
    --EMACSCMD:(test-face "of" font-lock-keyword-face)
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;

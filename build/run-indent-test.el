@@ -70,6 +70,7 @@
 ;;; Settings for all tests; can be overridden on make command line via
 ;;; ELISP, or in file via EMACSCMD or Local Variables.
 (setq debug-on-error nil)
+(setq eval-expression-debug-on-error nil)
 (setq-default wisi-parser-verbosity "debug=1")
 (setq-default compare-tree-text t)
 (setq-default wisi-process-time-out 30.0) ;; running with debug/assert is slow, ada_mode-recover_30.adb

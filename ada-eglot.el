@@ -145,22 +145,19 @@
      (when (and (boundp 'eglot-enable-semantic-tokens)
 		(boundp 'eglot-semantic-token-modifier-faces))
        (setq eglot-enable-semantic-tokens t)
-       (when-let ((item (assoc "defaultLibrary" eglot-semantic-token-modifier-faces)))
-	 ;; No need to distinguish "Ada" from other packages.
-	 (setq eglot-semantic-token-modifier-faces
-	       (cl-delete item eglot-semantic-token-modifier-faces))))
 
-     ;; LSP defines Semantic Tokens for syntactic
-     ;; highlighting/font-lock. Not supported in eglot.el 1.8,
-     ;; ada_language_server 22.0. Supported in devel versions;
-     ;; https://github.com/joaotavora/eglot/issues/615
-     ;; https://github.com/AkibAzmain/eglot/tree/semantic-tokens
-     ;; https://github.com/AdaCore/ada_language_server/issues/879
-     ;;
-     ;; (setq wisi-disable-face t)
-     ;; (setq eglot-enable-semantic-tokens t)
-     ;; see the default settings in eglot-semantic-token-faces
-     )
+       ;; We'd like to delete defaultLibrary from the supported token
+       ;; modifiers; there's no need to distinguish "Ada" from other
+       ;; packages. But als 23 raises CONSTRAINT_ERROR if we do that;
+       ;; https://github.com/AdaCore/ada_language_server/issues/1070
+       ;; (when-let ((item (assoc "defaultLibrary" eglot-semantic-token-modifier-faces)))
+       ;;   (setq eglot-semantic-token-modifier-faces (cl-delete item eglot-semantic-token-modifier-faces)))
+
+       ;; So instead we map defaultLibrary to nil.
+       (setq eglot-semantic-token-modifier-faces
+	     (assoc-delete-all "defaultLibrary" eglot-semantic-token-modifier-faces))
+       (push (list "defaultLibrary" nil) eglot-semantic-token-modifier-faces)
+       ))
 
     (wisi
      ;; wisi-setup does the work
