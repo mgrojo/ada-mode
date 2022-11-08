@@ -93,9 +93,7 @@ FACE may be a list."
 	  (when (text-property-not-all test-pos (+ test-pos (length token)) key token-face)
        	    (error "mixed faces, expecting %s for '%s'" face token))
 
-	  (unless (or (and (listp face)
-			   (memq token-face face))
-		      (eq token-face face))
+	  (unless (equal token-face face)
 	    (error "found face %s, expecting %s for '%s'" token-face face token))
 	  )))))
 
