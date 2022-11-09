@@ -56,17 +56,33 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-refresh-xref alire project sets nil xref
-
+refresh-xref alire/gpr_query project sets nil xref
 
 test eglot/als with semantic tokens
     /Projects/ada_language_server/alire.make
     (add-to-list 'load-path "/Projects/eglot-stephe")
     (require 'eglot)
 
-    make one
-    textDocument/rangeFormatting gives an error with no message. sigh.
+    ada_mode-nominal.ads
 
+submit als issue on .gpr in initialize options
+    or figure out how to make it work
+
+test ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
+    need another ada-*-backend?
+
+put als indexing progress in mode line
+
+test eglot/als indent
+    waiting on fix for https://github.com/AdaCore/ada_language_server/issues/1074
+
+    style is really different; need separate eglot indent tests
+        run-test skip indent if eglot unless test-eglot-indent set? and vice versa?
+            that part of wisi must be eglot-aware
+            otherwise set skip-indent in _all_ other files. sigh.
+
+        or add top level makefile target test-ada-eglot-indent
+            change run-indent-test-eglot to run-test-eglot
 
 test/ada_mode-interactive_04.adb
     final indent: run-test-here: error: nil indent for line 20
@@ -1301,12 +1317,12 @@ run als tests:
     test will timeout if expected output does not match actual output.
 
 to run als in debugger, driven by tester:
-# $ cd testsuite
+# $ cd .../ada_language_server/testsuite
 # $ export ALS=../.obj/server/ada_language_server
 # $ ../.obj/tester/tester-run --debug ada_lsp/debug_semantic_tokens/test.json
 # that starts als; find its PID with:
 # $ ps -x | grep ada_language_server
-# run /Projects/gnat/pro-23.0w-20220523/bin/gdb
+# M-x gud-gdb /Projects/gnat/pro-23.0w-20220523/bin/gdb --fullname /Projects/ada_language_server/.obj/server/ada_language_server
 # attach gdb to it
 
 

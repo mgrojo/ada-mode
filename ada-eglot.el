@@ -46,7 +46,11 @@
 (defun ada-eglot-indent-line ()
   "For `indent-line-function'."
   (let ((savep (copy-marker (point)))
-	(to-indent nil))
+	(to-indent nil)
+	(tab-width ada-indent)
+	;; https://github.com/AdaCore/ada_language_server/issues/1075
+	;; eglot sets FormattingOptions tabSize to tab-width
+	)
     (back-to-indentation)
     (when (>= (point) savep)
       (setq to-indent t))
@@ -58,6 +62,15 @@
 
     (goto-char savep)
     (when to-indent (back-to-indentation))
+    ))
+
+(defun ada-eglot-indent-region (begin end)
+  "For `indent-region-function'."
+  (let ((tab-width ada-indent)
+	;; https://github.com/AdaCore/ada_language_server/issues/1075
+	;; eglot sets FormattingOptions tabSize to tab-width
+	)
+    (eglot-format begin end)
     ))
 
 ;;; startup
@@ -121,7 +134,7 @@
 	    (display-warning 'ada "LSP server does not support line or range indent; change ada-indent-backend"))
 
 	  (setq-local indent-line-function #'ada-eglot-indent-line)
-	  (setq-local indent-region-function #'eglot-format))
+	  (setq-local indent-region-function #'ada-eglot-indent-region))
 	;; We just assume the language server supports xref, completion
 	))))
 
@@ -230,11 +243,12 @@
   (when (eglot-current-server)
     (eglot-shutdown (eglot-current-server))))
 
-;; create-ada-prj runs create-%s-xref, where %s is ada-xref-backend. So
-;; we need create-eglot-xref. It returns nil, since we don't use any
-;; wisi xref functions; just the ones provided by eglot.
 ;;;###autoload
-(defun create-eglot-xref () nil)
+(defun create-eglot-xref ()
+;; ada-prj-make-xref calls create-%s-xref with no args, where %s is
+;; ada-xref-backend.  FIXME: something else calls it with a :gpr-file
+;; arg; that should set the gpr-file after creating the xref.
+  nil)
 
 (provide 'ada-eglot)
 ;;; ada-eglot.el ends here.
