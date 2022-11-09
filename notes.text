@@ -7,8 +7,8 @@ ELPA.make        elpa
 
 o.e.g-m: release, in use
 o.e.g-m.stephe-1 (o.e.w.stephe-1/o.w.s-1/o.s_l.sal.s-1): work
-o.e.g-m.stephe-2 (o.e.w.stephe-2/o.w.s-3/o.s_l.sal.s-2): alire
-o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): eglot
+o.e.g-m.stephe-2 (o.e.w.stephe-2/o.w.s-3/o.s_l.sal.s-2): available
+o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): available
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -39,6 +39,7 @@ o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): eglot
    ("../org.emacs.gpr-mode.stephe-2"   . "../org.emacs.gpr-mode")))
 
  current work
+apparently there is a gpr_lsp, bundled with ada_lsp
 
  release process
 keep status in ~/projects.text
