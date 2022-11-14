@@ -18,6 +18,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'ada-core)
+(require 'ada-indent-user-options)
 (require 'eieio)
 (require 'eglot)
 (require 'gnat-compiler)
@@ -88,22 +89,12 @@
 	   (gpr-file
 	    (when (and (wisi-prj-p prj)
 		       (gnat-compiler-p (wisi-prj-compiler prj)))
-	      (gnat-compiler-gpr-file (wisi-prj-compiler prj))))
-	   ;; IMPROVEME: we should be able to specify the gpr file via
-	   ;; initializationOptions in the initialize method at server
-	   ;; startup. But that caused a CONSTRAINT_ERROR in GNAT GPL
-	   ;; 2021 and GNAT 22 als.
-	   (eglot-workspace-configuration nil))
+	      (gnat-compiler-gpr-file (wisi-prj-compiler prj)))))
 
       (when (wisi-prj-p prj)
 	(setq process-environment
 	      (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
 		      process-environment)))
-
-      (when gpr-file
-	(setq eglot-workspace-configuration
-	      ;; This is sent in a workspace/didChangeConfiguration message.
-	      (list (list :ada (cons 'projectFile gpr-file)))))
 
       (unless (and ada-eglot-require-gpr
 		   (null gpr-file))
@@ -111,11 +102,10 @@
 	(eglot 'ada-mode 	 ;; managed-major-mode
 	       prj 		 ;; project; project-root is server process directory
 	       'eglot-ada        ;; class
-	       ;; IMPROVEME: see above
-	       ;; (if gpr-file
-	       ;; 	   (list (gnat-find-als)
-	       ;; 		 :initializationOptions (list (list :ada (cons 'projectFile gpr-file))))
-	       (list (gnat-find-als))   ;; contact
+	       (if gpr-file
+		   (list (gnat-find-als)
+			 :initializationOptions (list (list :ada (cons 'projectFile gpr-file))))
+		 (list (gnat-find-als)))   ;; contact IMPROVME: allow other servers?
 	       "Ada" 		 ;; language-id
 	       )
 
@@ -159,17 +149,14 @@
 		(boundp 'eglot-semantic-token-modifier-faces))
        (setq eglot-enable-semantic-tokens t)
 
-       ;; We'd like to delete defaultLibrary from the supported token
+       ;; It's tempting to delete defaultLibrary from the supported token
        ;; modifiers; there's no need to distinguish "Ada" from other
-       ;; packages. But als 23 raises CONSTRAINT_ERROR if we do that;
-       ;; https://github.com/AdaCore/ada_language_server/issues/1070
-       ;; (when-let ((item (assoc "defaultLibrary" eglot-semantic-token-modifier-faces)))
-       ;;   (setq eglot-semantic-token-modifier-faces (cl-delete item eglot-semantic-token-modifier-faces)))
-
-       ;; So instead we map defaultLibrary to nil.
-       (setq eglot-semantic-token-modifier-faces
-	     (assoc-delete-all "defaultLibrary" eglot-semantic-token-modifier-faces))
-       (push (list "defaultLibrary" nil) eglot-semantic-token-modifier-faces)
+       ;; packages. But that's actually a user preference.
+       ;;
+       ;; In addition, als 23 raises CONSTRAINT_ERROR if we do that;
+       ;; https://github.com/AdaCore/ada_language_server/issues/1070. So
+       ;; we encourage the user to modify
+       ;; eglot-semantic-token-modifier-faces instead.
        ))
 
     (wisi
@@ -248,7 +235,79 @@
 ;; ada-prj-make-xref calls create-%s-xref with no args, where %s is
 ;; ada-xref-backend.  FIXME: something else calls it with a :gpr-file
 ;; arg; that should set the gpr-file after creating the xref.
-  nil)
+  'eglot)
+
+;;; debugging
+(defun ada-eglot-log-to-als-test (&optional prompt)
+  "Convert EGLOT log in current buffer to an ada_language_server test.
+Command file name defaults to \"new-test.json\"; with user arg,
+prompt for it."
+  (interactive "P")
+  (let* ((test-buffer-name
+	 (if prompt
+	     (read-string "command file name: " "new-test.json")
+	   "new-test.json"))
+	(log-buffer (current-buffer))
+	(test-buffer (get-buffer-create test-buffer-name)))
+    (set-buffer test-buffer)
+    (erase-buffer)
+
+    (set-buffer test-buffer)
+    (insert "[\n    {\"comment\": [\"\"]},\n")
+    (insert "    {\"start\": {\"cmd\": [\"${ALS}\"]}},\n")
+
+    (set-buffer log-buffer)
+    (goto-char (point-min))
+
+    (while (search-forward-regexp
+	    (concat
+	     "^\\(?:\\[client-request\\] (id:\\([0-9]+\\))\\)"
+	     "\\|\\(?:\\[client-notification\\]\\)")
+	    nil t)
+      (let ((request-id (match-string 1))
+	    begin msg)
+	(forward-line 1)
+	(setq begin (point))
+	(forward-sexp)
+	(setq msg (car (read-from-string (buffer-substring-no-properties begin (point)))))
+
+	(set-buffer test-buffer)
+	(insert "    {\"send\": {\n        \"request\": \n            ")
+	(insert (json-encode msg))
+
+	(set-buffer log-buffer)
+	(forward-line 1)
+	(if (and request-id
+		 (looking-at (format "\\[server-reply\\] (id:%s)" request-id)))
+	  (progn
+	    (forward-line 1)
+	    (setq begin (point))
+	    (forward-sexp)
+	    (setq msg (car (read-from-string (buffer-substring-no-properties begin (point)))))
+
+	    (set-buffer test-buffer)
+	    (insert ",\n        \"wait\" : [\n")
+	    ;; IMPROVEME: initialize response in test includes log_filename, which eglot response does not.
+	    ;; It also uses {} instead of null
+	    ;; And even after fixing those, wait times out. So we simplify by hand until it works
+	    ;; Also need to edit gpr file in didChangeConfiguration
+	    ;; Also have to wait for indexing to complete.
+	    (insert (json-encode msg))
+	    (insert "]\n"))
+
+	  ;; no wait
+	  (set-buffer test-buffer)
+	  (insert ",\n        \"wait\" : []"))
+
+	(insert "}},\n")
+	(set-buffer log-buffer)
+	))
+
+    (set-buffer test-buffer)
+    (insert "   {\"stop\": {\"exit_code\": 0}}\n]\n")
+    (if (buffer-file-name)
+	(save-buffer)
+      (write-file test-buffer-name))))
 
 (provide 'ada-eglot)
 ;;; ada-eglot.el ends here.

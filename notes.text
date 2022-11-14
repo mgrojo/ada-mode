@@ -59,14 +59,19 @@ o.e.a.stephe-7 (): available
 refresh-xref alire/gpr_query project sets nil xref
 
 test eglot/als with semantic tokens
-    /Projects/ada_language_server/alire.make
     (add-to-list 'load-path "/Projects/eglot-stephe")
-    (require 'eglot)
+    /Projects/ada_language_server/alire.make
 
-    ada_mode-nominal.ads
 
-submit als issue on .gpr in initialize options
-    or figure out how to make it work
+ada_mode-nominal.ads pass
+    ada_mode-nominal.adb
+        storage_error
+        requests 9 .. 13 are sent before response to 8 is received
+        als test semantic_tokens_storage_error
+            test succeeds; no storage_error
+
+Eglot font-lock respect decoration level
+
 
 test ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
     need another ada-*-backend?
@@ -76,7 +81,12 @@ put als indexing progress in mode line
 test eglot/als indent
     waiting on fix for https://github.com/AdaCore/ada_language_server/issues/1074
 
-    style is really different; need separate eglot indent tests
+    style is really different;
+        put gnatpp package in .gpr, with --source-line-breaks etc.
+            match default ada-mode indent?
+
+        need separate eglot indent tests?
+
         run-test skip indent if eglot unless test-eglot-indent set? and vice versa?
             that part of wisi must be eglot-aware
             otherwise set skip-indent in _all_ other files. sigh.
@@ -1312,7 +1322,11 @@ browse Alire source:
        (load-file "prj.el"))
 
 run als tests:
-    	cd testsuite; ./run.sh $(TEST_NAME)
+    generate test from log: M-x ada-eglot-log-to-als-test
+        see IMPROVEME in ada-eglot.el on what needs to be edited manually
+
+    cd /Projects/ada_language_server/testsuite; ./run.sh $(TEST_NAME)
+
     test output is in /Projects/ada_language_server/testsuite/.als/inout.txt
     test will timeout if expected output does not match actual output.
 

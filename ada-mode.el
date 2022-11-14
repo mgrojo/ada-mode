@@ -691,10 +691,13 @@ Also sets `ff-function-name' for `ff-pre-load-hook'."
 	 (error ""))))
 
     (eglot
-     (when (eglot--server-capable :DocumentSymbol)
-	 ;; eglot/LSP maybe supports "which function" via DocumentSymbol, which
-	 ;; ada_language_server version 22 does not support.
-	 (display-warning 'ada "ada-mode which-function via eglot not yet implemented."))
+     (if (eglot--server-capable :DocumentSymbol)
+	(progn
+	  ;; eglot/LSP maybe supports "which function" via DocumentSymbol, which
+	  ;; ada_language_server version 22 does not support.
+	  (display-warning 'ada "ada-mode which-function via eglot not yet implemented.")
+	  "")
+       "")
      )
 
     (none "")

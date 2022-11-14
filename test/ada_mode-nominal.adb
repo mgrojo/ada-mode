@@ -1,8 +1,7 @@
 -- A comment before the first code
 
---EMACSCMD:(font-lock-ensure)
-
 --EMACSCMD:(wisi-prj-select-cache "subdir/ada_mode.adp" (ada-prj-default))
+--EMACSCMD:(when (eql ada-xref-backend 'eglot) (ada-eglot-wait-indexing-done))
 
 --EMACSCMD:(when wisi-parser-shared (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(= (point) (point-min)))
 --EMACSRESULT:(not (null wisi-parser-shared))
@@ -14,7 +13,7 @@ pragma License (Unrestricted); -- for testing ada-wisi-context-clause
 with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada" (cl-ecase ada-face-backend (eglot '(lsp-defaultLibrary lsp-namespace)) (wisi font-lock-function-name-face)))
 use Ada.Strings.Unbounded;
 --EMACSCMD:(when wisi-parser-shared (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
 --EMACSRESULT:(not (null wisi-parser-shared))
@@ -30,7 +29,7 @@ is -- target 0
 
    --EMACSCMD:(and wisi-incremental-parse-enable (progn (forward-line 3)(back-to-indentation)(goto-char (car (wisi-tree-node-char-region (wisi-parse-tree-query wisi-parser-shared 'containing-statement (point)))))(looking-at "package body Ada_Mode.Nominal")))
    --EMACSRESULT:wisi-incremental-parse-enable
-   --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+   --EMACSCMD:(test-face "Ada" (cl-ecase ada-face-backend (eglot '(lsp-defaultLibrary lsp-namespace)) (wisi font-lock-function-name-face)))
    use Ada.Strings;
 
    --EMACSCMD:(test-face "access" font-lock-keyword-face)
@@ -102,7 +101,7 @@ is -- target 0
       --EMACSCMD:(progn (beginning-of-line)(forward-line -12)(ada-which-function))
       --EMACSRESULT:(if wisi-parser-shared "Function_Access_11" "")
 
-      --EMACSCMD:(test-face "Function_Access_1" nil)
+      --EMACSCMD:(test-face "Function_Access_1" (cl-ecase ada-face-backend (eglot '(lsp-modification lsp-function)) (wisi font-lock-function-name-face)))
       return Function_Access_1'Access;
    end
      Function_Access_11;
@@ -112,6 +111,7 @@ is -- target 0
    -- lines both pointing at the same place. gpr_query is smarter.
 
    --EMACSCMD:(progn (forward-line 3) (ada-find-other-file) (cl-ecase ada-xref-backend (eglot (string= "ada_mode-nominal.ads" (file-name-nondirectory (buffer-file-name)))) ((gpr_query gnat) (looking-at "protected type Protected_1"))))
+   --EMACSCMD:(when (eql ada-xref-backend 'eglot) (ada-eglot-wait-indexing-done))
    protected body Protected_1 is -- target 2
 
       --EMACSCMD:(when wisi-parser-shared (ada-goto-declarative-region-start)(looking-at " -- target 2"))
@@ -128,7 +128,7 @@ is -- target 0
          is -- target 3
             --EMACSCMD:(test-face "exception" font-lock-keyword-face)
             Bad_Thing : exception;
-            --EMACSCMD:(test-face "Boolean" nil);; can't distinquish type name in name
+            --EMACSCMD:(test-face "Boolean" (cl-ecase ada-face-backend (eglot '(lsp-static lsp-defaultLibrary lsp-enum)) (wisi font-lock-type-face)))
             Dummy : Boolean;
             Dummy_2 : Boolean;
          begin
@@ -153,9 +153,7 @@ is -- target 0
                      --EMACSCMD:(when wisi-parser-shared (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                      --EMACSRESULT:(not (null wisi-parser-shared))
 
-                  --EMACSCMD:(test-face "Integer" nil)
-                  -- "Integer" is in fact a type, but it would require
-                  -- name resolution to figure that out.
+                  --EMACSCMD:(test-face "Integer" (cl-ecase ada-face-backend (eglot '(lsp-static lsp-defaultLibrary lsp-type)) (wisi font-lock-type-face)))
                   return Integer (Function_1a);
                   --EMACSCMD:(ada-which-function)
                   --EMACSRESULT:(if wisi-parser-shared "Local_Function" "")
@@ -295,7 +293,7 @@ is -- target 0
                      --EMACSRESULT:(not (null wisi-parser-shared))
       end; -- no F2 on purpose
 
-      --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
+      --EMACSCMD:(test-face "E1" (cl-ecase ada-face-backend (eglot '(lsp-declaration lsp-function) (wisi font-lock-function-name-face)))
       --EMACSCMD:(progn (forward-line 5)(ada-which-function t))
       --EMACSRESULT:(if wisi-parser-shared "E1" "")
       --EMACSCMD:(when wisi-parser-shared (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "when Local_1"))
@@ -379,7 +377,7 @@ is -- target 0
          end case;
 
          -- A comment before 'end'
-         --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
+         --EMACSCMD:(test-face "E1" (cl-ecase ada-face-backend (eglot 'lsp-function) (wisi font-lock-function-name-face)))
       end E1; -- E1
 
       entry E2
@@ -404,6 +402,7 @@ is -- target 0
       begin
          return;
          --EMACSCMD:(test-face "P1" 'font-lock-function-name-face)
+         --EMACSCMD:(test-face "P1" (cl-ecase ada-face-backend (eglot 'lsp-function) (wisi font-lock-function-name-face)))
       end P1;
 
       procedure P2 (A : Float; B : Float)
@@ -593,7 +592,7 @@ is -- target 0
       return 1.0 +
         Function_2a (Parent_Type_1'(1, 2.0, False)) +
         12.0;
-      --EMACSCMD:(test-face "Function_1a" 'font-lock-function-name-face)
+      --EMACSCMD:(test-face "Function_1a" (cl-ecase ada-face-backend (eglot 'lsp-function) (wisi font-lock-function-name-face)))
    end Function_1a;
 
    function Function_1b return Float
@@ -702,7 +701,6 @@ is -- target 0
          --EMACSCMD:(progn (forward-line 2)(forward-word 4)(forward-char 1)(insert "   ")(ada-align))
          Local_1 : Float     := 1.0e-36; -- comments after declarations
          Local_2 : Integer   := 2;       -- are aligned.
-         Local_3 : Character := ''';     -- quoted quote handled ok
          Local_4 : String    :=
            "abc:" & ':' & "def";
          Local_5 : Character := Character'('a');
@@ -805,11 +803,11 @@ is -- target 0
    pragma Warnings (Off, "coextension will not be deallocated when its associated owner is deallocated");
    --EMACSCMD:(test-face "new" 'font-lock-keyword-face)
    --EMACSCMD:(test-face-1 ", 1," "new" 'font-lock-keyword-face))
-   --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
-   --EMACSCMD:(test-face-1 ":= new" "Record_Type_3" nil) ;; can't distinguish type name from rest of name.
-   --EMACSCMD:(test-face "1234" 'font-lock-constant-face)
-   --EMACSCMD:(test-face-1 "(1234)" "1" 'font-lock-constant-face)
-   --EMACSCMD:(test-face "1.234" 'font-lock-constant-face)
+   --EMACSCMD:(test-face "Record_Type_3" (cl-ecase ada-face-backend (eglot 'lsp-class) (wisi font-lock-type-face)))
+   --EMACSCMD:(test-face-1 ":= new" "Record_Type_3" (cl-ecase ada-face-backend (eglot 'lsp-class) (wisi nil)))
+   --EMACSCMD:(test-face "1234" (cl-ecase ada-face-backend (eglot nil) (wisi font-lock-constant-face)))
+   --EMACSCMD:(test-face-1 "(1234)" "1" (cl-ecase ada-face-backend (eglot nil) (wisi font-lock-constant-face)))
+   --EMACSCMD:(test-face "1.234" (cl-ecase ada-face-backend (eglot nil) (wisi font-lock-constant-face)))
    Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234), 1, new Float'(1.234));
 begin
    null;
