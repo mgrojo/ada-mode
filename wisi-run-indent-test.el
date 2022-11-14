@@ -52,7 +52,7 @@ FACE may be a list."
        (error "can't find '%s'" token)))
 
     (when (not skip-recase-test) ;; should be t when wisi-disable-face is t
-      (let ((token (match-string 0))
+      (let ((token (match-string-no-properties 0))
 	    (test-pos (match-beginning 0)))
 
 	(when wisi-parser-shared
@@ -210,13 +210,20 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (wisi-test-save-log-1 (get-buffer (nth 0 item)) (nth 1 item))))
     ))
 
+(defvar eglot-send-changes-idle-time)
+(declare-function jsonrpc--debug "jsonrpc.el")
+
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)
   (condition-case-unless-debug err
       (progn
 	(setq indent-tabs-mode nil)
-	(setq jit-lock-context-time 0.0);; for test-face
+
+	;; for test-face
+	(setq jit-lock-context-time 0.0)
+	(setq-local font-lock-ensure-function 'jit-lock-fontify-now) ;; it's not at all clear what's resetting this
+	(setq-local eglot-send-changes-idle-time 0.0) ;; FIXME: did not help test-face
 
 	;; Test files use wisi-prj-select-cached to parse and select a project file.
 	(setq project-find-functions (list #'wisi-prj-current-cached))
@@ -261,10 +268,13 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     ((string= (match-string 1) "CMD")
 	      (looking-at ".*$")
 	      (setq cmd-line (line-number-at-pos)
-		    last-cmd (match-string 0))
+		    last-cmd (match-string-no-properties 0)
+		    force-fail nil)
 	      (let ((msg (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd)))
 		(when wisi-parser-shared (wisi-parse-log-message wisi-parser-shared msg))
 		(message "%s" msg)
+		(when (and (fboundp 'eglot-current-server) (eglot-current-server))
+		  (jsonrpc--debug (eglot-current-server) msg))
 		(save-excursion
 		  (setq last-result
 			(condition-case-unless-debug err
@@ -282,6 +292,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 			   (message msg)
 			   (setq msg (format "... %s: %s" (car err) (cdr err)))
 			   (when wisi-parser-shared (wisi-parse-log-message wisi-parser-shared msg))
+			   (when (and (fboundp 'eglot-current-server) (eglot-current-server))
+			     (jsonrpc--debug (eglot-current-server) msg))
 			   (message msg)
 			   nil)))
 		  ))
@@ -315,8 +327,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 				      last-result
 				      expected-result)))))
 		  (when wisi-parser-shared (wisi-parse-log-message wisi-parser-shared msg))
-		  (message "%s" msg))
-		(setq force-fail nil)))
+		  (message "%s" msg))))
 
 	     ((string= (match-string 1) "RESULT_START")
 	      (looking-at ".*$")
@@ -460,6 +471,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (other-window -1))
 (define-key global-map [M-C-up] 'wisi-prev-window)
 (define-key global-map [M-C-down] 'other-window)
+(define-key global-map [f11] 'switch-to-buffer)
 
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."

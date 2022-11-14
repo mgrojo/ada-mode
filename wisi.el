@@ -1044,8 +1044,8 @@ fails."
 
     (wisi-validate-cache parse-begin parse-end error-on-fail parse-action)))
 
-(defun wisi-fontify-region (begin end)
-  "For `jit-lock-functions'."
+(defun wisi-fontify-region (begin end &optional _contextual)
+  "For `jit-lock-register'."
   (remove-text-properties begin end '(font-lock-face nil))
 
   (if wisi-parse-full-active
