@@ -166,6 +166,11 @@ If NOT-FULL is non-nil, very slow refresh operations may be skipped.")
 ;; modes don't have a language-specific compiler (eg java-wisi) or
 ;; xref process (eg gpr-mode).
 
+;;;###autoload
+(defun wisi-prj-make-compiler (label)
+  ;; We assume the constructor is autoloaded
+  (funcall (intern (format "create-%s-compiler" (symbol-name label)))))
+
 (cl-defgeneric wisi-compiler-parse-one (compiler project name value)
   "Set NAME, VALUE in COMPILER, if recognized by COMPILER.
 PROJECT is an `wisi-prj' object; COMPILER is `wisi-prj-compiler'.")
@@ -195,6 +200,10 @@ SOURCE-BUFFER contains the source code referenced in the error message.")
 
 (cl-defgeneric wisi-compiler-root-dir (compiler)
   "Return a meaningful root directory; nil if none.")
+
+(defun wisi-prj-make-xref (label)
+  ;; We assume the constructor is autoloaded
+  (funcall (intern (format "create-%s-xref" (symbol-name label)))))
 
 (cl-defgeneric wisi-xref-parse-one (_xref _project _name _value)
   "If recognized by XREF, set NAME, VALUE in XREF, return non-nil.
