@@ -24,6 +24,27 @@
 (require 'gnat-compiler)
 (require 'wisi)
 
+(defvar ada-eglot-modifier-faces-medium
+  ;; FIXME: handle class, background; see examples in font-lock.el
+  ;;
+  ;; See ada_language_server/source/ada/lsp-ada_highlighters.adb for
+  ;; how these map to Ada syntax. Initialize has the list of which are
+  ;; actually used; unused are set to nil (an als bug requires that
+  ;; they not be deleted).
+  '(("declaration" :underline "green") ;; spec
+    ("definition" :underline "black")  ;; body
+    ("implementation" nil)
+    ("readonly" :slant reverse-italic) ;; anything with "constant" keyword
+    ("static" :slant italic)           ;; a static type declaration
+    ("abstract" :overline "green")
+    ("async" nil)
+    ("modification" :overline "orange") ;; write reference
+    ("deprecated" :strike-through t)
+    ("documentation" nil)
+    ("defaultLibrary" nil))
+  "Recommended value for `eglot-semantic-token-modifier-faces' for ada-mode
+with AdaCore ada_language_server.")
+
 (defclass eglot-ada (eglot-lsp-server)
   ((indexing-done
     :accessor eglot-ada-indexing-done
@@ -114,17 +135,16 @@
 	    (unless (eglot--server-capable :semanticTokensProvider :range)
 	      (display-warning 'ada "LSP server does not support faces; change ada-face-backend"))
 	    (unless (boundp 'eglot-enable-semantic-tokens)
-	      (display-warning 'ada "current version of eglot does not support faces"))
-	    ))
+	      (display-warning 'ada "current version of eglot does not support faces")))
 
-	(when (eq ada-indent-backend 'eglot)
-	  ;; :documentFormattingProvider does the whole file at once; not
-	  ;; useful for indent-region. IMPROVEME: in als devel version? fix it!
-	  (unless (plist-get (oref (eglot-current-server) capabilities) :documentRangeFormattingProvider)
-	    (display-warning 'ada "LSP server does not support line or range indent; change ada-indent-backend"))
+	  (when (eq ada-indent-backend 'eglot)
+	    ;; :documentFormattingProvider does the whole file at once; not
+	    ;; useful for indent-region. IMPROVEME: in als devel version? fix it!
+	    (unless (plist-get (oref (eglot-current-server) capabilities) :documentRangeFormattingProvider)
+	      (display-warning 'ada "LSP server does not support line or range indent; change ada-indent-backend"))
 
-	  (setq-local indent-line-function #'ada-eglot-indent-line)
-	  (setq-local indent-region-function #'ada-eglot-indent-region))
+	    (setq-local indent-line-function #'ada-eglot-indent-line)
+	    (setq-local indent-region-function #'ada-eglot-indent-region)))
 	;; We just assume the language server supports xref, completion
 	))))
 

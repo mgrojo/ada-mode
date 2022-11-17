@@ -192,12 +192,12 @@ can all take the value @code{other} to experiment with other backends.
 @node Supported features
 @section Supported features
 The following table lists features supported in either wisi or LSP,
-and whether LSP, wisi, @code{ada_language_server} version 22, eglot
+and whether LSP, wisi, @code{ada_language_server} version 23, eglot
 version 1.9 supports them.
 
-@multitable {wisi}{LSP}{als 22}{eglot 1.9}{ada-find-other-file moves to corresponding declaration}
-@headitem wisi @tab LSP @tab als 22 @tab eglot 1.9 @tab feature
-@item     t    @tab t   @tab nil    @tab t   @tab line/region indent; needs documentRangeFormattingProvider
+@multitable {wisi}{LSP}{als 23}{eglot 1.9}{ada-find-other-file moves to corresponding declaration}
+@headitem wisi @tab LSP @tab als 23 @tab eglot 1.9 @tab feature
+@item     t    @tab t   @tab t, bug @tab t   @tab line/region indent
 @item     t    @tab t   @tab nil    @tab nil @tab ada-which-function; needs DocumentSymbol
 @item     t    @tab nil @tab nil    @tab nil @tab ada-fix-context-clause; needs full syntax tree access
 @item     t    @tab nil @tab nil    @tab nil @tab wisi-goto-*; needs full syntax tree access
@@ -207,6 +207,10 @@ version 1.9 supports them.
 @item     t    @tab t   @tab nil    @tab nil @tab syntax-based identifier faces; needs SemanticToken
 @item     t    @tab t   @tab t      @tab ?   @tab refactor; wisi and als 22 support different refactor operations.
 @end multitable
+
+als 23 supports range format, but has bugs; see
+@url{https://github.com/AdaCore/ada_language_server/issues/1073}.
+@url{https://github.com/AdaCore/ada_language_server/issues/1074}.
 
 Similarly for gpr-query.
 @multitable {gpr-query}{LSP}{als 22}{eglot 1.9}{}

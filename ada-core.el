@@ -584,10 +584,9 @@ sort-lines."
 		    (xref-label ada-xref-backend)
 		    source-path
 		    plist
-		    file-pred
 		    &aux
-		    (compiler (ada-prj-make-compiler compiler-label))
-		    (xref (ada-prj-make-xref xref-label))
+		    (compiler (wisi-prj-make-compiler compiler-label))
+		    (xref (wisi-prj-make-xref xref-label))
 		    (compile-env (ada-prj-check-env compile-env))
 		    )))
   compiler-label
@@ -605,8 +604,7 @@ sort-lines."
      (compiler-label ada-compiler)
      (xref-label ada-xref-backend)
      source-path
-     plist
-     file-pred)
+     plist)
   ;; We declare and autoload this because we can't autoload
   ;; make-ada-prj in emacs < 27. We can't use '(defalias
   ;; 'create-ada-prj 'make-ada-prj); then make-ada-prj is not defined
@@ -617,8 +615,7 @@ sort-lines."
    :compiler-label compiler-label
    :xref-label xref-label
    :source-path source-path
-   :plist plist
-   :file-pred file-pred))
+   :plist plist))
 
 (defun ada-prj-check-env (env)
   "Check that ENV has the proper structure; list of \"NAME=VALUE\".
@@ -674,17 +671,6 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 
     project))
 
-;;;###autoload
-(defun ada-prj-make-compiler (label)
-  ;; We use the autoloaded constructor here
-  (funcall (intern (format "create-%s-compiler" (symbol-name label)))))
-
-(defun ada-prj-make-xref (label)
-  ;; We use the autoloaded constructor here
-  ;; No new require here.
-  (funcall (intern (format "create-%s-xref" (symbol-name label))))
-  )
-
 (defun ada-prj-require-prj ()
   "Return current `ada-prj' object.
 Throw an error if current project is not an ada-prj."
@@ -698,7 +684,7 @@ Throw an error if current project is not an ada-prj."
    ;; variable name alphabetical order
    ((string= name "ada_compiler")
     (let ((comp (intern value)))
-      (setf (ada-prj-compiler project) (ada-prj-make-compiler comp))))
+      (setf (ada-prj-compiler project) (wisi-prj-make-compiler comp))))
 
    ((string= name "obj_dir")
     (let ((obj-dir (plist-get (ada-prj-plist project) 'obj_dir)))
@@ -715,7 +701,7 @@ Throw an error if current project is not an ada-prj."
       (cond
        ((memq xref-label ada-xref-known-backends)
 	(setf (ada-prj-xref-label project) xref-label)
-	(setf (ada-prj-xref project) (ada-prj-make-xref xref-label)))
+	(setf (ada-prj-xref project) (wisi-prj-make-xref xref-label)))
 
        (t
 	(user-error "'%s' is not a recognized xref backend (must be one of %s)"

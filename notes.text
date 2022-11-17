@@ -21,8 +21,8 @@ o.e.a.stephe-7 (): available
   (xgit . "/Projects/org.wisitoken")
 ;;  (xgit . "/Projects/elpa/packages/uniquify-files")
   (xgit . "/Projects/org.emacs.wisi/")
-  (xgit . "/Projects/org.emacs.gnat-compiler/")
-  (xgit . "/Projects/org.emacs.gpr-query/")
+  (xgit . "/Projects/elpa/packages/gnat-compiler/")
+  (xgit . "/Projects/elpa/packages/gpr-query/")
   (xgit . "/Projects/org.emacs.gpr-mode/")
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
@@ -49,28 +49,37 @@ o.e.a.stephe-7 (): available
  '(("../org.stephe_leake.sal.stephe-1"           . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"                  . "../org.wisitoken")
    ("../org.emacs.wisi.stephe-4"                 . "../org.emacs.wisi")
-   ("/Projects/elpa_work/gnat-compiler" . "/Projects/elpa/packages")
-;;   ("/Projects/elpa_work/gpr-query"     . "/Projects/elpa/packages/gpr-query")
+   ("/Projects/elpa_work/gnat-compiler"          . "/Projects/elpa/packages/gnat-compiler")
+;;   ("/Projects/elpa_work/gpr-query"              . "/Projects/elpa/packages/gpr-query")
    ("../org.emacs.ada-mode.stephe-4"             . "../org.emacs.ada-mode")
 ;;   ("/Projects/org.emacs.gpr-mode.stephe-4/"     . "/Projects/org.emacs.gpr-mode/")
    ))
 
  current work
-refresh-xref alire/gpr_query project sets nil xref
+refresh-xref alire/gpr_query project errors on no gpr
+    /Projects/ada_language_server/alire.make
+
+
+using ada-eglot to remove parallel from wisitoken lr1_generate
+    need forward-sexp keyword
+        not in lsp spec; use wisi parser
+
+    add ada-sexp-backend; o.e.a-m.s-4
 
 test eglot/als with semantic tokens
     (add-to-list 'load-path "/Projects/eglot-stephe")
     /Projects/ada_language_server/alire.make
 
+    ada_mode-nominal.ads pass
 
-ada_mode-nominal.ads pass
-    ada_mode-nominal.adb
+
+ada_mode-nominal.adb
         storage_error
         requests 9 .. 13 are sent before response to 8 is received
         als test semantic_tokens_storage_error
             test succeeds; no storage_error
 
-Eglot font-lock respect decoration level
+Eglot font-lock respect decoration level?
 
 
 test ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
@@ -80,6 +89,7 @@ put als indexing progress in mode line
 
 test eglot/als indent
     waiting on fix for https://github.com/AdaCore/ada_language_server/issues/1074
+        no response; do workaround in eglot.el
 
     style is really different;
         put gnatpp package in .gpr, with --source-line-breaks etc.
@@ -1820,6 +1830,7 @@ post on:
         # accessed via News | Manage
     emacs-ada-mode mailing list
     c.l.a newsgroup
+    https://forum.ada-lang.io/
 
 -------------------
 Gnu Emacs Ada mode 8.0 beta released.
