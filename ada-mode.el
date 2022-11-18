@@ -156,7 +156,7 @@ nil, only the file name."
   :type 'boolean
   :safe #'booleanp)
 
-;;;; keymap and menus
+;;;; keymaps and menus
 
 (defvar ada-mode-map
   (let ((map (make-sparse-keymap)))
@@ -166,25 +166,19 @@ nil, only the file name."
     (define-key map [return] 	 'wisi-case-adjust-interactive)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
     (define-key map "\C-c;"      (lambda () (error "use M-; instead"))) ; comment-dwim
-    (define-key map "\C-c<" 	 'ada-goto-declaration-start)
-    (define-key map "\C-c>" 	 'ada-goto-declaration-end)
     (define-key map "\C-c\M-`" 	 'wisi-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'ada-build-make)
-    (define-key map "\C-c\C-d" 	 'wisi-goto-spec/body)
+    (define-key map "\C-c\C-d" 	 'wisi-goto-spec/body) ;; uses xref backend
     (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 'wisi-skel-expand)
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
-    (define-key map "\C-c\C-i" 	 'wisi-indent-statement)
-    (define-key map [3 backtab] 'wisi-indent-containing-statement);; C-c backtab, translated from C-c S-tab
     (define-key map "\C-\M-i"    'completion-at-point)
     (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
-    (define-key map "\C-c\C-n" 	 'forward-sexp)
     (define-key map "\C-c\M-n" 	 'wisi-skel-next-placeholder)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
-    (define-key map "\C-c\C-p" 	 'backward-sexp)
     (define-key map "\C-c\M-p" 	 'wisi-skel-prev-placeholder)
     (define-key map "\C-c\C-q" 	 'wisi-refresh-prj-cache)
     (define-key map "\C-c\C-r" 	 'wisi-show-references)
@@ -239,12 +233,6 @@ nil, only the file name."
      ["Other file"                    ada-find-other-file          t]
      ["Find file in project"          project-find-file            t]
      ["Goto declaration/body"         wisi-goto-spec/body          t]
-     ["Goto next statement keyword"   forward-sexp 			     wisi-parser-shared]
-     ["Goto prev statement keyword"   backward-sexp 			     wisi-parser-shared]
-     ["Goto subprogram/package start" ada-goto-declaration-start 	     wisi-parser-shared]
-     ["Goto subprogram/package end"   ada-goto-declaration-end 		     wisi-parser-shared]
-     ["Goto declarative region start" ada-goto-declarative-region-start      wisi-parser-shared]
-     ["Goto containing statement start" wisi-goto-containing-statement-start wisi-parser-shared]
      ["Show parent declarations"        wisi-show-declaration-parents 	     (eq ada-xref-backend 'gpr_query)]
      ["Show all references (classwide)" xref-find-references                 t]
      ["Show all direct references"      wisi-show-references                 t]
@@ -289,6 +277,29 @@ nil, only the file name."
      ["Refresh cross reference cache" wisi-refresh-prj-cache      (wisi-prj-p (project-current))]
      ["Restart parser"                wisi-kill-parser            wisi-parser-shared]
      )))
+
+(defvar ada--statement-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c<" 	 'ada-goto-declaration-start)
+    (define-key map "\C-c>" 	 'ada-goto-declaration-end)
+    (define-key map "\C-c\C-i" 	 'wisi-indent-statement)
+    (define-key map [3 backtab] 'wisi-indent-containing-statement);; C-c backtab, translated from C-c S-tab
+    (define-key map "\C-c\C-n" 	 'forward-sexp)
+    (define-key map "\C-c\C-p" 	 'backward-sexp)
+
+    map)
+  "Local keymap used for Ada statement motion minor mode.")
+
+(defvar ada--statement-mode-menu (make-sparse-keymap "Ada statement motion"))
+(easy-menu-define ada--statement-mode-menu ada--statement-mode-map "Menu keymap for Ada statement motion mode"
+  '("Ada statement motion"
+    ["Goto next statement keyword"   forward-sexp 			     wisi-parser-shared]
+    ["Goto prev statement keyword"   backward-sexp 			     wisi-parser-shared]
+    ["Goto subprogram/package start" ada-goto-declaration-start 	     wisi-parser-shared]
+    ["Goto subprogram/package end"   ada-goto-declaration-end 		     wisi-parser-shared]
+    ["Goto declarative region start" ada-goto-declarative-region-start      wisi-parser-shared]
+    ["Goto containing statement start" wisi-goto-containing-statement-start wisi-parser-shared]
+    ))
 
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
@@ -1602,6 +1613,10 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
     (wisi-parse-require-process parser :nowait (not wait))
     parser))
 
+(define-minor-mode ada--statement-minor-mode
+  "Minor mode enabling statement motion using the wisi parser."
+  :lighter nil :interactive nil)
+
 ;;;###autoload
 (define-derived-mode ada-mode prog-mode "Ada"
   "The major mode for editing Ada code."
@@ -1725,16 +1740,20 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
 
   (setq-local wisi-disable-parser nil)
 
-  (when (or (eq ada-xref-backend   'eglot)
-	    (eq ada-indent-backend 'eglot)
-	    (eq ada-face-backend   'eglot))
+  (when (or (eq ada-diagnostics-backend 'eglot)
+	    (eq ada-face-backend        'eglot)
+	    (eq ada-indent-backend      'eglot)
+	    ;; ada-statement-backend cannot be 'eglot
+	    (eq ada-xref-backend        'eglot))
     (require 'ada-eglot)
     (when (fboundp 'ada-eglot-setup)
       (ada-eglot-setup)))
 
-  (when (or (eq ada-xref-backend   'other)
-	    (eq ada-indent-backend 'other)
-	    (eq ada-face-backend   'other))
+  (when (or (eq ada-diagnostics-backend 'other)
+	    (eq ada-face-backend        'other)
+	    (eq ada-indent-backend      'other)
+	    (eq ada-statement-backend   'other)
+	    (eq ada-xref-backend        'other))
     (when ada-other-backend-setup-function
       (funcall ada-other-backend-setup-function)))
 
@@ -1750,6 +1769,9 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
 	 (format "Ada parser exec '%s' not found; install it, or set ada-*-backend to eglot."
 		 ada-process-parse-exec))
 	(setq-local wisi-disable-parser t)))
+
+  (when (eq ada-statement-backend 'wisi)
+    (ada--statement-minor-mode))
 
   ;; wisi-setup tolerates parser nil.
   (wisi-setup

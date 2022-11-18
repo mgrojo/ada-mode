@@ -4,9 +4,11 @@
 
 (add-to-list 'load-path "/Projects/eglot-stephe")
 
-(setq ada-xref-backend 'eglot)
-(setq ada-indent-backend 'none) ;; FIXME: try gnatpp package in .gpr; --source-line-breaks
-(setq ada-face-backend 'eglot) ;; als 23 supports semantic_tokens; FIXME: testing eglot-stephe
+(setq ada-diagnostics-backend 'eglot)
+(setq ada-face-backend 	      'eglot) ;; als 23 supports semantic_tokens; FIXME: testing eglot-stephe
+(setq ada-indent-backend      'none) ;; FIXME: try gnatpp package in .gpr; --source-line-breaks
+(setq ada-statement-backend   'none)
+(setq ada-xref-backend 	      'eglot)
 
 (setq skip-reindent-test (eq ada-indent-backend 'none))
 (setq skip-recase-test   (eq ada-face-backend 'none))
@@ -116,4 +118,8 @@
   (sleep-for 0.1)) ;; slow enough after indexing done
 
 (setq test-face-wait-fn 'face-wait)
+
+;; Make space for the indexing progress display
+(setq mode-line-format (cl-delete '(vc-mode vc-mode) mode-line-format :test 'equal))
+
 ;;; end of file

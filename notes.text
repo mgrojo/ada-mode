@@ -29,7 +29,8 @@ o.e.a.stephe-7 (): available
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"    . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"           . "../org.wisitoken.stephe-1")
-   ("../org.emacs.gnat-compiler" . "../org.emacs.gnat-compiler.stephe-1")
+;;   ("../org.emacs.gnat-compiler" . "../elpa_work/packages/gnat-compiler")
+;;   ("../org.emacs.gpr-query"     . "../elpa_work/packages/gpr-query")
    ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-4")
    ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-4")))
 
@@ -56,22 +57,10 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-refresh-xref alire/gpr_query project errors on no gpr
-    /Projects/ada_language_server/alire.make
-
-
 using ada-eglot to remove parallel from wisitoken lr1_generate
-    need forward-sexp keyword
-        not in lsp spec; use wisi parser
-
-    add ada-sexp-backend; o.e.a-m.s-4
 
 test eglot/als with semantic tokens
-    (add-to-list 'load-path "/Projects/eglot-stephe")
-    /Projects/ada_language_server/alire.make
-
-    ada_mode-nominal.ads pass
-
+    test/ada_mode-generic_package.ads needs cl-ecase
 
 ada_mode-nominal.adb
         storage_error
@@ -85,7 +74,7 @@ Eglot font-lock respect decoration level?
 test ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
     need another ada-*-backend?
 
-put als indexing progress in mode line
+alire.toml post-fetch action to patch als for indent etc?
 
 test eglot/als indent
     waiting on fix for https://github.com/AdaCore/ada_language_server/issues/1074

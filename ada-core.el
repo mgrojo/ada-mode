@@ -35,21 +35,27 @@
 
 (defcustom ada-fix-sort-context-clause t
   "*If non-nil, sort context clause when inserting `with'"
-  :type 'boolean
-  :group 'ada)
+  :type 'boolean)
 
 (defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse"
   "Name of executable to use for external process Ada parser.
 There are two standard choices; ada_mode_wisi_lalr_parse and
 ada_mode_wisi_lr1_parse. The LR1 version (the default) is
 slower to load on first use, but gives better error recovery."
-  :type 'string
-  :group 'ada)
+  :type 'string)
 
 (defcustom ada-process-parse-exec-opts nil
   "List of process start options for `ada-process-parse-exec'."
-  :type 'string
-  :group 'ada)
+  :type 'string)
+
+(defcustom ada-diagnostics-backend
+  (cond
+   ((locate-file ada-process-parse-exec exec-path '("" ".exe")) 'wisi)
+   ((gnat-find-als nil t) 'eglot)
+   (t 'none))
+  "Diagnostics (syntax errors) backend to use for Ada."
+  :type 'symbol
+  :options '(none eglot wisi other))
 
 (defcustom ada-face-backend
   (cond
@@ -59,8 +65,7 @@ slower to load on first use, but gives better error recovery."
   "Face backend to use for Ada."
   ;; Could be extended to tree-sitter, lsp-mode ...; use `other' for that.
   :type 'symbol
-  :options '(none eglot wisi other)
-  :group 'ada)
+  :options '(none eglot wisi other))
 
 (defcustom ada-indent-backend
   (cond
@@ -69,8 +74,16 @@ slower to load on first use, but gives better error recovery."
    (t 'none))
   "Indent backend to use for Ada."
   :type 'symbol
-  :options '(none eglot wisi other)
-  :group 'ada)
+  :options '(none eglot wisi other))
+
+(defcustom ada-statement-backend
+  (cond
+   ((locate-file ada-process-parse-exec exec-path '("" ".exe")) 'wisi)
+   (t 'none))
+  "Statement motion backend to use for Ada."
+  :type 'symbol
+  ;; LSP does not support this; need full access to the syntax tree.
+  :options '(none wisi other))
 
 (defconst ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"

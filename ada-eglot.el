@@ -52,17 +52,33 @@ with AdaCore ada_language_server.")
   :documentation "AdaCore's ada_language_server.")
 
 (cl-defmethod eglot-handle-notification ((server eglot-ada) (_method (eql $/progress))
-   &key _token value &allow-other-keys)
-  "Handle notification $/progress."
-  (when (string= (plist-get value :kind) "end")
-    (setf (eglot-ada-indexing-done server) t)))
+   &key token value &allow-other-keys)
+  "Handle notification $/progress indexing."
+  (when (string-match token "indexing"))
+    (cond
+     ((string= (plist-get value :kind) "report")
+      (setf (eglot--spinner server)
+	    (list nil (format "indexing %s %d%%"
+			      (plist-get value :message)
+			      (plist-get value :percentage))
+		  nil)))
+
+     ((string= (plist-get value :kind) "end")
+      (setf (eglot-ada-indexing-done server) t)
+      (setf (eglot--spinner server) (list nil "indexing" t)))
+     ))
 
 (defun ada-eglot-wait-indexing-done ()
+  "For use in tests."
   (let ((server (eglot-current-server)))
-    (message "waiting for ada_language_server indexing ...")
+    (message "ada_language_server indexing ...")
     (while (not (eglot-ada-indexing-done server))
+      ;; Update display for indexing progress; doesn't work, so we also do messages.
+      (message "%s" (concat "ada_language_server " (nth 1 (eglot--spinner server))))
+      (force-mode-line-update)
+      (sit-for 0.1)
       (accept-process-output))
-    (message "waiting for ada_language_server indexing ... done")
+    (message "ada_language_server indexing ... done")
     ))
 
 (defun ada-eglot-indent-line ()
@@ -159,6 +175,14 @@ with AdaCore ada_language_server.")
     ;; cases.
     (ada-eglot-require-eglot))
 
+  (cl-ecase ada-diagnostics-backend
+    ((none eglot other)
+     (setq wisi-disable-diagnostics t))
+
+    (wisi
+     (setq wisi-disable-diagnostics nil))
+    )
+
   (cl-ecase ada-face-backend
     (none
      (setq-local wisi-disable-face t))
@@ -205,6 +229,14 @@ with AdaCore ada_language_server.")
      (setq-local wisi-disable-indent t))
     )
 
+  (cl-ecase ada-statement-backend
+    ((none eglot other)
+     (setq wisi-disable-statement t))
+
+    (wisi
+     (setq wisi-disable-statement nil))
+    )
+
   (cl-ecase ada-xref-backend
     ((gpr_query gnat)
      (setq-local eglot-stay-out-of (default-value 'eglot-stay-out-of))
@@ -230,9 +262,10 @@ with AdaCore ada_language_server.")
   ;; config for this.
   (setq wisi-disable-completion t)
 
-  (when (and wisi-disable-face
+  (when (and wisi-disable-diagnostics
+	     wisi-disable-face
 	     wisi-disable-indent
-	     (not (eq ada-xref-backend 'wisi)))
+	     wisi-disable-statement)
     (setq wisi-disable-parser t)))
 
 (cl-defmethod wisi-prj-select :after ((_project wisi-prj))
