@@ -142,35 +142,51 @@ Increasing this will give better results when in the middle of a
 deeply nested statement, but worse in some situations."
   :type 'integer
   :safe #'integerp)
-
-(defcustom wisi-disable-face nil
-  "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
-Useful when debugging parser or parser actions."
-  :type 'boolean
-  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-indent-context-lines)
 
 (defcustom wisi-disable-completion nil
-  "When non-nil, `wisi-setup' does not enable use of wisi xref for completion
+  "When non-nil, `wisi-setup' does not enable use of wisi xref for completion.
 Useful when using wisi in parallel with eglot."
   :type 'boolean
   :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-completion)
+
+(defcustom wisi-disable-diagnostics nil
+  "When non-nil, `wisi-setup' does not enable reporting diagnostics.
+Useful when using wisi in parallel with eglot."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-diagnostics)
+
+(defcustom wisi-disable-face nil
+  "When non-nil, `wisi-setup' does not enable use of parser for font-lock."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-face)
 
 (defcustom wisi-disable-indent nil
-  "When non-nil, `wisi-setup' does not enable use of parser for indent.
-Useful when using wisi in parallel with eglot."
+  "When non-nil, `wisi-setup' does not enable use of parser for indent."
   :type 'boolean
   :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-indent)
 
 (defcustom wisi-disable-parser nil
-  "When non-nil, `wisi-setup' does not enable use of parser for any purpose.
-Useful when using wisi in parallel with eglot."
+  "When non-nil, `wisi-setup' does not enable use of parser for any purpose."
   :type 'boolean
   :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-parser)
+
+(defcustom wisi-disable-statement nil
+  "When non-nil, the wisi parser should not be enabled for statement motion."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-statement)
 
 (defcustom wisi-parse-full-background t
   "If non-nil, do initial full parse in background."
   :type 'boolean
   :safe #'booleanp)
+(make-variable-buffer-local 'wisi-parse-full-background)
 
 (defconst wisi-error-buffer-name "*wisi syntax errors*"
   "Name of buffer for displaying syntax errors.")
@@ -859,14 +875,13 @@ Run the parser first if needed."
 
       (wisi-set-last-parse-region begin parse-end parse-action)
 
-      (unless (eq parse-action 'face)
-	(when (buffer-live-p wisi-error-buffer)
-	  (with-current-buffer wisi-error-buffer
-	    (setq buffer-read-only nil)
-	    (erase-buffer)
-	    (setq buffer-read-only t)
-	    (when (get-buffer-window wisi-error-buffer)
-	      (delete-window (get-buffer-window wisi-error-buffer))))))
+      (when (buffer-live-p wisi-error-buffer)
+	(with-current-buffer wisi-error-buffer
+	  (setq buffer-read-only nil)
+	  (erase-buffer)
+	  (setq buffer-read-only t)
+	  (when (get-buffer-window wisi-error-buffer)
+	    (delete-window (get-buffer-window wisi-error-buffer)))))
 
       (condition-case err
 	  (save-excursion
@@ -898,10 +913,7 @@ Run the parser first if needed."
 	(wisi-parse-error
 	 (cl-ecase parse-action
 	   (face
-	    ;; Caches set by failed elisp parse are ok, but some parse
-	    ;; failures return 'nil' in parse-region.
-	    (when (cdr parsed-region)
-	      (wisi--delete-face-cache (cdr parsed-region))))
+	    (wisi--delete-face-cache (car parsed-region)))
 
 	   (navigate
 	    ;; don't trust parse result
@@ -1850,6 +1862,11 @@ with incremental parse after each key event."
 
     (add-hook 'kill-buffer-hook #'wisi-parse-kill-buf 90 t)
 
+    (when (not wisi-disable-completion)
+      (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t))
+
+    ;; wisi-disable-diagnostics is handled in wisi-process-parse.el
+
     (when (not wisi-disable-face)
       (jit-lock-register #'wisi-fontify-region))
 
@@ -1858,8 +1875,8 @@ with incremental parse after each key event."
       (setq-local indent-region-function #'wisi-indent-region)
       (setq-local comment-indent-function #'wisi-comment-indent))
 
-    (when (not wisi-disable-completion) ;; FIXME; check that (wisi-prj-xref prj) is valid?
-      (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t))
+    ;; wisi-disable-statement just affects whether to start the
+    ;; parser.
 
     (setq-local forward-sexp-function #'wisi-forward-sexp)
 

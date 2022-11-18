@@ -324,6 +324,10 @@ complete. PARSE-END is end of desired parse region."
     ;; we don't log the buffer text; may be huge
     (process-send-string process (buffer-substring-no-properties begin send-end))
 
+    ;; We don't set wisi-process--parser-update-fringe; partial parse
+    ;; almost always has bogus errors at the start and end of the
+    ;; parse.
+    ;;
     ;; We don't wait for the send to complete here.
     ))
 
@@ -390,7 +394,7 @@ complete."
 		    )))
 	   (process (wisi-process--parser-process parser)))
 
-      (setf (wisi-process--parser-update-fringe parser) t)
+      (setf (wisi-process--parser-update-fringe parser) (not wisi-disable-diagnostics))
 
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer))
