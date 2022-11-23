@@ -621,6 +621,9 @@ COLUMN - Emacs column of the start of the identifier")
 	(wisi-compiler-root-dir (wisi-prj-compiler project)))
    (car (wisi-prj-source-path project))))
 
+(cl-defmethod project-name ((project wisi-prj))
+  (wisi-prj-name project))
+
 (cl-defmethod project-files ((project wisi-prj) &optional dirs)
   (let (result)
     (dolist (dir (or dirs

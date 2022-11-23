@@ -444,9 +444,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
    (cl-case system-type
      (gnu/linux
       (list
-       (cons 'font "DejaVu Sans Mono-8")
+       (cons 'font "DejaVu Sans Mono-11")
        (cons 'width 120) ;; characters; fringe extra
-       (cons 'height 94) ;; characters
+       (cons 'height 73) ;; characters
        (cons 'left 0)
        (cons 'top 0)))
      (windows-nt

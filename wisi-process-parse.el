@@ -192,7 +192,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 	(erase-buffer));; delete any previous messages, prompt
 
       (when (or (not nowait) (>= wisi-debug 2))
-	(message "starting parser %s ..." (wisi-process--parser-label parser)))
+	(message "starting wisi parser %s ..." (wisi-process--parser-label parser)))
       (wisi-parse-log-message parser "create process")
 
       (setf (wisi-process--parser-version-checked parser) nil)
@@ -219,7 +219,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 
       (unless nowait
 	(wisi-process-parse--wait parser)
-	(message "starting parser ... done"))
+	(message "starting wisi parser ... done"))
       )))
 
 (defun wisi-process-parse--wait (parser)
@@ -1184,7 +1184,7 @@ Source buffer is current."
     ;; send buffer holds, w-p-p--send-* hangs waiting for the process
     ;; to start reading, which is after it loads the parse table,
     ;; which can take noticeable time for Ada.
-    (message "starting parser %s ..." (wisi-process--parser-label parser)))
+    (message "starting wisi parser %s ..." (wisi-process--parser-label parser)))
   (wisi-process-parse--prepare parser parse-action :nowait nowait)
   (setf (wisi-parser-local-lexer-errors wisi-parser-local) nil)
   (setf (wisi-parser-local-parse-errors wisi-parser-local) nil)
