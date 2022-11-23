@@ -206,4 +206,8 @@ project WisiToken_Test is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
    end Binder;
 
+   package Pretty_Printer is
+      for Default_Switches ("Ada") use Standard_Common.Pretty_Printer'Default_Switches ("Ada");
+   end Pretty_Printer;
+
 end WisiToken_Test;

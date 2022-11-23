@@ -149,7 +149,7 @@ package body Dragon_4_43_LR1_Test is
 
       use WisiToken.Generate.LR1_Items;
 
-      Computed : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets_Single
+      Computed : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=

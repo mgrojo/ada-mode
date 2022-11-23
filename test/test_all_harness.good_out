@@ -40,12 +40,6 @@ OK bnf_wy_test.adb skip_to_grammar : Run_Test
 OK bnf_wy_test.adb subprograms : Run_Test
 OK bnf_wy_test.adb three_action_conflict : Run_Test
 OK bnf_wy_test.adb warth_left_recurse_expr_1 : Run_Test
-OK test_lr1_parallel.adb ada_lite : Compare_LR1_Sets
-OK test_lr1_parallel.adb ada_lite : Compare_Parse
-OK test_lr1_parallel.adb body_instantiation_conflict : Compare_LR1_Sets
-OK test_lr1_parallel.adb body_instantiation_conflict : Compare_Parse
-OK test_lr1_parallel.adb java_types_ch19 : Compare_LR1_Sets
-OK test_lr1_parallel.adb java_types_ch19 : Compare_Parse
 OK association_grammar_test.adb : Nominal
 OK dragon_4_43_lr1_test.adb : Test_First_Follow
 OK dragon_4_43_lr1_test.adb : Test_LR1_Items
@@ -318,7 +312,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   318
-Successful Tests:  318
+Total Tests Run:   312
+Successful Tests:  312
 Failed Assertions: 0
 Unexpected Errors: 0

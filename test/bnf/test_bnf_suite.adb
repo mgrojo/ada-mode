@@ -24,7 +24,6 @@ with Ada.Strings.Unbounded;
 with BNF_WY_Errors_Test;
 with BNF_WY_Test;
 with Test_Generate_Errors;
-with Test_LR1_Parallel;
 with WisiToken.BNF;
 function Test_BNF_Suite return Access_Test_Suite
 is
@@ -90,10 +89,6 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"subprograms", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"three_action_conflict", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null)));
-
-   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));
-   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));
-   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"java_types_ch19")));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.

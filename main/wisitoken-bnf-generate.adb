@@ -651,7 +651,6 @@ begin
                         Include_Extra         => Test_Main,
                         Ignore_Conflicts      => Ignore_Conflicts,
                         Recursion_Strategy    => Input_Data.Language_Params.Recursion_Strategy,
-                        Task_Count            => Generate_Task_Count,
                         Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
                         Recursions            => Cached_Recursions);
 

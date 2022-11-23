@@ -1,5 +1,5 @@
 build/Makefile gprbuild/wisi
-Makefile       alire/wisi/eglot
+Makefile       alire/wisi
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
