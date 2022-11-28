@@ -192,7 +192,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 	(erase-buffer));; delete any previous messages, prompt
 
       (when (or (not nowait) (>= wisi-debug 2))
-	(message "starting parser %s ..." (wisi-process--parser-label parser)))
+	(message "starting wisi parser %s ..." (wisi-process--parser-label parser)))
       (wisi-parse-log-message parser "create process")
 
       (setf (wisi-process--parser-version-checked parser) nil)
@@ -219,7 +219,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 
       (unless nowait
 	(wisi-process-parse--wait parser)
-	(message "starting parser ... done"))
+	(message "starting wisi parser ... done"))
       )))
 
 (defun wisi-process-parse--wait (parser)
@@ -324,6 +324,10 @@ complete. PARSE-END is end of desired parse region."
     ;; we don't log the buffer text; may be huge
     (process-send-string process (buffer-substring-no-properties begin send-end))
 
+    ;; We don't set wisi-process--parser-update-fringe; partial parse
+    ;; almost always has bogus errors at the start and end of the
+    ;; parse.
+    ;;
     ;; We don't wait for the send to complete here.
     ))
 
@@ -390,7 +394,7 @@ complete."
 		    )))
 	   (process (wisi-process--parser-process parser)))
 
-      (setf (wisi-process--parser-update-fringe parser) t)
+      (setf (wisi-process--parser-update-fringe parser) (not wisi-disable-diagnostics))
 
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer))
@@ -1180,7 +1184,7 @@ Source buffer is current."
     ;; send buffer holds, w-p-p--send-* hangs waiting for the process
     ;; to start reading, which is after it loads the parse table,
     ;; which can take noticeable time for Ada.
-    (message "starting parser %s ..." (wisi-process--parser-label parser)))
+    (message "starting wisi parser %s ..." (wisi-process--parser-label parser)))
   (wisi-process-parse--prepare parser parse-action :nowait nowait)
   (setf (wisi-parser-local-lexer-errors wisi-parser-local) nil)
   (setf (wisi-parser-local-parse-errors wisi-parser-local) nil)
