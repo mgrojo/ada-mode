@@ -134,6 +134,42 @@ ada_mode-nominal.adb
 
 Eglot font-lock respect decoration level?
 
+Add to elpa makefile and or elpa-admin:
+    create new elpa package with no upstream
+
+     $ cd c:/Projects/elpa/
+     $ git stash
+     $ git checkout --orphan externals/gpr-mode
+     $ git rm --cached "*"
+     $ git commit --allow-empty -m "new package gpr-mode"
+     $ git checkout -f main
+     # edit elpa-packages - copy from wisi
+     $ git commit -m "new package gpr-mode"
+     $ git push --set-upstream origin externals/gpr-mode
+     $ make packages/gpr-mode
+     # copy files, commit
+     $ cd packages/gpr-mode
+     $ git checkout -b externals-release/gpr-mode
+     $ git push --set-upstream origin externals-release/gpr-mode
+     $ git checkout externals/gpr-mode
+     $ cd c:/Projects/elpa/
+     $ git push
+     $ git stash pop
+
+ for full release
+bug in gnat version restriction; add 'or >=2021'
+    must fix in crate
+
+run wisitoken-bnf-generate for ada-mode takes 5.5 GB - too much for some machines
+    note memory requirement in .texi
+    delete multi-tasking
+    free stuff early?
+
+    post file on savannah, add note in savannah web page
+
+c:/Projects/org.wisitoken.grammar_mode/notes.text
+
+ after full release
 
 test ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
     need another ada-*-backend?
@@ -1510,6 +1546,8 @@ in ~/.gitconfig:
 to test compiling info files:
     in *.texi[nfo], F5 makeinfo *.texi[nfo]
 
+if package is not published, check https://elpa.gnu.org/devel/<package>-build-failure.log
+
  release process
 keep status in ~/projects.text
     dependency releases done below, after tests that test all of them.
@@ -1670,8 +1708,7 @@ bump versions
         alire get
         if -d ../wisi-, WISI_DIR
 
-    install.sh
-        if -d ../wisi-, WISI_DIR
+    # install.sh none
 
     ada-ref-man.el
         Version:
@@ -1731,12 +1768,6 @@ if doing beta test:
 
     (dvc-state-multiple "/Projects/elpa/packages" t)
     (dvc-push "/Projects/elpa")
-
-    ask for beta testers
-        edit notice below
-        mailing list
-        comp.lang.ada
-
 
 prep for elpa tests:
     build/Makefile byte-compile-clean pub
@@ -1884,12 +1915,13 @@ commit savannah
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
 
 post on:
-    https://savannah.nongnu.org/news/submit.php?group_id=11631:
+    https://savannah.nongnu.org/news/submit.php?group_id=11631
         then approve: https://savannah.nongnu.org/news/approve.php?group=ada-mode click submit
         # accessed via News | Manage
     emacs-ada-mode mailing list
     c.l.a newsgroup
     https://forum.ada-lang.io/
+    gitter alire
 
 -------------------
 Gnu Emacs Ada mode 8.0 beta released.
@@ -1918,11 +1950,11 @@ found in PATH, to eglot if the Ada LSP server is found, and none
 otherwise. The xref backend also looks for the gpr_query executable in
 PATH.
 
-The current AdaCore language server does not support face or indent,
-so it only provides xref. Feel free to submit enhancement requests to
-AdaCore; that works better if they come with money.
+The current AdaCore language server (23) support face but not indent.
+The current version of eglot (19) does not support face. So for now,
+eglot + ada_language_server only provides xref.
 
-THe AdaCore language server ada_language_server is installed with
+The AdaCore language server ada_language_server is installed with
 GNATStudio (which ada-mode will find by default), or can be built with
 Alire. If you build it with Alire, either put it in PATH, or set
 gnat-lsp-server-exec.
@@ -1937,11 +1969,7 @@ package-archives:
 (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel/"))
 
 Then M-x list-packages; the beta release shows as ada-mode version
-8.0.1.0.20221111.185004, wisi version similarly.
-
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-8.0.1* and
-wisi-4.0.0*, or at https://elpa.gnu.org/devel/ada-mode.html, for
-more details.
+8.0.3.0.20221106.55317, wisi version similarly.
 
 Please report success and issues to the Emacs ada-mode mailing list
 https://lists.nongnu.org/mailman/listinfo/ada-mode-users.

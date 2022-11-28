@@ -58,8 +58,7 @@ endif
 %.re2c : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --verbosity "time=1" --output_bnf $(<F)
 	cd ./$(<D); dos2unix -q $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
-	mkdir -p bin
-	if [ -f $(*F)_parse_table.txt ] ; then mv -f $(*F)_parse_table.txt bin; fi
+	if [ -f $(*F)_parse_table.txt ] ; then mkdir -p bin; mv -f $(*F)_parse_table.txt bin; fi
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
