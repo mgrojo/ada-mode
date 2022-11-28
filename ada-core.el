@@ -540,9 +540,8 @@ sort-lines."
 (defun ada-make-subprogram-body ()
   "Convert subprogram specification after point into a subprogram body stub."
   (interactive)
-  (unless wisi-parser-shared
-    ;; eglot/lsp does not provide access to syntax tree
-    (user-error "ada-make-subprogram-body not supported by eglot/LSP"))
+  (unless (eq ada-statement-backend 'none)
+    (user-error "ada-make-subprogram-body requires ada-statement-backend"))
   (wisi-goto-statement-start)
   ;; point is at start of subprogram specification;
 

@@ -170,12 +170,9 @@ nil, only the file name."
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'ada-build-make)
-    (define-key map "\C-c\C-d" 	 'wisi-goto-spec/body) ;; uses xref backend
-    (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 'wisi-skel-expand)
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
     (define-key map "\C-\M-i"    'completion-at-point)
-    (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\M-n" 	 'wisi-skel-next-placeholder)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
@@ -187,8 +184,6 @@ nil, only the file name."
     (define-key map "\C-c\C-t" 	 'ada-find-file)
     (define-key map "\C-c\C-v"   'ada-build-check)
     (define-key map "\C-c\C-w" 	 'wisi-case-adjust-at-point)
-    (define-key map "\C-c\C-x"   'wisi-show-overriding)
-    (define-key map "\C-c\M-x"   'wisi-show-overridden)
     (define-key map "\C-c\C-y" 	 'wisi-case-create-exception)
     (define-key map "\C-c\C-\M-y" 'wisi-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
@@ -219,26 +214,21 @@ nil, only the file name."
      ["Clear current project"         wisi-prj-clear-current 	       t]
     )
     ("Build"
-     ["Next compilation error"     next-error 		    t]
-     ["Show secondary error"       ada-show-secondary-error t]
-     ["Fix compilation error"      wisi-fix-compiler-error  t]
-     ["Show last parse error"      wisi-show-parse-error    t]
-     ["Check syntax"               ada-build-check 	    t]
-     ["Show main"                  ada-build-show-main 	    t]
-     ["Build"                      ada-build-make 	    t]
-     ["Set main and Build"         ada-build-set-make 	    t]
-     ["Run"                        ada-build-run 	    t]
+     ["Next compilation error/xref"  next-error 	      t]
+     ["Show secondary error"         ada-show-secondary-error t]
+     ["Fix compilation error"        wisi-fix-compiler-error  t]
+     ["Show last parse error"        wisi-show-parse-error    t]
+     ["Check syntax"                 ada-build-check 	      t]
+     ["Show main"                    ada-build-show-main      t]
+     ["Build"                        ada-build-make 	      t]
+     ["Set main and Build"           ada-build-set-make       t]
+     ["Run"                          ada-build-run 	      t]
      )
     ("Navigate"
-     ["Other file"                    ada-find-other-file          t]
-     ["Find file in project"          project-find-file            t]
-     ["Goto declaration/body"         wisi-goto-spec/body          t]
-     ["Show parent declarations"        wisi-show-declaration-parents 	     (eq ada-xref-backend 'gpr_query)]
-     ["Show all references (classwide)" xref-find-references                 t]
-     ["Show all direct references"      wisi-show-references                 t]
-     ["Show local references"         wisi-show-local-references (eq ada-xref-backend 'gpr_query)]
-     ["Show overriding"               wisi-show-overriding       (eq ada-xref-backend 'gpr_query)]
-     ["Show overridden"               wisi-show-overridden       (eq ada-xref-backend 'gpr_query)]
+     ["Other file"                    ada-find-other-file        t]
+     ["Find file in project"          project-find-file          t]
+     ["Show all references (classwide)" xref-find-references     t]
+     ["Show all direct references"      wisi-show-references     t]
      ["Goto prev position current buffer" pop-to-mark-command 	 t]
      ["Goto prev position other buffer"   pop-global-mark 	 t]
      ["Next placeholder"              wisi-skel-next-placeholder t]
@@ -299,6 +289,26 @@ nil, only the file name."
     ["Goto subprogram/package end"   ada-goto-declaration-end 		     wisi-parser-shared]
     ["Goto declarative region start" ada-goto-declarative-region-start      wisi-parser-shared]
     ["Goto containing statement start" wisi-goto-containing-statement-start wisi-parser-shared]
+    ))
+
+(defvar ada--gpr-query-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-d" 	 'wisi-goto-spec/body) ;; uses xref backend
+    (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
+    (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
+    (define-key map "\C-c\C-x"   'wisi-show-overriding)
+    (define-key map "\C-c\M-x"   'wisi-show-overridden)
+    map)
+  "Local keymap used for gpr query minor mode.")
+
+(defvar ada--gpr-query-minor-mode-menu (make-sparse-keymap "gpr-query"))
+(easy-menu-define gpr-query-menu ada--gpr-query-minor-mode-map "Menu keymap for gpr-query minor mode"
+  '("gpr-query"
+    ["Goto declaration/body"    wisi-goto-spec/body           t]
+    ["Show parent declarations" wisi-show-declaration-parents t]
+    ["Show local references"    wisi-show-local-references    t]
+    ["Show overriding"          wisi-show-overriding          t]
+    ["Show overridden"          wisi-show-overridden          t]
     ))
 
 (easy-menu-define ada-context-menu nil
@@ -869,7 +879,7 @@ the file name."
 (defun ada-show-secondary-error ()
   "Show the next secondary file reference in the compilation buffer.
 A secondary file reference is defined by text having text
-property `ada-secondary-error'.  These can be set by
+property `gnat-secondary-error'.  These can be set by
 compiler-specific compilation filters."
   (interactive)
 
@@ -886,14 +896,14 @@ compiler-specific compilation filters."
     ;; to ’ada-goto-source’ below; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
       (pop-to-buffer next-error-last-buffer nil t)
-      (setq pos (next-single-property-change (point) 'ada-secondary-error))
+      (setq pos (next-single-property-change (point) 'gnat-secondary-error))
       (unless pos
 	;; probably at end of compilation-buffer, in new compile
 	(goto-char (point-min))
-	(setq pos (next-single-property-change (point) 'ada-secondary-error)))
+	(setq pos (next-single-property-change (point) 'gnat-secondary-error)))
 
       (when pos
-	(setq item (get-text-property pos 'ada-secondary-error))
+	(setq item (get-text-property pos 'gnat-secondary-error))
 	;; file-relative-name handles absolute Windows paths from
 	;; g++. Do this in compilation buffer to get correct
 	;; default-directory.
@@ -901,7 +911,7 @@ compiler-specific compilation filters."
 
 	;; Set point in compilation buffer past this secondary error, so
 	;; user can easily go to the next one.
-	(goto-char (next-single-property-change (1+ pos) 'ada-secondary-error)))
+	(goto-char (next-single-property-change (1+ pos) 'gnat-secondary-error)))
 
       (pop-to-buffer start-buffer nil t);; for windowing history
       )
@@ -1617,6 +1627,10 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   "Minor mode enabling statement motion using the wisi parser."
   :lighter nil :interactive nil)
 
+(define-minor-mode ada--gpr-query-minor-mode
+  "Minor mode for enabling navigating sources gpr_query."
+  :lighter nil :interactive nil)
+
 ;;;###autoload
 (define-derived-mode ada-mode prog-mode "Ada"
   "The major mode for editing Ada code."
@@ -1772,6 +1786,9 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
 
   (when (eq ada-statement-backend 'wisi)
     (ada--statement-minor-mode))
+
+  (when (eq ada-xref-backend 'gpr_query)
+    (ada--gpr-query-minor-mode))
 
   ;; wisi-setup tolerates parser nil.
   (wisi-setup

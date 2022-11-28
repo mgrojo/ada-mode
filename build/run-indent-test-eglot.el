@@ -3,12 +3,16 @@
 (require 'cl-lib)
 
 (add-to-list 'load-path "/Projects/eglot-stephe")
+(require 'eglot)
 
 (setq ada-diagnostics-backend 'eglot)
 (setq ada-face-backend 	      'eglot) ;; als 23 supports semantic_tokens; FIXME: testing eglot-stephe
-(setq ada-indent-backend      'none) ;; FIXME: try gnatpp package in .gpr; --source-line-breaks
+(setq ada-indent-backend      'eglot) ;; FIXME: testing gnatpp package in .gpr, patched als, eglot-stephe
 (setq ada-statement-backend   'none)
 (setq ada-xref-backend 	      'eglot)
+
+(setq ada-eglot-require-gpr t)
+(setq ada-eglot-gpr-file (expand-file-name "../test/ada_mode.gpr")) ;; individual tests can override if needed.
 
 (setq skip-reindent-test (eq ada-indent-backend 'none))
 (setq skip-recase-test   (eq ada-face-backend 'none))
@@ -16,16 +20,16 @@
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
-;;(setq gnat-lsp-server-exec "/Projects/ada_language_server/.obj/server/ada_language_server")
-(setq
- gnat-lsp-server-exec
- (concat
-  (cl-case system-type
-    (gnu/linux
-     "/Projects/alire-workspace/")
-    (windows-nt
-     "c:/Projects/alire/"))
-  "ada_language_server_23.0.0_66f2e7fb/.obj/server/ada_language_server"))
+(setq gnat-lsp-server-exec "/Projects/ada_language_server/.obj/server/ada_language_server")
+;; (setq
+;;  gnat-lsp-server-exec
+;;  (concat
+;;   (cl-case system-type
+;;     (gnu/linux
+;;      "/Projects/alire-workspace/")
+;;     (windows-nt
+;;      "c:/Projects/alire/"))
+;;   "ada_language_server_23.0.0_66f2e7fb/.obj/server/ada_language_server"))
 
 (require 'run-indent-test)
 
@@ -112,6 +116,8 @@
     ("deprecated"     . lsp-deprecated)
     ("documentation"  . lsp-documentation)
     ("defaultLibrary" . lsp-defaultLibrary)))
+
+(add-to-list 'eglot-stay-out-of "progress")
 
 (defun face-wait ()
   ;; There is not an easy way to wait for a specific LSP message.

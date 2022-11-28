@@ -16,15 +16,16 @@ o.e.a.stephe-7 (): available
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
-  (xgit . "/Projects/org.stephe_leake.sal")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.stephe_leake.sal")
   (xgit . "/Projects/org.wisitoken")
 ;;  (xgit . "/Projects/elpa/packages/uniquify-files")
-  (xgit . "/Projects/org.emacs.wisi/")
   (xgit . "/Projects/elpa/packages/gnat-compiler/")
   (xgit . "/Projects/elpa/packages/gpr-query/")
+  (xgit . "/Projects/org.emacs.wisi/")
   (xgit . "/Projects/org.emacs.gpr-mode/")
-  (xgit . "/Projects/org.emacs.ada-mode/")))
+  (xgit . "/Projects/org.emacs.ada-mode/")
+  (xgit . "/Projects/eglot-stephe")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"    . "../org.stephe_leake.sal.stephe-1")
@@ -57,7 +58,70 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-using ada-eglot to remove parallel from wisitoken lr1_generate
+elpa build failing
+    only for release packages; not critical
+    don't fix unless get more emails
+
+testing ada-eglot
+    in unit test using ada-eglot-gpr-file, didChangeConfiguration sent after didOpen
+        => error about more than one gpr file
+        bug#59556
+        eglot--signal-textDocument/didOpen called from eglot--maybe-activate-editing-mode
+            calls jsonrpc-notify; does not call jsonrpc-connection-ready-p
+
+        eglot-signal-didChangeConfiguration called from eglot-connect-hook
+            calls jsonrpc-notify; does not call jsonrpc-connection-ready-p
+
+        which is called from eglot--connect :success-fn
+        which is delayed, so didOpen runs first.
+
+        use jsonrpc-request (not -async) in eglot--connect
+            have to translate :error-fn, :success-fn into direct calls; complicated
+
+    error: test/ada_mode-interactive_01.adb
+        indent errors
+
+
+
+
+        formats more than the requested range;
+            eglot should throw that out? or ada-mode should
+
+    because wisi prj is global, uses one eglot instance for all files
+        which is wrong for als
+        do something with eglot-lsp-context; eglot--current-project let-binds that to t
+        (if eglot-lsp-context
+            (member default-directory (wisi-prj-source-dirs wisi-prj--current))
+
+    eglot outputs messages when indenting; don't do that!
+        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=59149
+
+    eglot using wrong instance in test/ada_mode-interactive_01.adb
+        Ada_Mode not highlighted as package name, because ada_mode.ads not found in project
+            but also no errors shown!? should be lots
+
+        should check file in (project-files (eglot-project server))
+        do that in eglot or in ada-eglot-setup?
+            eglot--maybe-activate-editing-mode just calls eglot-current-server
+            which checks eglot--servers-by-project for major-mode
+            so it's not eglot's fault; I need to ensure the current project is correct.
+                two active projects, check for dominating file or project-files
+                wisi-add-project
+
+    changed ada-eglot-*-gpr; update test stuff
+
+    semantic token highlights positions out of sync after edit
+
+    hover/signature info too much
+        set eldoc/eglot vars to limit height
+        mention in ada-mode.texi "may want to customize"
+        eldoc-echo-area-use-multiline-p 5
+
+Eglot-shutdown turn off ada minor modes
+
+what does the wisi statement minor mode menu look like?
+    Delete "Ada"?
+    ditto gpr-query
 
 test eglot/als with semantic tokens
     test/ada_mode-generic_package.ads needs cl-ecase
@@ -94,6 +158,7 @@ test eglot/als indent
             change run-indent-test-eglot to run-test-eglot
 
 test/ada_mode-interactive_04.adb
+    wisi indent
     final indent: run-test-here: error: nil indent for line 20
         reproduced in 'make one', but parse log shows indent 3 for line 20
             line-begin-pos is wrong; that's line 22
@@ -104,6 +169,11 @@ test/ada_mode-interactive_04.adb
 
 ada_mode-recover_partial_18.ads
     similar
+
+ada_language_server --language-gpr => gpr_language_server
+    do gpr-eglot.el
+
+wisi use flymake to show error messages
 
 start wisitoken-grammar-mode hangs emacs; must use windows task manager to kill
 

@@ -24,26 +24,84 @@
 (require 'gnat-compiler)
 (require 'wisi)
 
-(defvar ada-eglot-modifier-faces-medium
-  ;; FIXME: handle class, background; see examples in font-lock.el
-  ;;
+(defface ada-package-name-face
+  '((((class grayscale) (background light)) :inherit font-lock-function-name-face)
+    (((class grayscale) (background dark))  :inherit font-lock-function-name-face)
+    (((class color) (min-colors 88) (background light)) :foreground "RoyalBlue")
+    (((class color) (min-colors 88) (background dark))  :foreground "DeepSkyBlue1")
+    (((class color) (min-colors 16) (background light)) :inherit font-lock-function-name-face)
+    (((class color) (min-colors 16) (background dark))  :inherit font-lock-function-name-face)
+    (((class color) (min-colors 8)) :inherit font-lock-function-name-face)
+    (t :inherit font-lock-function-name-face))
+  "Face used to highlight Ada package names"
+  :group 'ada-mode)
+
+(defcustom ada-eglot-token-faces
+  '(("comment"       . font-lock-comment-face)
+    ("keyword"       . font-lock-keyword-face)
+    ("string"        . font-lock-string-face)
+    ("number"        . font-lock-constant-face)
+    ("regexp"        . font-lock-string-face)
+    ("operator"      . font-lock-function-name-face)
+    ("namespace"     . ada-package-name-face)
+    ("type"          . font-lock-type-face)
+    ("struct"        . font-lock-type-face)
+    ("class"         . font-lock-type-face)
+    ("interface"     . font-lock-type-face)
+    ("enum"          . font-lock-type-face)
+    ("typeParameter" . font-lock-type-face)
+    ("function"      . font-lock-function-name-face)
+    ("method"        . font-lock-function-name-face)
+    ("member"        . font-lock-variable-name-face)
+    ("field"         . font-lock-variable-name-face)
+    ("property"      . font-lock-variable-name-face)
+    ("event"         . font-lock-variable-name-face)
+    ("macro"         . font-lock-preprocessor-face)
+    ("variable"      . font-lock-variable-name-face)
+    ("parameter"     . font-lock-variable-name-face)
+    ("label"         . font-lock-comment-face)
+    ("enumConstant"  . font-lock-constant-face)
+    ("enumMember"    . font-lock-constant-face)
+    ("dependent"     . font-lock-type-face)
+    ("concept"       . font-lock-type-face))
+  "Ada-mode setting for `eglot-semantic-token-faces'."
+  :type '(alist :key-type (string :tag "Token name")
+                :value-type (face :tag "Face"))
+  :group 'ada-mode)
+
+(defcustom ada-eglot-modifier-faces
   ;; See ada_language_server/source/ada/lsp-ada_highlighters.adb for
   ;; how these map to Ada syntax. Initialize has the list of which are
-  ;; actually used; unused are set to nil (an als bug requires that
+  ;; actually used; unused are set to nil here (an als bug requires that
   ;; they not be deleted).
-  '(("declaration" :underline "green") ;; spec
-    ("definition" :underline "black")  ;; body
-    ("implementation" nil)
-    ("readonly" :slant reverse-italic) ;; anything with "constant" keyword
-    ("static" :slant italic)           ;; a static type declaration
+  ;;
+  ;; On my system (Debian testing running in a VMWare virtual machine,
+  ;; X windows with default fonts), oblique is the same as italic, and
+  ;; reverse-italic is not supported; this depends on the specific
+  ;; font begin used.
+  '(("declaration" . nil) ;; spec; supported, but not helpful to display
+    ("definition" . nil)  ;; body; supported, but not helpful to display
+    ("implementation" . nil)
+    ("readonly" . nil) ;; anything with "constant" keyword; supported, but not helpful to display
+    ("static" . nil)           ;; a static type declaration; supported, but not helpful to display
     ("abstract" :overline "green")
-    ("async" nil)
+    ("async" . nil)
     ("modification" :overline "orange") ;; write reference
     ("deprecated" :strike-through t)
-    ("documentation" nil)
-    ("defaultLibrary" nil))
-  "Recommended value for `eglot-semantic-token-modifier-faces' for ada-mode
-with AdaCore ada_language_server.")
+    ("documentation" . nil)
+    ("defaultLibrary" . nil)) ;; Anything in Ada... packages; supported, not helpful to display
+  "Ada-mode setting for `eglot-semantic-token-modifier-faces'."
+    :type `(alist :key-type (string :tag "Token name")
+                :value-type (list (plist :tag "Face Attributes"
+                                         :key-type
+                                         (choice
+                                          ,@(mapcar
+                                             (lambda (cell)
+                                               `(const :tag ,(capitalize
+                                                              (cdr cell))
+                                                       ,(car cell)))
+                                             face-attribute-name-alist)))))
+    :group 'ada-mode)
 
 (defclass eglot-ada (eglot-lsp-server)
   ((indexing-done
@@ -51,31 +109,21 @@ with AdaCore ada_language_server.")
     :initform nil))
   :documentation "AdaCore's ada_language_server.")
 
-(cl-defmethod eglot-handle-notification ((server eglot-ada) (_method (eql $/progress))
+(cl-defmethod eglot-handle-notification :after ((server eglot-ada) (_method (eql $/progress))
    &key token value &allow-other-keys)
-  "Handle notification $/progress indexing."
+  "Record when indexing is done."
   (when (string-match token "indexing"))
-    (cond
-     ((string= (plist-get value :kind) "report")
-      (setf (eglot--spinner server)
-	    (list nil (format "indexing %s %d%%"
-			      (plist-get value :message)
-			      (plist-get value :percentage))
-		  nil)))
-
-     ((string= (plist-get value :kind) "end")
-      (setf (eglot-ada-indexing-done server) t)
-      (setf (eglot--spinner server) (list nil "indexing" t)))
-     ))
+    (when (string= (plist-get value :kind) "end")
+      (setf (eglot-ada-indexing-done server) t)))
 
 (defun ada-eglot-wait-indexing-done ()
   "For use in tests."
   (let ((server (eglot-current-server)))
     (message "ada_language_server indexing ...")
     (while (not (eglot-ada-indexing-done server))
-      ;; Update display for indexing progress; doesn't work, so we also do messages.
-      (message "%s" (concat "ada_language_server " (nth 1 (eglot--spinner server))))
-      (force-mode-line-update)
+      ;; Update display for indexing progress; displayed by eglot's
+      ;; handle-notification from
+      ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=59149
       (sit-for 0.1)
       (accept-process-output))
     (message "ada_language_server indexing ... done")
@@ -113,10 +161,17 @@ with AdaCore ada_language_server.")
 
 ;;; startup
 (defvar ada-eglot-require-gpr nil
-  ;; Default nil to allow newbies and small projects to run without a
-  ;; gpr file; als uses a default.  unit tests can set t if the gpr
-  ;; file is set after the file under test is opened.
-)
+  ;; Unit tests set t to avoid starting eglot until a gpr file is
+  ;; specified.
+  )
+
+(defcustom ada-eglot-gpr-file nil
+  "Specify a gpr file to use, when not using a wisi project.
+If the file requires setting GPR_PROJECT_PATH, use a wisi project
+or set it globally."
+  :type 'string
+  :safe (lambda (val) (or (null val) (stringp val)))
+  :group 'ada-mode)
 
 (defun ada-eglot-require-eglot ()
   "Ensure eglot is started for the current project."
@@ -124,14 +179,26 @@ with AdaCore ada_language_server.")
     (let* ((prj (eglot--current-project)) ;; provides a default if (current-project) is nil.
  	   (process-environment (copy-sequence process-environment))
 	   (gpr-file
-	    (when (and (wisi-prj-p prj)
-		       (gnat-compiler-p (wisi-prj-compiler prj)))
-	      (gnat-compiler-gpr-file (wisi-prj-compiler prj)))))
+	    (cond
+	     ((and (wisi-prj-p prj)
+		  (gnat-compiler-p (wisi-prj-compiler prj)))
+	      (gnat-compiler-gpr-file (wisi-prj-compiler prj)))
+
+	    (ada-eglot-gpr-file ada-eglot-gpr-file)))
+
+	   ;; als 23 does not accept initializationOptions in the
+	   ;; initialize method. https://github.com/AdaCore/ada_language_server/issues/1079
+	   (eglot-workspace-configuration nil))
 
       (when (wisi-prj-p prj)
 	(setq process-environment
 	      (append (wisi-prj-file-env prj) ;; for GPR_PROJECT_PATH
 		      process-environment)))
+
+      (when gpr-file
+	(setq eglot-workspace-configuration
+	      ;; This is sent in a workspace/didChangeConfiguration message.
+	      (list (list :ada (cons 'projectFile gpr-file)))))
 
       (unless (and ada-eglot-require-gpr
 		   (null gpr-file))
@@ -139,10 +206,7 @@ with AdaCore ada_language_server.")
 	(eglot 'ada-mode 	 ;; managed-major-mode
 	       prj 		 ;; project; project-root is server process directory
 	       'eglot-ada        ;; class
-	       (if gpr-file
-		   (list (gnat-find-als)
-			 :initializationOptions (list (list :ada (cons 'projectFile gpr-file))))
-		 (list (gnat-find-als)))   ;; contact IMPROVME: allow other servers?
+	       (list (gnat-find-als))   ;; contact IMPROVME: allow other servers?
 	       "Ada" 		 ;; language-id
 	       )
 
@@ -150,7 +214,7 @@ with AdaCore ada_language_server.")
 	  (when (eq ada-face-backend 'eglot)
 	    (unless (eglot--server-capable :semanticTokensProvider :range)
 	      (display-warning 'ada "LSP server does not support faces; change ada-face-backend"))
-	    (unless (boundp 'eglot-enable-semantic-tokens)
+	    (unless (boundp 'eglot-semantic-token-faces)
 	      (display-warning 'ada "current version of eglot does not support faces")))
 
 	  (when (eq ada-indent-backend 'eglot)
@@ -169,10 +233,8 @@ with AdaCore ada_language_server.")
   "Configure elgot settings for Ada."
   ;; Called from ada-mode when any ada-*-backend is eglot.
 
-  (when (null ada-eglot-require-gpr)
-    ;; The user is not using a project, so wisi-select-prj is not
-    ;; called; start eglot now. See comment in ada-mode on startup
-    ;; cases.
+  (when (or (null ada-eglot-require-gpr)
+	    ada-eglot-gpr-file)
     (ada-eglot-require-eglot))
 
   (cl-ecase ada-diagnostics-backend
@@ -189,19 +251,17 @@ with AdaCore ada_language_server.")
 
     (eglot
      (setq-local wisi-disable-face t)
-     (when (and (boundp 'eglot-enable-semantic-tokens)
-		(boundp 'eglot-semantic-token-modifier-faces))
-       (setq eglot-enable-semantic-tokens t)
 
-       ;; It's tempting to delete defaultLibrary from the supported token
-       ;; modifiers; there's no need to distinguish "Ada" from other
-       ;; packages. But that's actually a user preference.
-       ;;
-       ;; In addition, als 23 raises CONSTRAINT_ERROR if we do that;
-       ;; https://github.com/AdaCore/ada_language_server/issues/1070. So
-       ;; we encourage the user to modify
-       ;; eglot-semantic-token-modifier-faces instead.
-       ))
+     ;; It's tempting to delete defaultLibrary from the supported token
+     ;; modifiers; there's no need to distinguish "Ada" from other
+     ;; packages. But that's actually a user preference.
+     ;;
+     ;; In addition, als 23 raises CONSTRAINT_ERROR if we do that;
+     ;; https://github.com/AdaCore/ada_language_server/issues/1070. So
+     ;; we encourage the user to modify
+     ;; ada-eglot-token-faces and ada-eglot-modifier-faces instead.
+     (setq-local eglot-semantic-token-faces ada-eglot-token-faces)
+     (setq-local eglot-semantic-token-modifier-faces ada-eglot-modifier-faces))
 
     (wisi
      ;; wisi-setup does the work
@@ -230,7 +290,7 @@ with AdaCore ada_language_server.")
     )
 
   (cl-ecase ada-statement-backend
-    ((none eglot other)
+    ((none other)
      (setq wisi-disable-statement t))
 
     (wisi
@@ -284,10 +344,7 @@ with AdaCore ada_language_server.")
     (eglot-shutdown (eglot-current-server))))
 
 ;;;###autoload
-(defun create-eglot-xref ()
-;; ada-prj-make-xref calls create-%s-xref with no args, where %s is
-;; ada-xref-backend.  FIXME: something else calls it with a :gpr-file
-;; arg; that should set the gpr-file after creating the xref.
+(cl-defun create-eglot-xref ()
   'eglot)
 
 ;;; debugging
