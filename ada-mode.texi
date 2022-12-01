@@ -213,6 +213,12 @@ als 23 supports range format, but has bugs; see
 @url{https://github.com/AdaCore/ada_language_server/issues/1073}.
 @url{https://github.com/AdaCore/ada_language_server/issues/1074}.
 
+Some of the bugs can be fixed by using patched versions of some Alire
+crates:
+@example
+alr index --add git+https://github.com/stephe-ada-guru/alire-index.git#stephe-patches --name stephepatches --before community
+@end example
+
 Similarly for gpr-query.
 @multitable {gpr-query}{LSP}{als 22}{eglot 1.9}{}
 @headitem gpr-query @tab LSP @tab als 22 @tab eglot 1.9 @tab feature
