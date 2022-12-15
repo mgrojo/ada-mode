@@ -12,7 +12,7 @@ vpath %.gpr   ../test
 vpath %.wy    ../
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../test -L . $(GPR_MODE_DIR) -l gpr-skel-test.el --eval '(progn $(ELISP)(setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../test -L . $(GPR_MODE_DIR) -l gpr-skel-test.el --eval '(progn $(ELISP)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	-diff -u $< $(*F).tmp > $(*F).diff

@@ -1,7 +1,5 @@
 # Build elisp code, Ada executables, manuals; publish to web and ELPA
 
-GPR_MODE_VERSION = 1.0.0
-
 TEST_DIR ?= source
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
@@ -16,8 +14,7 @@ else ifeq ($(shell uname),Darwin)
 EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
 else
 # windows
-# specify uniscribe to workaround weird Windows harfbuzz bug
-EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+EMACS_EXE ?= emacs
 endif
 
 # compile with debug with default Standard_Common_Assertions to get
@@ -53,7 +50,7 @@ install : install_executables
 # loading new source on old .elc.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile
+	$(MAKE) -C $(GNAT_COMPILER) -f ELPA.make byte-compile
 	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -l build/exclude-elpa.el --eval '(progn (batch-byte-compile))' *.el
 #(setq byte-compile-error-on-warn t)
 
@@ -100,7 +97,7 @@ two : ../run_gpr_parse.exe
 # interaction with gpr project files.
 export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
 export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
-export GNAT_COMPILER ?= $(shell cd ../../org.emacs.gnat-compiler; pwd)
+export GNAT_COMPILER ?= $(shell cd ../../elpa/packages/gnat-compiler; pwd)
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 # WISITOKEN_GENERATE must be after WISITOKEN
@@ -155,28 +152,16 @@ endif
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
-ifeq ($(BRANCH),org.emacs.gpr-mode)
-  TAR_FILE := org.emacs.gpr-mode-$(GPR_MODE_VERSION)
-else
-  TAR_FILE := $(BRANCH)
-endif
-
-zip :
-	rm -rf ../../$(TAR_FILE)
-	mtn checkout --branch $(BRANCH) ../../$(TAR_FILE)
-	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C ../.. $(TAR_FILE)
-
 VPATH := ..
 
 ### Publish Gnu ELPA package
 # First delete all files in Gnu ELPA, so we catch files deleted here.
-pub-gpr : force
-	mkdir -p $(ELPA_ROOT)/packages/gpr-mode
+pub-gpr : force | $(ELPA_ROOT)/packages/gpr-mode
 	rm -rf $(ELPA_ROOT)/packages/gpr-mode/*
 	cp ../*.el ../*.texi $(ELPA_ROOT)/packages/gpr-mode
 	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/gpr-mode/
-	cp ../Makefile ../NEWS ../README $(ELPA_ROOT)/packages/gpr-mode/
-	cp ../*.wy ../gpr*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/gpr-mode
+	cp ../*.make ../NEWS ../README $(ELPA_ROOT)/packages/gpr-mode/
+	cp ../*.wy ../gpr*.ad? ../run_gpr*.ad? ../*.gpr ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/gpr-mode
 	cd $(ELPA_ROOT)/packages/gpr-mode; rm autoloads.el
 	cp ../*.c $(ELPA_ROOT)/packages/gpr-mode
 
@@ -185,7 +170,7 @@ pub-gpr : force
 # check/<pkg> first if added files.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
-	make -C $(ELPA_ROOT)/ build/gpr-mode build/wisi
+	make -C $(ELPA_ROOT)/ build/gpr-mode
 
 uninstall-elpa :
 	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
@@ -201,7 +186,6 @@ $(WISI)/wisi.gpr : force
 	cd ..; gprbuild -p -j8 -P gpr_mode_wisi_parse.gpr $*.adb
 
 build_executables : $(WISI)/wisi.gpr ../gpr_re2c.c force
-	echo $$GPR_PROJECT_PATH
 	gprbuild -p -j8 ../gpr_mode_wisi_parse.gpr
 
 install_executables : build_executables

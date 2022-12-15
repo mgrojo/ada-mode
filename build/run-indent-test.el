@@ -5,10 +5,16 @@
 (require 'wisi-run-indent-test)
 
 (setq gpr-mode-dir (file-name-directory (locate-file "gpr-mode.el" load-path)))
-(setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" gpr-mode-dir))
+(cond
+ ((string-match "elpa" gpr-mode-dir)
+  (setq gpr-process-parse-exec (expand-file-name "~/.local/bin/gpr_mode_wisi_parse")))
+
+ (t
+  (setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" gpr-mode-dir))))
 
 (setq wisi-incremental-parse-enable t)
 
+(setq eval-expression-debug-on-error nil)
 (setq debug-on-error nil)
 (setq-default wisi-parser-verbosity "debug=1")
 (setq-default compare-tree-text t)

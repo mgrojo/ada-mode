@@ -7,8 +7,16 @@
 ;; in gpr buffer: (setq skeleton-end-hook nil)
 ;; (setq wisi-debug 1)
 
+(package-initialize)
+
 ;; Don’t require installing executables to run tests
-(setq gpr-process-parse-exec (expand-file-name "../gpr_mode_wisi_parse"))
+(setq gpr-mode-dir (file-name-directory (locate-file "gpr-mode.el" load-path)))
+(cond
+ ((string-match "elpa" gpr-mode-dir)
+  (setq gpr-process-parse-exec (expand-file-name "~/.local/bin/gpr_mode_wisi_parse")))
+
+ (t
+  (setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" gpr-mode-dir))))
 
 (require 'gpr-mode)
 

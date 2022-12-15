@@ -2,7 +2,7 @@
 @settitle gpr Mode
 
 @copying
-Copyright @copyright{} 2013, 2019  Free Software Foundation, Inc.
+Copyright @copyright{} 2013, 2019, 2022  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -217,7 +217,7 @@ code.
 @node Statement skeletons, GNU Free Documentation License, Indentation, Top
 @chapter Statement skeletons
 
-@kbd{C-c C-e} expands the previous one or two words into a statment
+@kbd{C-c C-e} expands the previous one or two words into a statement
 skeleton. For example, @kbd{c a s e C-c C-e} expands to:
 
 @example
