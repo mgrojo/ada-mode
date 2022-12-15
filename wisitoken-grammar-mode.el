@@ -223,7 +223,7 @@
   (interactive)
   (let ((wy-buffer (current-buffer))
 	nonterms)
-    (pop-to-buffer compilation-last-buffer)
+    (pop-to-buffer next-error-last-buffer)
     (search-backward "Add a conflict for these rules")
     (looking-at "Add a conflict for these rules: \\(`[a-z_]+`\\(, `[a-z_]+`\\)\\)")
     (setq nonterms (match-string 1))
@@ -289,30 +289,27 @@ For `add-log-current-defun-function'."
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
   ;; syntax-propertize-extend-region-functions is set to
   ;; syntax-propertize-wholelines by default.
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
+  ;; WORKAROUND: Something in mmm-mode causes fontification with the wrong
+  ;; syntax table; ' is string, comment-start is wrong, and a stray
+  ;; ' in a comment applies string face to lots of stuff in 'face
+  ;; text property. For some reason, comments remain ok.
+  (remove-text-properties start end '(face nil))
 
-    ;; WORKAROUND: Something in mmm-mode causes fontification with the wrong
-    ;; syntax table; ' is string, comment-start is wrong, and a stray
-    ;; ' in a comment applies string face to lots of stuff in 'face
-    ;; text property. For some reason, comments remain ok.
-    (remove-text-properties start end '(face nil))
-
-    (goto-char start)
-    (save-match-data
-      (while (re-search-forward
-	       "\\(%\\[\\)" ;; regexp begin
-	      end t)
-	(cond
-	 ((match-beginning 1)
-	  (let ((begin (match-beginning 1))
-		(end (search-forward "]%")))
-	    ;; allow single quotes in regexp to not mess up the rest
-	    ;; of the buffer
-	    (put-text-property begin end 'syntax-table '(11 . nil))
-	    ))
-	 ))
-      )))
+  (goto-char start)
+  (save-match-data
+    (while (re-search-forward
+	    "\\(%\\[\\)" ;; regexp begin
+	    end t)
+      (cond
+       ((match-beginning 1)
+	(let ((begin (match-beginning 1))
+	      (end (search-forward "]%")))
+	  ;; allow single quotes in regexp to not mess up the rest
+	  ;; of the buffer
+	  (put-text-property begin end 'syntax-table '(11 . nil))
+	  ))
+       ))
+    ))
 
 ;;; mmm (multi-major-mode) integration
 
