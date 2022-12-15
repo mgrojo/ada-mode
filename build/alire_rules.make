@@ -30,7 +30,7 @@ WISITOKEN_GENERATE := $(ALIRE_PREFIX)/build/bin/wisitoken-bnf-generate.exe
 # The wisitoken crate builds wisitoken-bnf-generate.exe, so we don't
 # need a rule to build it here.
 %.re2c : %.wy
-	$(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --verbosity "time=1" --output_bnf $(<F)
+	$(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --output_bnf $(<F)
 	for file in $(*F)_*parse_table.txt ; do mkdir -p bin; mv $file bin; done
 
 %_re2c.c : %.re2c
