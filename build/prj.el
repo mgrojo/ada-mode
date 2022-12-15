@@ -5,8 +5,8 @@
   :name "ada_mode_wisi_parse main"
   :compile-env
   (list
-   (concat "GNAT_COMPILER=" (expand-file-name "../../org.emacs.gnat-compiler"))
-   (concat "GPR_QUERY="     (expand-file-name "../../org.emacs.gpr-query"))
+   (concat "GNAT_COMPILER=" (expand-file-name "../../elpa/packages/gnat-compiler"))
+   (concat "GPR_QUERY="     (expand-file-name "../../elpa/packages/gpr-query"))
    (concat "SAL="           (expand-file-name "../../org.stephe_leake.sal"))
    (concat "WISITOKEN="     (expand-file-name "../../org.wisitoken"))
    (concat "WISI=" 	    (expand-file-name "../../org.emacs.wisi"))

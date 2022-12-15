@@ -58,6 +58,29 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+build ada-mode with stephe-patches alire index
+    cd ~/.emacs.d/elpa/ada-mode-8*
+    ./build.sh
+
+    alr toolchain gnat-12 broken
+        https://github.com/alire-project/GNAT-FSF-builds/issues/43
+
+    using external gnat-2021
+        als build fails on gnat version
+        /=2020 is from libgpr, vss
+            vss needs -gnat2020
+                figure out how to add that in .toml
+                [build-switches]
+                "*" = ["-gnat2020"] doesn't work
+                "*".Ada_Version = ["-gnat2020"] doesn't work
+                "*".Ada_Version = "Ada2022" doesn't work
+
+                fork vss, add in .gpr
+
+            push stephepatches
+            edit local community index
+            push community, do pull request
+
 elpa build failing
     only for release packages; not critical
     don't fix unless get more emails

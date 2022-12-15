@@ -67,7 +67,7 @@ install : install_executables
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile autoloads
-	$(MAKE) -C $(GNAT_COMPILER)/build byte-compile autoloads
+	$(MAKE) -C $(GNAT_COMPILER) -f ELPA.make byte-compile autoloads
 	$(MAKE) -C $(GPR_QUERY) -f ELPA.make byte-compile autoloads
 	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -L $(GPR_QUERY) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
@@ -158,8 +158,8 @@ three : run_libadalang.exe
 # interaction with gpr project files.
 export WISITOKEN     ?= $(shell cd ../../org.wisitoken; pwd)
 export WISI          ?= $(shell cd ../../org.emacs.wisi; pwd)
-export GNAT_COMPILER ?= $(shell cd ../../org.emacs.gnat-compiler; pwd)
-export GPR_QUERY     ?= $(shell cd ../../org.emacs.gpr-query; pwd)
+export GNAT_COMPILER ?= $(shell cd ../../elpa/packages/gnat-compiler; pwd)
+export GPR_QUERY     ?= $(shell cd ../../elpa/packages/gpr-query; pwd)
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 # WISITOKEN_GENERATE must be after WISITOKEN
