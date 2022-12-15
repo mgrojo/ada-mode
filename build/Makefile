@@ -15,8 +15,7 @@ else ifeq ($(shell uname),Darwin)
 EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
 else
 # windows
-# specify uniscribe to workaround weird Windows harfbuzz bug
-EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+EMACS_EXE ?= emacs
 endif
 
 all : byte-compile-clean update test-clean test
@@ -110,6 +109,7 @@ pub : force
 	cd $(ELPA_ROOT)/packages/wisi; rm -f autoloads.el *libadalang* test*.ad?
 	cp $(WISITOKEN)/Docs/wisitoken-user_guide.texinfo $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
+	cp $(WISITOKEN)/main/*.ad? $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-lexer-regexp.ad?
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?

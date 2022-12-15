@@ -141,22 +141,14 @@ On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
     cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
     # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
 
-build/Makefile tag zip
-
-in cygwin console for gpg prompts:
-    cd /Projects/org.emacs.wisi/build/
-    ls *.tar*
-    rm <old>.tar*
-    gpg -b *.tar.*
-
-    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-
 push to elpa
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
 
-    (dvc-state-one "/Projects/elpa")
-    (dvc-state-one "/Projects/elpa/packages/wisi")
+    build/Makefile pub
+
+    (dvc-state-one "/Projects/elpa/packages/wisi") commit
+    (dvc-push)
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
