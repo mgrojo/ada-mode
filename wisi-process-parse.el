@@ -153,10 +153,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 		(with-current-buffer (car wisi-parse-full-active)
 		  (read-only-mode -1)
 		  (let ((region (cdr wisi-parse-full-active)))
-		    (when (and (>= (cdr region) (car region))
-			       (>= (cdr region) (point-min))
-			       (<= (car region) (point-max)))
-		      (font-lock-flush (car region) (cdr region))))
+		    (font-lock-flush (max (point-min) (car region)) (min (point-max) (cdr region))))
 
 		  (set-process-filter process nil)
 
@@ -172,9 +169,9 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 		  )
 	      (setq wisi-parse-full-active nil)
 	      ))))
-	  ))))
+	))))
 
-(cl-defmethod wisi-parse-require-process (parser &key nowait)
+(cl-defmethod wisi-parse-require-process ((parser wisi-process--parser) &key nowait)
   (unless (process-live-p (wisi-process--parser-process parser))
     (let ((process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
 	  (process-name (format " *%s_wisi_parse*" (wisi-process--parser-label parser))))
@@ -823,6 +820,7 @@ Source buffer is current."
 
 (cl-defmethod wisi-parse-reset ((parser wisi-process--parser))
   (setf (wisi-process--parser-busy parser) nil)
+  (setq wisi-parse-full-active nil)
   (wisi-parse-require-process parser)
   (wisi-process--kill-context parser)
   (wisi-process-parse--wait parser))
@@ -1191,7 +1189,7 @@ Source buffer is current."
   (cond
    ((and full nowait)
     (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
-    (setq wisi-parse-full-active (cons (current-buffer) (cons (point-max) (point-min))))
+    (setq wisi-parse-full-active (cons (current-buffer) (cons (point-min) (point-max))))
     (read-only-mode 1)
     (wisi-process-parse--send-incremental-parse parser full))
    (t
