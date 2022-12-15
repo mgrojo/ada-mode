@@ -8,6 +8,7 @@ alire-env :
 	GPR_PROJECT_PATH= ;  alr $(ALIRE_ARGS) printenv
 
 alire-clean :
+	alr clean
 	rm -rf alire build/obj/release build/obj/development
 
 ifeq ($(shell uname),Linux)
@@ -30,6 +31,7 @@ WISITOKEN_GENERATE := $(ALIRE_PREFIX)/build/bin/wisitoken-bnf-generate.exe
 # need a rule to build it here.
 %.re2c : %.wy
 	$(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --verbosity "time=1" --output_bnf $(<F)
+	for file in $(*F)_*parse_table.txt ; do mkdir -p bin; mv $file bin; done
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
