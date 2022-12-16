@@ -147,7 +147,6 @@ package body BNF_WY_Test is
       when LR_Generate_Algorithm =>
          Diff_One
            (Root_Name & Gen_Alg &
-              (if Tuple.Gen_Alg = LR1 then "_t1" else "") &
               (if If_Lexer_Present
                then "_" & Lexer_Image (Tuple.Lexer).all
                else "") &
@@ -176,7 +175,7 @@ package body BNF_WY_Test is
          end case;
 
          if Tuple.Text_Rep then
-            Diff_One (Text_Rep_File_Name (Root_Name, Tuple, 1, If_Lexer_Present, Test_Main => True));
+            Diff_One (Text_Rep_File_Name (Root_Name, Tuple, If_Lexer_Present));
          end if;
       end if;
    end Diff_Gen;
@@ -192,7 +191,6 @@ package body BNF_WY_Test is
       --  We know Output_Language is Ada
 
       Exe : constant String := "./" & Root_Name & "_" & To_Lower (Generate_Alg'Image) &
-        (if Generate_Alg = LR1 then "_t1" else "") &
         "_run.exe";
 
       Args : GNAT.OS_Lib.String_List (1 .. 9) :=
@@ -216,7 +214,6 @@ package body BNF_WY_Test is
 
          Output : constant String := Root_Name & "_" &
            To_Lower (Generate_Algorithm'Image (Generate_Alg)) &
-           (if Generate_Alg = LR1 then "_t1" else "") &
            ".parse";
       begin
          if Ada.Directories.Exists (Default_Input_Name) then
@@ -232,7 +229,6 @@ package body BNF_WY_Test is
       if Input_Name'Length > 0 then
          declare
             Output : constant String := Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) &
-              (if Generate_Alg = LR1 then "_t1" else "") &
               "-" & Input_Name & ".parse";
          begin
             Args (Last) := new String'("../test/bnf/" & Input_Name & ".input");

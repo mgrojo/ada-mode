@@ -29,7 +29,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
-with Ada_Lite_LR1_T1_Main;
+with Ada_Lite_LR1_Main;
 with SAL;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.AUnit;
@@ -2563,13 +2563,13 @@ package body Test_McKenzie_Recover is
 
       when WisiToken.BNF.LR1 =>
          Parser := new WisiToken.Parse.LR.Parser.Parser'
-           (Ada_Lite_LR1_T1_Main.Create_Parser
+           (Ada_Lite_LR1_Main.Create_Parser
               (Trace'Access,
                User_Data'Access,
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-               Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"));
+               Text_Rep_File_Name => "ada_lite_lr1_re2c_parse_table.txt"));
       end case;
 
       if T.McKenzie_Options /= null then

@@ -60,9 +60,6 @@ package WisiToken.Generate.LR.LR1_Generate is
    --
    --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
    --  are unknown conflicts.
-   --
-   --  Use Task_Count tasks in computing LR1 items. Default is 1 so unit
-   --  tests return repeatable results.
 
    ----------
    --  visible for unit test

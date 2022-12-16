@@ -23,10 +23,10 @@ with AUnit.Checks;
 with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Lite_Actions;
-with Ada_Lite_LR1_T1_Main;
+with Ada_Lite_LR1_Main;
 with Grammar_Grammar_01_Actions;
-with Grammar_Grammar_01_LR1_T1_Main;
-with Optimized_List_LR1_T1_Main;
+with Grammar_Grammar_01_LR1_Main;
+with Optimized_List_LR1_Main;
 with SAL.AUnit;
 with Skip_To_Grammar_LALR_Main;
 with WisiToken.AUnit;
@@ -44,23 +44,23 @@ package body Test_Syntax_Trees is
    Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Ada_Lite_Parser : WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LR1_T1_Main.Create_Parser
+   Ada_Lite_Parser : WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LR1_Main.Create_Parser
      (Trace'Access,
-      Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt",
+      Text_Rep_File_Name             => "ada_lite_lr1_re2c_parse_table.txt",
       Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
       Language_Matching_Begin_Tokens =>
         WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
       Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
       User_Data                      => User_Data'Access);
 
-   Grammar_Parser : WisiToken.Parse.LR.Parser.Parser := Grammar_Grammar_01_LR1_T1_Main.Create_Parser
+   Grammar_Parser : WisiToken.Parse.LR.Parser.Parser := Grammar_Grammar_01_LR1_Main.Create_Parser
      (Trace'Access,
       Language_Fixes                 => null,
       Language_Matching_Begin_Tokens => null,
       Language_String_ID_Set         => null,
       User_Data                      => null);
 
-   Optimized_List_Parser : WisiToken.Parse.LR.Parser.Parser := Optimized_List_LR1_T1_Main.Create_Parser
+   Optimized_List_Parser : WisiToken.Parse.LR.Parser.Parser := Optimized_List_LR1_Main.Create_Parser
      (Trace'Access,
       Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.Fixes'Access,
       Language_Matching_Begin_Tokens =>

@@ -43,9 +43,7 @@ include Makefile.conf
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 gen_BNF :: ada_lite_re2c.c
-gen_BNF :: ada_lite_lr1_t8_run.ads
 gen_BNF :: body_instantiation_conflict_re2c.c
-gen_BNF :: body_instantiation_conflict_lr1_t8_run.ads
 gen_BNF :: case_expression_re2c.c
 gen_BNF :: character_literal_re2c.c
 gen_BNF :: conflict_name_re2c.c
@@ -73,7 +71,6 @@ gen_EBNF :: java_enum_ch19_re2c.c
 gen_EBNF :: java_expressions_antlr_re2c.c
 gen_EBNF :: java_expressions_ch19_re2c.c
 gen_EBNF :: java_types_ch19_re2c.c
-gen_EBNF :: java_types_ch19_lr1_t8_run.ads
 gen_EBNF :: lalr_generator_bug_01_re2c.c
 gen_EBNF :: nested_ebnf_optional_re2c.c
 gen_EBNF :: optimized_conflict_01_re2c.c
@@ -187,20 +184,9 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# task_count 1 for repeatable results when comparing .parse_table_good etc.
-# task_count 0 is tested in test_lr1_parallel.adb via test_bnf_suite.adb
 %.re2c : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --task_count 1 --output_bnf --test_main $(GENERATE_ARGS) $<
+	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**_actions.adb $**_actions.ads $*.js $*_bnf.wy $**_main.adb $**.parse_table
-
-%_lr1_t8_run.ads : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c --test_main $(GENERATE_ARGS) $<
-	dos2unix -q $*.parse_table
-
-# override ada_lite for text_rep
-ada_lite_lr1_t8_run.ads : ada_lite.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c text_rep --test_main $(GENERATE_ARGS) $<
-	dos2unix -q ada_lite_lr1_t8_run.ads
 
 %.exe : force; gprbuild -p -j8 -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
