@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'compile)
 (require 'find-file)
@@ -398,7 +398,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
       (ada-refactor ada-refactor-format-paramlist)))
 
 ;;;; fix compiler errors
-  (defun ada-context-clause-region ()
+(defun ada-context-clause-region ()
     "Return the region containing the context clause for the current buffer,
 excluding leading pragmas."
     ;; FIXME: rename this - no 'fix'

@@ -82,7 +82,7 @@ package body Wisi is
      (Delta_Indent : in     Simple_Delta_Type;
       Indent       : in out Indent_Type)
    with Pre => Delta_Indent.Label = Anchored
-     --  comment after aspect_specification, before 'is'
+   --  comment after aspect_specification, before 'is'
    is begin
       --  [2] wisi-elisp-parse--apply-anchored; add Delta_Indent to Indent
 

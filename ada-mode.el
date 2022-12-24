@@ -8,7 +8,7 @@
 ;;  ada
 ;; Version: 8.0.2
 ;; package-requires: ((uniquify-files "1.0.1") (wisi "4.1.1") (gnat-compiler "1.0.0") (emacs "25.3"))
-;; url: http://www.nongnu.org/ada-mode/
+;; url: https://www.nongnu.org/ada-mode/
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Usage:
 ;;
@@ -268,7 +268,7 @@ nil, only the file name."
      ["Restart parser"                wisi-kill-parser            wisi-parser-shared]
      )))
 
-(defvar ada--statement-mode-map
+(defvar ada--statement-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c<" 	 'ada-goto-declaration-start)
     (define-key map "\C-c>" 	 'ada-goto-declaration-end)
@@ -280,8 +280,9 @@ nil, only the file name."
     map)
   "Local keymap used for Ada statement motion minor mode.")
 
-(defvar ada--statement-mode-menu (make-sparse-keymap "Ada statement motion"))
-(easy-menu-define ada--statement-mode-menu ada--statement-mode-map "Menu keymap for Ada statement motion mode"
+(defvar ada--statement-minor-mode-menu (make-sparse-keymap "Ada statement motion"))
+(easy-menu-define ada--statement-minor-mode-menu ada--statement-minor-mode-map
+  "Menu keymap for Ada statement motion minor mode"
   '("Ada statement motion"
     ["Goto next statement keyword"   forward-sexp 			     wisi-parser-shared]
     ["Goto prev statement keyword"   backward-sexp 			     wisi-parser-shared]
@@ -739,7 +740,9 @@ Also sets `ff-function-name' for `ff-pre-load-hook'."
   (interactive)
   (and wisi-parser-shared
        (save-excursion
-	 (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause))
+	 (let ((start-cache (wisi-goto-statement-start)))
+	   (when start-cache
+	     (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause))))
 	 )))
 
 (defun ada-goto-subunit-name ()
