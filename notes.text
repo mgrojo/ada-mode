@@ -41,7 +41,7 @@ keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
 
 check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
     to update a bug: nnn@debbugs.gnu.org
         subject: from bug title, for people who rely on that.
     if fixed in devel sources, add 'pending' tag:
@@ -151,8 +151,8 @@ push to elpa
     (dvc-push)
 
 mark fixed bugs
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
-    http://debbugs.gnu.org/Developer.html
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
+    https://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
         subject: closed by ada-mode version 7.1.3
         don't include Version: header; that's an Emacs version

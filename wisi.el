@@ -9,7 +9,7 @@
 ;;  navigation
 ;; Version: 4.1.1
 ;; package-requires: ((emacs "25.3") (seq "2.20"))
-;; URL: http://stephe-leake.org/ada/wisitoken.html
+;; URL: https://stephe-leake.org/ada/wisitoken.html
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 
 ;;; Commentary:
@@ -1232,7 +1232,7 @@ Return start cache."
 
 (defun wisi-goto-statement-start ()
   "Move point to token at start of statement point is in or after.
-Return start cache."
+Return start cache (nil if point is before first statement)."
   (interactive)
   (wisi-validate-cache-current-statement t 'navigate)
   (wisi-goto-start (or (wisi-get-cache (point))

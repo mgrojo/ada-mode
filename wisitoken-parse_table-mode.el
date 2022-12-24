@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;; Version: 1.0
 ;; package-requires: ((emacs "25.1"))
-;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
+;; URL: https://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'xref)
 (require 'wisi-prj)                     ;For `wisi-goto-source'.
