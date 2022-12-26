@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  WisiToken utilities for using the tree-sitter parser.
+--  Translate a wisitoken grammar file to a tree-sitter grammar file.
 --
 --  Copyright (C) 2020, 2021, 2022 Free Software Foundation All Rights Reserved.
 --
@@ -32,6 +32,8 @@ package WisiToken.Generate.Tree_Sitter is
       Lexer            : in     WisiToken.Lexer.Handle;
       Output_File_Name : in     String;
       Language_Name    : in     String);
+   --  Output tree-sitter grammar to Output_File_Name.
+   --
    --  Tree is 'in out' because we use WisiToken.Syntax_Tree.LR_Utils lists.
 
    procedure Create_Test_Main (Output_File_Name_Root : in String);

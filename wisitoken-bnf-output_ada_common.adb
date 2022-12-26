@@ -1447,7 +1447,7 @@ package body WisiToken.BNF.Output_Ada_Common is
            Kind (Generate_Data, I) = "comment-one-line" or
            Kind (Generate_Data, I) = "string-double-one-line" or
            Kind (Generate_Data, I) = "string-single-one-line"
-           --  comment-one-line, strings do not always contain a new_line, but
+           --  comment-one-line strings do not always contain a new_line, but
            --  the preconditions in WisiToken.Lexer guarantee it does if we ask
            --  for Line_Begin_Char_Pos from one.
          then

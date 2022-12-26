@@ -1263,6 +1263,8 @@ package WisiToken.Syntax_Trees is
       Child_Index : in Positive_Index_Type)
      return Node_Access
    with Pre => Tree.Is_Nonterm (Node);
+   --  Returns Invalid_Node_Access if Child_Index is outside range of
+   --  Node.Children.
 
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    with Pre => Tree.Is_Nonterm (Node);
@@ -2937,6 +2939,7 @@ package WisiToken.Syntax_Trees is
       Error_Reported    : in out Node_Sets.Set;
       Node_Index_Order  : in     Boolean;
       Byte_Region_Order : in     Boolean                    := True;
+      Line_Number_Order : in     Boolean                    := True;
       Root              : in     Node_Access                := Invalid_Node_Access;
       Validate_Node     : in     Syntax_Trees.Validate_Node := null);
    --  Verify that no children are Invalid_Node_Access. Verify

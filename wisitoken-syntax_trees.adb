@@ -9760,6 +9760,7 @@ package body WisiToken.Syntax_Trees is
       Error_Reported    : in out Node_Sets.Set;
       Node_Index_Order  : in     Boolean;
       Byte_Region_Order : in     Boolean                    := True;
+      Line_Number_Order : in     Boolean                    := True;
       Root              : in     Node_Access                := Invalid_Node_Access;
       Validate_Node     : in     Syntax_Trees.Validate_Node := null)
    is
@@ -9845,7 +9846,12 @@ package body WisiToken.Syntax_Trees is
                      Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
                      if Tree.Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID then
                         for Token of Node.Non_Grammar loop
-                           if Token.Line_Region.First /= Last_Line then
+
+                           --  If node_index_order is changed, so is line_number order, but not
+                           --  vice-versa; normally due to %if in grammar, or grammar
+                           --  re-writting. See wisitoikent-generate-tree_sitter.adb
+                           if (Line_Number_Order and Node_Index_Order) and then Token.Line_Region.First /= Last_Line
+                           then
                               Put_Error ("line_number missing/out of order");
                            end if;
                            Last_Line := Token.Line_Region.Last;

@@ -381,36 +381,27 @@ begin
             end case;
 
          when Other =>
-            case Valid_Generate_Algorithm'(Parser) is
-            when LR_Generate_Algorithm | Packrat_Generate_Algorithm =>
-               --  IMPROVEME: for now, Packrat requires a BNF tree; eventually, it
-               --  will use the EBNF tree.
+            --  IMPROVEME: for now, Packrat requires a BNF tree; eventually, it
+            --  will use the EBNF tree.
 
-               if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
-                  Translate_To_BNF;
+            if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
+               Translate_To_BNF;
+            end if;
+
+            if BNF_Tree.Is_Empty then
+               if Trace_Generate > Outline then
+                  Trace.Put_Line ("post-parse grammar file OTHER, main tree");
                end if;
 
-               if BNF_Tree.Is_Empty then
-                  if Trace_Generate > Outline then
-                     Trace.Put_Line ("post-parse grammar file OTHER, main tree");
-                  end if;
-
-                  Grammar_Parser.Execute_Actions;
-               else
-                  if Trace_Generate > Outline then
-                     Trace.Put_Line ("post-parse grammar file OTHER, bnf tree");
-                  end if;
-
-                  WisiToken.Parse.Execute_Actions
-                    (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
+               Grammar_Parser.Execute_Actions;
+            else
+               if Trace_Generate > Outline then
+                  Trace.Put_Line ("post-parse grammar file OTHER, bnf tree");
                end if;
 
-            when External =>
-               null;
-
-            when Tree_Sitter =>
-               null;
-            end case;
+               WisiToken.Parse.Execute_Actions
+                 (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
+            end if;
 
             if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
                raise WisiToken.Grammar_Error with "no rules";
@@ -468,31 +459,25 @@ begin
 
             declare
                use WisiToken.Generate.Tree_Sitter;
-
-               procedure Translate (Tree : in out Syntax_Trees.Tree)
-               is begin
-                  if Trace_Generate > Outline then
-                     Ada.Text_IO.New_Line;
-                     Ada.Text_IO.Put_Line ("output tree_sitter grammar");
-                  end if;
-
-                  Eliminate_Empty_Productions (Input_Data, Tree);
-
-                  Print_Tree_Sitter
-                    (Input_Data,
-                     Tree,
-                     Tree.Lexer,
-                     Output_File_Name => -Output_File_Name_Root & ".js",
-                     Language_Name    => -Language_Name);
-
-                  if WisiToken.Generate.Error then
-                     --  FIXME: support --warning=error
-                     raise WisiToken.Grammar_Error with "errors during translating grammar to tree-sitter: aborting";
-                  end if;
-               end Translate;
             begin
+               if Trace_Generate > Outline then
+                  Ada.Text_IO.New_Line;
+                  Ada.Text_IO.Put_Line ("output tree_sitter grammar");
+               end if;
 
-               Translate (Grammar_Parser.Tree);
+               Eliminate_Empty_Productions (Input_Data, Grammar_Parser.Tree);
+
+               Print_Tree_Sitter
+                 (Input_Data,
+                  Grammar_Parser.Tree,
+                  Grammar_Parser.Tree.Lexer,
+                  Output_File_Name => -Output_File_Name_Root & ".js",
+                  Language_Name    => -Language_Name);
+
+               if WisiToken.Generate.Error then
+                  --  FIXME: support --warning=error
+                  raise WisiToken.Grammar_Error with "errors during translating grammar to tree-sitter: aborting";
+               end if;
 
                Create_Test_Main (-Output_File_Name_Root);
             end;

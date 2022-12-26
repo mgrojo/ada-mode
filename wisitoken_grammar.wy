@@ -279,10 +279,10 @@ rhs_optional_item
   ;
 
 rhs_multiple_item
-  : LEFT_BRACE rhs_alternative_list RIGHT_BRACE
-  | LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS
-  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS
-  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR
+  : LEFT_BRACE rhs_alternative_list RIGHT_BRACE       ;; can be empty
+  | LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS ;; not empty
+  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS  ;; not empty
+  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR  ;; can be empty
   | IDENTIFIER PLUS
   | IDENTIFIER STAR
   ;

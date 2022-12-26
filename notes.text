@@ -1,5 +1,5 @@
-build/Makefile gprbuild/wisi
-Makefile       alire/wisi
+build/Makefile gprbuild
+Makefile       alire
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
@@ -32,6 +32,47 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+restore tree-sitter output
+    use to generate equivalent of https://github.com/briot/tree-sitter-ada
+    test/bnf/ada_full.wy
+
+    t_bnf_one compares .js
+        ada_lite passes
+        ada_full generates ada_full.js
+            edit ada_full.js_good to match wisi generator order, briot changes
+
+        stack overflow
+            force split/optimize compilation_unit list
+                repeat until max depth < ?
+
+    notes for briot:
+        see tick
+        basic_declaration missing abstract_subprogram_declaration
+        name_not_function_call does not reduce conflicts?
+        name_for_constraint does?
+
+
+    add label in .wy => field
+        subtype_indication, object_declaration, etc
+
+
+    use repeat for canonical list
+        compilation, defining_identifier_list, etc.
+
+    add a test driver that runs the tree_sitter parser
+
+add support in wisi Ada for named fields; wisitoken_grammar declaration.kind
+
+add another mode ada-ts-wisi-mode that uses briot's parser directly, with the wisi api
+    mostly duplicates ada-mode, but syntax tree is different
+
+    see if it's faster
+
+and another ada-ts-mode that uses yuan's tree-sitter stuff for indent, faces
+
+ada placeholders: comment-one-line not implemented in tree-sitter
+    need external scanner
+
 Implement minimal_complete for packrat - loop thru open productions, insert minimal next token.
 
 left_breakdown can edit error nodes in parse

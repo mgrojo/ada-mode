@@ -230,15 +230,12 @@ package body WisiToken_Grammar_Editing is
       is begin
          case To_Token_Enum (Tree.ID (Decl)) is
          when declaration_ID =>
-            case Tree.RHS_Index (Decl) is
-            when 0 =>
-               return Get_Text (Data, Tree, Tree.Child (Decl, 3));
-
-            when 1 =>
+            case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+            when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID =>
                return Get_Text (Data, Tree, Tree.Child (Decl, 6));
 
-            when 3 | 4 =>
-               return Get_Text (Data, Tree, Tree.Child (Decl, 2));
+            when KEYWORD_ID =>
+               return Get_Text (Data, Tree, Tree.Child (Decl, 3));
 
             when others =>
                return "";
@@ -268,7 +265,50 @@ package body WisiToken_Grammar_Editing is
       return Invalid_Node_Access;
    end Find_Declaration;
 
-   EBNF_Allowed : Boolean := True;
+   function Find_Declaration_By_Value
+     (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out Syntax_Trees.Tree;
+      Value : in     String)
+     return Node_Access
+   is
+      use LR_Utils;
+      use LR_Utils.Creators;
+
+      function Decl_Value (Decl : in Valid_Node_Access) return String
+      is
+         Value : constant Node_Access :=
+           (case To_Token_Enum (Tree.ID (Decl)) is
+            when declaration_ID =>
+              (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+               when Wisitoken_Grammar_Actions.TOKEN_ID |
+                 NON_GRAMMAR_ID => Tree.Child (Decl, 7),
+               when KEYWORD_ID  => Tree.Child (Decl, 4),
+               when others      => Invalid_Node_Access),
+            when others         => Invalid_Node_Access);
+      begin
+         if Value = Invalid_Node_Access then
+            return "";
+         else
+            return Get_Text (Data, Tree, Value);
+         end if;
+      end Decl_Value;
+
+      --  Tree.Root is wisitoken_accept, first child is SOI
+      List : constant Constant_List := Create_List
+        (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID);
+   begin
+      for N of List loop
+         declare
+            Decl : constant Valid_Node_Access := Tree.Child (N, 1);
+         begin
+            if Value = Decl_Value (Decl) then
+               return Decl;
+            end if;
+         end;
+      end loop;
+      return Invalid_Node_Access;
+   end Find_Declaration_By_Value;
+
    procedure Validate_Node
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
@@ -1670,7 +1710,7 @@ package body WisiToken_Grammar_Editing is
          Element_Content   : in String)
         return Node_Access
       with Pre => Element_Content'Length > 0
-      --  Return True if the declaration at N is a nonterminal for a
+      --  Return the name node if the declaration N is a nonterminal for a
       --  canonical list matching Separator_Content, Element_Content,
       --  possibly optimized.
       is
