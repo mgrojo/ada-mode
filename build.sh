@@ -15,6 +15,9 @@ if type alr; then
     alr get emacs_ada_mode~8.0.2
     cd emacs_ada_mode_*; alr build --release
 
+    # WORKAROUND: this should be in alire_rules.make
+    mv ada_annex_p_lr1_parse_table.txt bin
+    
 elif type gprbuild; then
     echo "building ada-mode executables via gnat compiler"
     

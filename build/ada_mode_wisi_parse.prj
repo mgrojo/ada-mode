@@ -4,7 +4,7 @@ gpr_project_path=$WISITOKEN/build
 gpr_project_path=$SAL/build
 gpr_project_path=../../org.stephe_leake.makerules
 
---  for building dump_*_ada_lite*
+--  for building wisi test
 gpr_project_path=../../org.stephe_leake.aunit_ext/build
 
 gpr_file=ada_mode_wisi_parse.gpr

@@ -6,7 +6,7 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 8.0.1
+;; Version: 8.0.2
 ;; package-requires: ((uniquify-files "1.0.1") (wisi "4.1.1") (gnat-compiler "1.0.0") (emacs "25.3"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
@@ -117,7 +117,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "8.0.1"))
+  (let ((version-string "8.0.2"))
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
@@ -1717,7 +1717,7 @@ Unless WAIT, does not wait for parser to respond. Returns the parser object."
   ;; elsewhere before Ada files opened; start eglot in
   ;; wisi-select-prj.
   ;;
-  ;; In order to accomodate 1 and 2, we call ada-eglot-setup and wisi-setup in
+  ;; In order to accommodate 1 and 2, we call ada-eglot-setup and wisi-setup in
   ;; ada-mode-post-local-vars.
   (add-hook 'hack-local-variables-hook #'ada-mode-post-local-vars nil t)
   )

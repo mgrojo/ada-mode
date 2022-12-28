@@ -4,7 +4,7 @@
 # variable, that is set in the project files loaded in the file local
 # variables below.
 
-export ADA_MODE_VERSION       := 8.0.1
+export ADA_MODE_VERSION       := 8.0.2
 export ADA_REF_MAN_VERSION    := 2012.5
 
 TEST_DIR ?= source
@@ -372,7 +372,7 @@ pub-ada : force | $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.el ../*.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	cp ../build.sh ../install.sh ../ada_mode_wisi_parse.gpr $(ELPA_ROOT)/packages/ada-mode/
 	cp ../*.make $(ELPA_ROOT)/packages/ada-mode/
-	cp ../ada_mode.prj ada-mode.casing ../prj.el $(ELPA_ROOT)/packages/ada-mode/
+	cp ../ada_mode.prj ../ada-mode.casing ../prj.el $(ELPA_ROOT)/packages/ada-mode/
 	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../*.wy ../ada*.ad? ../run_ada*.ad? ../wisi-ada*.ad? $(ELPA_ROOT)/packages/ada-mode
@@ -409,7 +409,7 @@ pub-ada-ref-man : force
 # check/<pkg> first if added files.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
-	make -C $(ELPA_ROOT)/ build/ada-mode build/wisi
+	make -C $(ELPA_ROOT)/ build/wisi build/gnat-compiler build/ada-mode
 
 uninstall-elpa :
 	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
