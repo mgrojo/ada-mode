@@ -85,6 +85,14 @@ slower to load on first use, but gives better error recovery."
   ;; LSP does not support this; need full access to the syntax tree.
   :options '(none wisi other))
 
+(defcustom ada-eglot-gpr-file nil
+  "Specify a gpr file to use, when not using a wisi project.
+If the file requires setting GPR_PROJECT_PATH, use a wisi project
+or set it globally."
+  :type 'string
+  :safe (lambda (val) (or (null val) (stringp val)))
+  :group 'ada-mode)
+
 (defconst ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"
   "Regexp matching Ada operator_symbol.")
