@@ -122,23 +122,6 @@ source-clean :
 recursive-clean : force
 	gprclean -r -P wisitoken_grammar.gpr
 
-### tar, gzip stuff
-
-BRANCH := $(notdir $(shell cd ..; pwd))
-
-ifeq ($(BRANCH),org.wisitoken.grammar)
-  TAR_FILE := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_MODE_VERSION).tar.gz
-  TAR_DIR := .
-  TAR_PAT := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_MODE_VERSION)
-else
-  TAR_FILE := $(BRANCH).tar.gz
-  TAR_DIR := .
-  TAR_PAT := $(BRANCH)
-endif
-
-zip :
-	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" -C $(TAR_DIR) $(TAR_PAT)
-
 ### ELPA stuff
 ELPA_ROOT ?= $(shell cd ../elpa; pwd)
 ELPA_WGM := $(ELPA_ROOT)/packages/wisitoken-grammar-mode
