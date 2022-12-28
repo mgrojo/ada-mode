@@ -27,4 +27,8 @@ project Ada_Mode is
       for Switches ("find_file.ads") use ("-gnat2012", "-gnaty0");
       for Switches ("named_block.adb") use ("-gnat2012", "-gnaty0");
    end Compiler;
+
+   package Pretty_Printer is
+      for Default_Switches ("Ada") use ("--source-line-breaks", "--dictionary=case-exceptions-gpr");
+   end Pretty_Printer;
 end Ada_Mode;

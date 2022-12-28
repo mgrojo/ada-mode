@@ -28,3 +28,6 @@ package body Ada_Mode.Find_File is
    end P_Bug;
 
 end Ada_Mode.Find_File;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

@@ -175,3 +175,6 @@ package body Ada_Mode.Nested_Packages is
    --EMACSCMD:(test-face "Ada_Mode" font-lock-function-name-face)
    --EMACSCMD:(test-face "Nested_Packages" font-lock-function-name-face)
 end Ada_Mode.Nested_Packages;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

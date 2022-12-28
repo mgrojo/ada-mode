@@ -97,3 +97,6 @@ package body Ada_Mode.Nominal.Child is -- target 0
      is (1, 1.0, False, 2);
 
 end Ada_Mode.Nominal.Child;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

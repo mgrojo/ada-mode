@@ -175,3 +175,6 @@ private
    end record;
 
 end Ada_Mode.Nominal.Child;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

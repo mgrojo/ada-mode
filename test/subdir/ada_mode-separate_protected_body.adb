@@ -27,4 +27,5 @@ is
 end SEPARATE_PROTECTED_BODY;
 -- Local Variables:
 -- ada-case-identifier: upper-case
+-- ada-eglot-test-gpr: nil
 -- End:

@@ -3,13 +3,12 @@ General notes on Emacs Ada mode
 build/Makefile   wisi
 Alire.make       Alire
 ELPA.make        elpa
-(load-file "build/prj-eglot.el")
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
-o.e.a.stephe-4 (o.s_l.sal.s-1 o.w.s-1 o.e.w.s-4): run tests with devel versions of eglot, ada_language_server
+o.e.a.stephe-4 (): available
 o.e.a.stephe-5 (?): libadalang backend; dead
 o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead
 o.e.a.stephe-7 (): available
@@ -58,6 +57,9 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+create emacs issue for eglot semantic_tokens
+    announce i'm working on it
+
 build ada-mode with stephe-patches alire index
     cd ~/.emacs.d/elpa/ada-mode-8*
     ./build.sh
@@ -95,33 +97,47 @@ testing ada-eglot
         eglot-signal-didChangeConfiguration called from eglot-connect-hook
             calls jsonrpc-notify; does not call jsonrpc-connection-ready-p
 
-        which is called from eglot--connect :success-fn
-        which is delayed, so didOpen runs first.
+create emacs issue for eglot range end < begin
 
-        use jsonrpc-request (not -async) in eglot--connect
-            have to translate :error-fn, :success-fn into direct calls; complicated
+ada-mode.texi "may want to customize"
+    add eglot-stay-out-of imenu
+        really slow - times out on open new buffers
+        need ada-imenu-backend?
 
-    error: test/ada_mode-interactive_01.adb
-        indent errors
+    use custom-set-variables, not setq
 
+testing ada-eglot
+    test-ada-eglot.stamp
+        global custom ada-eglot-gpr-file doesn't work
+            can't set custom vars via local variables?
 
+    test/ada_mode-child_procedure.adb
+        bogus indent/edit of trailing comments
+        /Projects/ada_language_server-23.1-patch/alire.make
+        /Projects/ada_language_server-23.1-patch/testsuite/.als/inout.txt
+        /Projects/ada_language_server-23.1-patch/testsuite/ada_lsp/range_formatting_03
+        duplicates; run in debugger
 
+        there is an extra edit on lsp line 7 = emacs line 8, which inserts 2 spaces.
+        in pp-actions.adb Format_Vector
+        in pp-actions.adb Tree_To_Ada
+        tree_to_Ada_2.Convert_Tree_to_Ada
+        emacs line 8 is token #27 Other_Whole_Line_Comment
+            not listed in Templates (not a syntax token kind)
+        comments are trailing stuff after SubpBody
+        there is a template for Ada_Subp_Body
+            doc of template symbols is in comment at 'type Str_Template'
+            it's followed by ';', a literal in Ada_Declarative_Part template
+            which is followed by $, a hard line break
 
-        formats more than the requested range;
-            eglot should throw that out? or ada-mode should
+            gnatpp -d9 dumps tree
+                comments shown in Src_Tokens following tree
 
     because wisi prj is global, uses one eglot instance for all files
-        which is wrong for als
+        which is wrong for als amd gpr_query
         do something with eglot-lsp-context; eglot--current-project let-binds that to t
         (if eglot-lsp-context
             (member default-directory (wisi-prj-source-dirs wisi-prj--current))
-
-    eglot outputs messages when indenting; don't do that!
-        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=59149
-
-    eglot using wrong instance in test/ada_mode-interactive_01.adb
-        Ada_Mode not highlighted as package name, because ada_mode.ads not found in project
-            but also no errors shown!? should be lots
 
         should check file in (project-files (eglot-project server))
         do that in eglot or in ada-eglot-setup?
@@ -131,14 +147,29 @@ testing ada-eglot
                 two active projects, check for dominating file or project-files
                 wisi-add-project
 
-    changed ada-eglot-*-gpr; update test stuff
 
-    semantic token highlights positions out of sync after edit
+    eglot outputs messages when indenting; don't do that!
+        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=59149
+
 
     hover/signature info too much
         set eldoc/eglot vars to limit height
         mention in ada-mode.texi "may want to customize"
         eldoc-echo-area-use-multiline-p 5
+
+elpa build failing
+    only for release packages; not critical
+    don't fix unless get more emails
+
+fix alr bug
+    /Projects/ada_language_server-23.1-patch/alire.make
+    runs post-fetch actions at build time
+
+eglot startup from ada-mode-hook
+    bug#59556
+
+    use jsonrpc-request (not -async) in eglot--connect
+        have to translate :error-fn, :success-fn into direct calls; complicated
 
 Eglot-shutdown turn off ada minor modes
 
@@ -1461,7 +1492,7 @@ run als tests:
 to run als in debugger, driven by tester:
 # $ cd .../ada_language_server/testsuite
 # $ export ALS=../.obj/server/ada_language_server
-# $ ../.obj/tester/tester-run --debug ada_lsp/debug_semantic_tokens/test.json
+# $ ../.obj/tester/tester-run --debug ada_lsp/<test>/test.json
 # that starts als; find its PID with:
 # $ ps -x | grep ada_language_server
 # M-x gud-gdb /Projects/gnat/pro-23.0w-20220523/bin/gdb --fullname /Projects/ada_language_server/.obj/server/ada_language_server

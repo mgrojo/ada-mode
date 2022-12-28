@@ -20,3 +20,6 @@ package Ada_Mode is
 
    --  test optional name in 'end'
 end;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

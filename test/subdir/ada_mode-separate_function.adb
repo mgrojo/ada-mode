@@ -30,4 +30,5 @@ end separate_function;
 -- EMACSRESULT:t
 -- Local Variables:
 -- ada-auto-case: nil
+-- ada-eglot-test-gpr: nil
 -- End:

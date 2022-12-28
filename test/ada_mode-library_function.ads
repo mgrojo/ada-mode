@@ -6,3 +6,7 @@ function Ada_Mode.Library_Function return Integer; -- spec
 --EMACSRESULT_START:(cl-ecase ada-xref-backend (eglot (list "ada_mode-library_function.adb" "function Ada_Mode.Library_Function return Integer is")) (gpr_query (list "ada_mode-library_function.ads" "Library_Function function")) (gnat (list "ada_mode-library_function.ads" "Library_Function spec")))
 --EMACSRESULT_ADD:(cl-ecase ada-xref-backend (eglot nil) (gpr_query (list "ada_mode-library_function.adb" "Library_Function body"))(gnat (list "ada_mode-library_function.adb" "Library_Function body")))
 --EMACSRESULT_FINISH:
+
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

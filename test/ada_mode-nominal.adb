@@ -36,6 +36,7 @@ is -- target 0
    --EMACSCMD:(test-face "procedure" font-lock-keyword-face)
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
+   --EMACSCMD:(test-face "Record_1_Object_1" (cl-ecase ada-face-backend (eglot '(lsp-declaration lsp-readonly)) (wisi nil)))
    Record_1_Object_1 : constant Record_Type_1 :=
      (Component_1 |
         Component_2 => 1 +
