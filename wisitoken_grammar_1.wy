@@ -18,7 +18,7 @@
 ;;    https://github.com/antlr/grammars-v4/tree/master/java
 ;;
 ;;  - the Ada grammar given in the Ada Language Reference Manual Annex
-;;    P; see http://ada-auth.org/arm.html
+;;    P; see https://ada-auth.org/arm.html
 ;;
 ;;  This file uses only plain BNF syntax, to simplify working on the
 ;;  EBNF syntax.
@@ -41,7 +41,7 @@
 ;;  GNU General Public License for more details.
 ;;
 ;;  You should have received a copy of the GNU General Public License
-;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 }%
 
 %meta_syntax EBNF
