@@ -5,3 +5,6 @@ is
 begin
    null;
 end Ada_Mode.Child_Procedure;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

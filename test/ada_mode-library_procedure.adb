@@ -7,3 +7,6 @@ begin
       null;
    end;
 end Ada_Mode.Library_Procedure;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

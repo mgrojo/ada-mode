@@ -59,3 +59,6 @@ package Ada_Mode.Expression_Functions is
                                       X /= 0);
 
 end Ada_Mode.Expression_Functions;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

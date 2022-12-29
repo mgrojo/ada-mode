@@ -69,6 +69,7 @@ byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile autoloads
 	$(MAKE) -C $(GNAT_COMPILER) -f ELPA.make byte-compile autoloads
 	$(MAKE) -C $(GPR_QUERY) -f ELPA.make byte-compile autoloads
+#	$(MAKE) -C /Projects/eglot-stephe compile
 	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -L $(GNAT_COMPILER) -L $(GPR_QUERY) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
@@ -93,9 +94,10 @@ benchmark :
 # For running a test with ELPA build
 #ADA_MODE_DIR := -L c:/Projects/elpa_release/ada-mode -l c:/Projects/elpa_release/ada-mode/autoloads.el -L c:/Projects/elpa_release/wisi -l c:/Projects/elpa_release/wisi/autoloads.el -l exclude-elpa.el
 
-ONE_TEST_FILE ?= debug.adb
+ONE_TEST_FILE ?= ada_mode-child_procedure.adb
+one :: ELISP ?= (setq-default debug-on-error t save-parser-log (list (list "*EGLOT (_default_/(ada-mode)) events*" "/Projects/org.emacs.ada-mode/debug-1.log")))
 #one :: ELISP ?= (setq-default save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
-one :: ELISP ?= (setq-default gpr-query--debug t debug-on-error t)
+#one :: ELISP ?= (setq-default debug-on-error t)
 one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 #one :: build_executables
 #one :: byte-compile autoloads

@@ -17,3 +17,6 @@ package Ada_Mode.Find_File is
    --EMACSRESULT:t
 
 end Ada_Mode.Find_File;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

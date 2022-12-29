@@ -13,3 +13,6 @@ begin
       null;
    end;
 end Separate_Procedure;
+--Local Variables:
+--ada-eglot-test-gpr: nil
+--End:

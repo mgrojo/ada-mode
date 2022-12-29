@@ -10,3 +10,6 @@ package Ada_Mode.Spec is
    function Function_1 (I : in Integer) return Float;
 
 end Ada_Mode.Spec;
+--Local Variables:
+--ada-eglot-test-gpr: nil
+--End:

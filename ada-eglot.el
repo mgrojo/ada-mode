@@ -122,8 +122,7 @@
     (message "ada_language_server indexing ...")
     (while (not (eglot-ada-indexing-done server))
       ;; Update display for indexing progress; displayed by eglot's
-      ;; handle-notification from
-      ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=59149
+      ;; handle-notification
       (sit-for 0.1)
       (accept-process-output))
     (message "ada_language_server indexing ... done")

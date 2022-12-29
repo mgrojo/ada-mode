@@ -160,3 +160,7 @@ package Ada_Mode.Generic_Package is
 end Ada_Mode.Generic_Package;
 --EMACSCMD:(progn (end-of-line 0)(backward-char 1)(backward-sexp)(looking-back "^package Ada_Mode.Generic_Package "))
 --EMACSRESULT:(not (null wisi-parser-shared))
+
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

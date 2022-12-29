@@ -20,7 +20,7 @@
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
-(setq gnat-lsp-server-exec "/Projects/ada_language_server/.obj/server/ada_language_server")
+(setq gnat-lsp-server-exec "/Projects/ada_language_server-23.1-patch/.obj/server/ada_language_server")
 ;; (setq
 ;;  gnat-lsp-server-exec
 ;;  (concat

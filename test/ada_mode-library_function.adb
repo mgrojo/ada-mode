@@ -12,3 +12,6 @@ begin
    end;
    return 0;
 end Ada_Mode.Library_Function;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:

@@ -28,4 +28,5 @@ end Ada_Mode;
 -- Local Variables:
 -- ada-auto-case: t
 -- ada-xref-full-path: nil
+-- ada-eglot-gpr-file: nil
 -- End:

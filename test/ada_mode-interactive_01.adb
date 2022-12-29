@@ -9,11 +9,11 @@ procedure Ada_Mode.Interactive_01
 is
    -- For 'indent-line', do insert spaces on an empty line
    --EMACSCMD:(progn (forward-line 2)(indent-for-tab-command)(current-column))
-   --EMACSRESULT:3
+   --EMACSRESULT:(cl-ecase ada-indent-backend (eglot 0)(wisi 3))
 
    -- For 'indent-region', don't insert spaces on an empty line
-   --EMACSCMD:(progn (forward-line 2)(wisi-indent-statement)(current-column))
-   --EMACSRESULT:0
+   --EMACSCMD:(unless (eq ada-statement-backend 'none)  (forward-line 2)(wisi-indent-statement)(current-column))
+   --EMACSRESULT:(unless (eq ada-statement-backend 'none) 0)
 
    -- newline at start of comment; indent-according-to-mode is called
    -- with the comment text exposed if font-lock is invoked during the
@@ -51,7 +51,7 @@ is
    -- testing ada-make-subprogram-body. see ada_mode-nominal-child.adb for 'overriding'
 
    -- procedure, no parameters
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
+   --EMACSCMD:(unless (eq ada-statement-backend 'none) (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
    -- result verified by diff.
    procedure Proc_1
    is begin
@@ -59,7 +59,7 @@ is
    end Proc_1;
 
    -- procedure, parameters on one line
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
+   --EMACSCMD:(unless (eq ada-statement-backend 'none) (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
    -- result verified by diff
    procedure Proc_2 (A : in Integer)
    is begin
@@ -67,7 +67,7 @@ is
    end Proc_2;
 
    -- function, no parameters
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0"))
+   --EMACSCMD:(unless (eq ada-statement-backend 'none) (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0"))
    -- result verified by diff
    function Func_1 return Integer
    is begin
@@ -75,7 +75,7 @@ is
    end Func_1;
 
    -- function, parameters on separate line
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0"))
+   --EMACSCMD:(unless (eq ada-statement-backend 'none) (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0"))
    -- result verified by diff
    function Func_2
      (A : in Integer)
@@ -110,12 +110,12 @@ begin
       --EMACSRESULT:t
    end;
 
-   --EMACSCMD:(when wisi-parser-shared (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
+   --EMACSCMD:(unless (eq ada-statement-backend 'none) (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
    for File_Name in File_Names loop
    end loop;
-   --EMACSRESULT:(not (null wisi-parser-shared))
-   --EMACSCMD:(when wisi-parser-shared (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
-   --EMACSRESULT:(not (null wisi-parser-shared))
+   --EMACSRESULT:(not (eq ada-statement-backend 'none))
+   --EMACSCMD:(unless (eq ada-statement-backend 'none) (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
+   --EMACSRESULT:(not (eq ada-statement-backend 'none))
 
    -- Insert a comment after code; used to signal error.
    --EMACSCMD:(progn (end-of-line 2)(backward-delete-char 2)(comment-dwim nil)(looking-back "--$"))
@@ -130,12 +130,13 @@ begin
    --EMACSRESULT:34
 
    -- `comment-dwim' should not change the indentation of the next comment.
-   --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
+   -- WORKAROUND: ada_language_server 23 does it wrong
+   --EMACSCMD:(unless (eq ada-indent-backend 'eglot) (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
    E := (1,
          --  a comment
          2,
          -- another comment
          3);
-   --EMACSRESULT:9
+   --EMACSRESULT:(unless (eq ada-indent-backend 'eglot) 9)
 
 end Ada_Mode.Interactive_01;

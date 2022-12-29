@@ -112,3 +112,6 @@ begin
                  Integer'Image(N));
    end loop;
 end Ada_Mode.Slices;
+--Local Variables:
+--ada-eglot-gpr-file: nil
+--End:
