@@ -127,16 +127,17 @@ oneb :: one-clean
 oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 oneb :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
-two : RUN_ARGS ?= command_file debug.cmd
+#two : RUN_ARGS ?= command_file debug.cmd
 two : LOG_ARGS ?= > debug.log 2>&1
-#two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log
+two : RUN_ARGS ?= parse_partial none test/debug.adb --verbosity "debug=1 parse=2"
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	cd ../; bin/run_ada_lalr_parse.exe $(RUN_ARGS) $(LOG_ARGS)
 
-two-lr1 : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0"
+two-lr1 : LOG_ARGS ?= > debug-lr1.log 2>&1
+two-lr1 : RUN_ARGS ?= parse_partial none test/debug.adb --verbosity "debug=1 parse=2"
 two-lr1 : ../run_ada_lr1_parse.exe
-	cd ../; bin/run_ada_lr1_parse.exe $(RUN_ARGS)
+	cd ../; bin/run_ada_lr1_parse.exe $(RUN_ARGS) $(LOG_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -430,6 +431,7 @@ trace :
 
 build_executables : $(WISI)/wisi.gpr ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
+	cd ..; mv ada_annex_p_lr1_parse_table.txt bin
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse

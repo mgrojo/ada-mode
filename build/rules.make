@@ -33,15 +33,7 @@ test-elisp :
 
 ../run_ada_lr1_parse.exe : ../run_ada_lr1_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
-
-../run_ada_libadalang_parse.exe : ../run_ada_libadalang_parse.ads force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
-
-../run_ada_annex_p_lalr_parse.exe : ../run_ada_annex_p_lalr_parse.ads ../ada_annex_p_re2c.c force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
-
-../run_ada_annex_p_lr1_parse.exe : ../run_ada_annex_p_lr1_parse.ads ../ada_annex_p_re2c.c force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+	cd ..; if [ -f ada_annex_p_lr1_parse_table.txt ] ; then mv ada_annex_p_lr1_parse_table.txt bin ; fi
 
 elisp-clean :
 	rm -f ../*.output ../autoloads.el
@@ -141,7 +133,7 @@ profile-clean ::
 
 # delete all files created by wisitoken-bnf-generate for main programs
 generate-clean :
-	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-process.el *_parse_table.txt
+	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-process.el bin/*_parse_table.txt
 
 test-clean ::
 	rm -f *.diff *.tmp

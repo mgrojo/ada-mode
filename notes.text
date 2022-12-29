@@ -1606,6 +1606,7 @@ if package is not published, check https://elpa.gnu.org/devel/<package>-build-fa
 keep status in ~/projects.text
     dependency releases done below, after tests that test all of them.
 
+sync with Debian
 
 update benchmark_results.text
 
