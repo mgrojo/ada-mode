@@ -174,7 +174,7 @@ declaration
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT CONFLICT conflict_item_list ON TOKEN IDENTIFIER
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
-  | PERCENT CONFLICT_RESOLUTION conflict_item_list ON TOKEN IDENTIFIER
+  | PERCENT CONFLICT_RESOLUTION conflict_item_list ON TOKEN COLON IDENTIFIER
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
 
   ;; %start, %mckenzie*, etc.

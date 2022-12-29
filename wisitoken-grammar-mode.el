@@ -60,7 +60,7 @@
     ;; parser. Which means we also handle ?\" there, so:
     ;;   %token <punctuation> DOUBLE_QUOTE '"'
     ;; doesn't confuse syntax-ppss
-    (modify-syntax-entry ?\"  ".   " table) ;; default string quote
+    (modify-syntax-entry ?\"  ".   " table) ;; punctuation; default is string quote
 
     table))
 

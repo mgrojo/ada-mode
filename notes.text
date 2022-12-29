@@ -35,11 +35,6 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
-don't start parser in mmm-temp-buffer
-
-don't use mmm-mode?
-    indent in action preserve current
-
 try tree-sitter?
     has some support for disjoint text
 
