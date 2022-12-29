@@ -1441,7 +1441,11 @@ For `xref-backend-functions'."
   (let ((prj (project-current)))
     (when (and (wisi-prj-p prj)
 	       (wisi-prj-xref prj))
-      prj)))
+      (cond
+       ((eq (wisi-prj-xref prj) 'eglot)
+	'eglot)
+       (t prj))
+      )))
 
 ;;;; project-find-functions alternatives
 
