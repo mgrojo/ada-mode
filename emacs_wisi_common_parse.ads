@@ -67,6 +67,7 @@ package Emacs_Wisi_Common_Parse is
       Language_Protocol_Version : in String;
       Params                    : in Process_Start_Params;
       Factory                   : in WisiToken.Parse.Factory;
+      Free_Parser               : in WisiToken.Parse.Free_Parser;
       Trace                     : in WisiToken.Trace_Access);
 
    ----------
