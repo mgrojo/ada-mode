@@ -12,14 +12,13 @@
 (setq-default wisi-incremental-parse-enable nil)
 (setq-default wisi-process-time-out 60.0);; should not be this slow, but this allows better debugging
 
-(setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
+(setq ada-process-parse-exec (expand-file-name "bin/ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
 (message "creating parser ...")
 (let ((parser (ada-parse-require-process :wait t)))
   (wisi-parse-enable-memory-report parser)
   (wisi-parse-memory-report parser)) ;; 0
 (message "... done")
 
-(setq-default wisi-incremental-parse-enable nil)
 (find-file benchmark-source-file) ;; does not do initial parse, since incremental not enabled
 (wisi-parse-buffer 'indent) ; time with warm caches.
 (wisi-parse-memory-report wisi-parser-shared)

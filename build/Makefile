@@ -21,8 +21,7 @@ else ifeq ($(shell uname),Darwin)
 EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
 else
 # windows
-# specify uniscribe to workaround weird Windows harfbuzz bug
-EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+EMACS_EXE ?= emacs
 endif
 
 # compile with debug with default Standard_Common_Assertions to get
@@ -168,7 +167,7 @@ export ADA_PROJECT_PATH=../test/:../test/subdir
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -l ../autoloads.el -L $(WISI) -L $(GNAT_COMPILER) -l $(GNAT_COMPILER)/autoloads.el -L $(GPR_QUERY) -l $(GPR_QUERY)/autoloads.el -l exclude-elpa.el
+ADA_MODE_DIR := -L .. -l ../autoloads.el -L $(WISI) -l $(WISI)/autoloads.el -L $(GNAT_COMPILER) -l $(GNAT_COMPILER)/autoloads.el -L $(GPR_QUERY) -l $(GPR_QUERY)/autoloads.el -l exclude-elpa.el
 
 # ".exe", not $(EXE_EXT); wisitoken hard-codes .exe
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
