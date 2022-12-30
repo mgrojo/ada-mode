@@ -56,7 +56,7 @@ check for ELPA patches by others
     if changes, apply changes to current via ediff
 
 check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
     to update a bug: nnn@debbugs.gnu.org
         subject: from bug title, for people who rely on that.
     if fixed in devel sources, add 'pending' tag:
@@ -287,7 +287,7 @@ commit savannah
     edit commit message "release version i.j.k"
     C-c C-c
 
-    takes ~ 10 min for http://www.nongnu.org/gpr-mode/ to reflect cvs commit
+    takes ~ 10 min for https://www.nongnu.org/gpr-mode/ to reflect cvs commit
 
 publish Alire crate
 
@@ -305,7 +305,7 @@ This is the first release as a separate ELPA package; used to be
 bundled with ada-mode.
 
 See the NEWS file in ~/.emacs.d/elpa/gpr-mode-1.0.0
-or at http://www.nongnu.org/ada-mode/, for more details.
+or at https://www.nongnu.org/ada-mode/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation ('install.sh' is new in this release):
@@ -316,8 +316,8 @@ cd ~/.emacs.d/elpa/gpr-mode-1.0.0
 -------------------
 
 mark fixed bugs
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
-    http://debbugs.gnu.org/Developer.html
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
+    https://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
         subject: copy from bug report
         body: closed by gpr-mode version 7.2.1
