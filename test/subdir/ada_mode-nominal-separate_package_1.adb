@@ -50,6 +50,3 @@ begin
    Package_Local_1 := 3;
 
 end Separate_Package_1;
---Local Variables:
---ada-eglot-test-gpr: nil
---End:

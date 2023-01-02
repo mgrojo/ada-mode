@@ -58,6 +58,21 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+run all tests
+c:/Projects/org.emacs.ada-mode/test/ada_mode-recover_02.adb:5 tests passed 0
+partial parse:
+indenting
+wisi-indent-region 1 1367
+wisi: parse indent ada_mode-recover_02.adb:1 1367 1 ...
+run-test-here: error: nil indent for line 47
+
+incremental parse:
+wisi: post-parse indent ada_mode-interactive_04.adb:1 994 1 ...
+run-test-here: error: nil indent for line 20
+
+wisi: parse incremental indent ada_mode-recover_partial_18.ads:1 988 1 ...
+run-test-here: error: nil indent for line 17
+
 create emacs issue for eglot semantic_tokens
     announce i'm working on it
 
@@ -210,19 +225,6 @@ Add to elpa makefile and or elpa-admin:
      $ cd c:/Projects/elpa/
      $ git push
      $ git stash pop
-
- for full release
-bug in gnat version restriction; add 'or >=2021'
-    must fix in crate
-
-run wisitoken-bnf-generate for ada-mode takes 5.5 GB - too much for some machines
-    note memory requirement in .texi
-    delete multi-tasking
-    free stuff early?
-
-    post file on savannah, add note in savannah web page
-
-c:/Projects/org.wisitoken.grammar_mode/notes.text
 
  after full release
 
@@ -1611,9 +1613,6 @@ sync with Debian
 
 update benchmark_results.text
 
-add wisitoken grammar doc to wisi package
-    doc Ada grammar actions
-
 find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 drop emacs 26 - not tested? at least drop emacs 25
@@ -1666,7 +1665,7 @@ run all tests without elpa:
         gprbuild
 
 do other package releases:
-    ../org.stephe_leake.sal/release_process.text local, alire
+    ../org.stephe_leake.sal/notes.text local, alire
     ../org.wisitoken/build/release_process.text  local, alire
     ../org.emacs.wisi/notes.text                 elpa, alire
     ../org.emacs.gnat-compiler/notes.text        elpa, alire

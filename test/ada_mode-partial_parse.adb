@@ -140,5 +140,4 @@ begin
 end Ada_Mode.Partial_Parse;
 -- Local Variables:
 -- wisi-partial-parse-threshold: 0
--- wisi-disable-face: t
 -- End:

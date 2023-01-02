@@ -102,7 +102,7 @@ is -- target 0
       --EMACSCMD:(progn (beginning-of-line)(forward-line -12)(ada-which-function))
       --EMACSRESULT:(if wisi-parser-shared "Function_Access_11" "")
 
-      --EMACSCMD:(test-face "Function_Access_1" (cl-ecase ada-face-backend (eglot '(lsp-modification lsp-function)) (wisi font-lock-function-name-face)))
+      --EMACSCMD:(test-face "Function_Access_1" (cl-ecase ada-face-backend (eglot '(lsp-modification lsp-function)) (wisi nil)))
       return Function_Access_1'Access;
    end
      Function_Access_11;
@@ -129,7 +129,7 @@ is -- target 0
          is -- target 3
             --EMACSCMD:(test-face "exception" font-lock-keyword-face)
             Bad_Thing : exception;
-            --EMACSCMD:(test-face "Boolean" (cl-ecase ada-face-backend (eglot '(lsp-static lsp-defaultLibrary lsp-enum)) (wisi font-lock-type-face)))
+            --EMACSCMD:(test-face "Boolean" (cl-ecase ada-face-backend (eglot '(lsp-static lsp-defaultLibrary lsp-enum)) (wisi nil)))
             Dummy : Boolean;
             Dummy_2 : Boolean;
          begin
@@ -154,7 +154,7 @@ is -- target 0
                      --EMACSCMD:(when wisi-parser-shared (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                      --EMACSRESULT:(not (null wisi-parser-shared))
 
-                  --EMACSCMD:(test-face "Integer" (cl-ecase ada-face-backend (eglot '(lsp-static lsp-defaultLibrary lsp-type)) (wisi font-lock-type-face)))
+                  --EMACSCMD:(test-face "Integer" (cl-ecase ada-face-backend (eglot '(lsp-static lsp-defaultLibrary lsp-type)) (wisi nil)))
                   return Integer (Function_1a);
                   --EMACSCMD:(ada-which-function)
                   --EMACSRESULT:(if wisi-parser-shared "Local_Function" "")
@@ -294,7 +294,7 @@ is -- target 0
                      --EMACSRESULT:(not (null wisi-parser-shared))
       end; -- no F2 on purpose
 
-      --EMACSCMD:(test-face "E1" (cl-ecase ada-face-backend (eglot '(lsp-declaration lsp-function) (wisi font-lock-function-name-face)))
+      --EMACSCMD:(test-face "E1" (cl-ecase ada-face-backend (eglot '(lsp-declaration lsp-function)) (wisi font-lock-function-name-face)))
       --EMACSCMD:(progn (forward-line 5)(ada-which-function t))
       --EMACSRESULT:(if wisi-parser-shared "E1" "")
       --EMACSCMD:(when wisi-parser-shared (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "when Local_1"))
@@ -702,6 +702,7 @@ is -- target 0
          --EMACSCMD:(progn (forward-line 2)(forward-word 4)(forward-char 1)(insert "   ")(ada-align))
          Local_1 : Float     := 1.0e-36; -- comments after declarations
          Local_2 : Integer   := 2;       -- are aligned.
+         Local_3 : Character;
          Local_4 : String    :=
            "abc:" & ':' & "def";
          Local_5 : Character := Character'('a');

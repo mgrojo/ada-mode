@@ -92,7 +92,7 @@ is -- target 0
    --EMACSRESULT:(not (null wisi-parser-shared))
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Elaborate_Body" (cl-ecase ada-face-backend (eglot '()) (wisi when wisi-parser-shared font-lock-function-name-face))))
+   --EMACSCMD:(test-face "Elaborate_Body" (cl-ecase ada-face-backend (eglot '()) (wisi font-lock-function-name-face)))
    --EMACSCMD:(test-face "Ada_Mode" (cl-ecase ada-face-backend (eglot 'lsp-namespace) (wisi nil)))
    --EMACSCMD:(test-face "Nominal" (cl-ecase ada-face-backend (eglot 'lsp-namespace) (wisi nil)))
    pragma Elaborate_Body (Ada_Mode.Nominal);
@@ -342,7 +342,7 @@ is -- target 0
      Private_Type_7 is abstract tagged limited null record;
 
    --EMACSCMD:(test-face "new" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Private_Type_1" (cl-ecase ada-face-backend (eglot 'lsp-class) (wisi when (eq ada-face-backend 'eglot) font-lock-type-face))))
+   --EMACSCMD:(test-face "Private_Type_1" (cl-ecase ada-face-backend (eglot 'lsp-class) (wisi nil)))
    --EMACSCMD:(test-face "with" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "with" "private" font-lock-keyword-face)
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with private;
@@ -368,21 +368,21 @@ is -- target 0
    type Record_Type_1 is
       -- Comment after 'is' before 'record'
       record
-      --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
-      Component_1   : Integer := 1;
-      Component_2   : Integer := 2;
-      Component_356 : Float   := 3.0;
-      -- longer component name, shorter type name for align test
+         --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
+         Component_1   : Integer := 1;
+         Component_2   : Integer := 2;
+         Component_356 : Float   := 3.0;
+         -- longer component name, shorter type name for align test
       end record;
 
    --EMACSCMD:(test-face "Record_Type_1" (cl-ecase ada-face-backend (eglot 'lsp-struct) (wisi font-lock-type-face)))
    for Record_Type_1 use
       record
-      --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
-      Component_1   at 0 range  0 .. 31;
-      Component_2   at 0 range 32 .. 63;
-      Component_356 at 0 range 64 .. 95;
-      --  Comment before 'end'.
+         --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
+         Component_1   at 0 range  0 .. 31;
+         Component_2   at 0 range 32 .. 63;
+         Component_356 at 0 range 64 .. 95;
+         --  Comment before 'end'.
       end record;
    for Record_Type_1'Size
      use 32 * 3;
@@ -467,7 +467,7 @@ is -- target 0
      Decimal_Fixed_Point_7 is delta 0.10 digits 10;
 
    -- These are not signicantly different, so only one.
-   --EMACSCMD:(test-face "10" (cl-ecase ada-face-backend (eglot nil) (wisi when wisi-parser-shared font-lock-constant-face))))
+   --EMACSCMD:(test-face "10" (cl-ecase ada-face-backend (eglot nil) (wisi font-lock-constant-face)))
    --EMACSCMD:(test-face "1.00e-6" (cl-ecase ada-face-backend (eglot nil) (wisi font-lock-constant-face))) ;; does not include '-'
    --EMACSCMD:(test-face "16#AF.42" (cl-ecase ada-face-backend (eglot nil) (wisi font-lock-constant-face)))
    type Floating_Point is digits 10 range -1.00e-6 .. 16#AF.42#;
@@ -575,17 +575,17 @@ is -- target 0
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:(if wisi-parser-shared "Protected_Buffer" "")
 
- --EMACSCMD:(test-face "Character" (cl-ecase ada-face-backend (eglot '(lsp-defaultLibrary lsp-static lsp-enum)) (wisi font-lock-type-face)))
- --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
-entry Read (C  : out Character);
- --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
- entry Write (C : in Character);
+      --EMACSCMD:(test-face "Character" (cl-ecase ada-face-backend (eglot '(lsp-defaultLibrary lsp-static lsp-enum)) (wisi font-lock-type-face)))
+      --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
+      entry Read (C : out Character);
+      --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
+      entry Write (C : in Character);
    private
-   --EMACSCMD:(progn (forward-line 2)(ada-align))
-   -- align section does _not_ include entries above 'private'. result tested by diff
-   Pool                : String(1 .. 100);
-   Count               : Natural  := 0;
-   In_Index, Out_Index : Positive := 1;
+      --EMACSCMD:(progn (forward-line 2)(ada-align))
+      -- align section does _not_ include entries above 'private'. result tested by diff
+      Pool                : String(1 .. 100);
+      Count               : Natural  := 0;
+      In_Index, Out_Index : Positive := 1;
    end Protected_Buffer;
 
    ----------

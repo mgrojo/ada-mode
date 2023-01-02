@@ -1875,7 +1875,7 @@ package body Ada_Mode.Recover_Partial_28 is
 
                   procedure Check_Scan_End (Token : in Lexer.Token)
                   with Pre => Tree.Lexer.Is_Block_Delimited (Token.ID)
-                    --  Token is modified; check if the start or end delimiter is deleted or modified.
+                  --  Token is modified; check if the start or end delimiter is deleted or modified.
                   is
                   begin
                      Check_Scan_End
@@ -1890,7 +1890,7 @@ package body Ada_Mode.Recover_Partial_28 is
 
                   procedure Check_Scan_End (Node : in Valid_Node_Access)
                   with Pre => Tree.Lexer.Is_Block_Delimited (Tree.ID (Node))
-                    --  Check if the start delimiter is deleted.
+                  --  Check if the start delimiter is deleted.
                   is
                      ID          : constant Token_ID      := Tree.ID (Node);
                      Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node, Trailing_Non_Grammar => False);
@@ -2277,16 +2277,16 @@ package body Ada_Mode.Recover_Partial_28 is
 
                procedure Check_Scan_End (Token : in Lexer.Token)
                with Pre => Tree.Lexer.Is_Block_Delimited (Token.ID)
-                 --  Check if Inserted_Region inserts an end delimiter in Token,
-                 --  exposing the rest of Token as code.
+               --  Check if Inserted_Region inserts an end delimiter in Token,
+               --  exposing the rest of Token as code.
                is begin
                   Check_Scan_End (Token.ID, Token.Byte_Region);
                end Check_Scan_End;
 
                procedure Check_Scan_End (Node : in Valid_Node_Access)
                with Pre => Tree.Lexer.Is_Block_Delimited (Tree.ID (Node))
-                 --  Check if Inserted_Region inserts an end delimiter in Node,
-                 --  exposing the rest of Node as code.
+               --  Check if Inserted_Region inserts an end delimiter in Node,
+               --  exposing the rest of Node as code.
                is begin
                   Check_Scan_End (Tree.ID (Node), Tree.Byte_Region (Node, Trailing_Non_Grammar => False));
                end Check_Scan_End;

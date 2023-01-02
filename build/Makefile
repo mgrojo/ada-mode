@@ -38,7 +38,7 @@ pub : pub-ada
 # (dvc-state-multiple "c:/Projects/elpa/packages")
 pub-install: build-elpa install-elpa
 
-docs : info html
+docs : ada-mode.info ada-mode.html
 
 recover-compare : wisitoken-ada-recover-compare.stamp
 recover-compare : libadalang-recover-compare.stamp
@@ -355,12 +355,6 @@ elpa-archive-zip : ada-mode-elpa-archive-$(DATE).tar.bz2
 ada-mode-elpa-archive-$(DATE).tar.bz2 : $(ELPA_ROOT)/archive/packages/archive-contents
 	tar -c -C $(ELPA_ROOT) archive/packages | bzip2 -9 > ada-mode-elpa-archive-$(DATE).tar.bz2
 
-MANUALS := ada-mode
-
-INFO_FILES := $(addsuffix .info, $(MANUALS))
-info : $(INFO_FILES)
-html : $(addsuffix .html, $(MANUALS))
-
 VPATH := ..
 
 ### Publish Gnu ELPA packages
@@ -430,7 +424,7 @@ trace :
 
 build_executables : $(WISI)/wisi.gpr ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
-	cd ..; mv ada_annex_p_lr1_parse_table.txt bin
+	cd ..; if [ -f ada_annex_p_lr1_parse_table.txt ] ; then mv ada_annex_p_lr1_parse_table.txt bin ; fi
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse

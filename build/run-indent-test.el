@@ -10,7 +10,8 @@
 (defun switch-to-lr1 ()
   (setq ada-process-parse-exec (expand-file-name "bin/ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
-  (ada-mode))
+  (ada-mode)
+  (wisi-wait-parser))
 
 (defun test-moom (search-string refactor-string)
   "Refactor method (object ...) to object.method (...)"

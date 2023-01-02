@@ -72,6 +72,7 @@ Installation
 
 Customizing Ada mode
 
+* Ada with eglot::
 * Slow response::
 * Non-standard file names::
 * Other compiler::
@@ -288,6 +289,14 @@ By default, @file{install.sh} installs the parser executable in
 These scripts default to use Alire (@url{https://alire.ada.dev/}) if
 it is found on @code{PATH}; otherwise they use @code{gprbuild}.
 
+One step in build.sh is to run @code{wisitoken-bnf-generate} to
+generate the LR1 parse table for the parser. This can take up to 5.4GB
+of memory; if your machine does not have that much, you can download
+the @file{ada_annex_p_lr1_parse_table.txt} from
+@url{https://download.savannah.nongnu.org/releases/ada-mode/} - be
+sure to get the version that matches ada-mode, and put it in the same
+directory as @file{ada_mode_wisi_lr1_parse}.
+
 @node Known versions
 @section Known versions
 Here we list GNAT compiler versions that are known to work or not work
@@ -485,6 +494,7 @@ first.
 @end example
 
 @menu
+* Ada with eglot::
 * Slow response::
 * Non-standard file names::
 * Other compiler::

@@ -57,6 +57,3 @@ begin
    end if;
 
 end Separate_Task_Body;
---Local Variables:
---ada-eglot-test-gpr: nil
---End:
