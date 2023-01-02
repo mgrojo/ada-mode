@@ -35,7 +35,7 @@ Makefile
     alire-build
 
 source/sal.html
-    "Current version: i.j"
+    "Current version: i.j.k"
     doc version
     # review git log since last release date
     $ git log --since "dd mmm yyyy" > release.log
@@ -44,15 +44,11 @@ bump version
     build/Makefile
         ZIP_VERSION
 
-    ~/Web/Makefile
-        SAL_ZIP_VERSION
-
     source/sal.adb
         Version
 
     alire.toml
         Version
-
 
 # dvc-state-multiple above
 

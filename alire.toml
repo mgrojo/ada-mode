@@ -1,7 +1,7 @@
 name = "stephes_ada_library"
 description = "Stephe's Ada library; miscellaneous useful stuff."
 tags = ["containers", "trees"]
-version = "3.7.1"
+version = "3.7.2"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -15,4 +15,4 @@ project-files = ["build/stephes_ada_library.gpr"]
 [[depends-on]]
 # We use Ada 2022 syntax, so need the -gnat2020 or -gnat2022 switch;
 # introduced in gnat FSF 11 has -gnat2020, gnat FSF 12 has both.
-gnat = ">=11 & <2000"
+gnat = "(>=11 & <2000) | >=2021"

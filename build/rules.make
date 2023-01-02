@@ -34,6 +34,6 @@ profile-clean ::
 
 prove-clean :
 	rm -rf gnatprove
-	rm -rf obj/gnatprove
+	rm -rf devel_obj/gnatprove
 
 # end of file
