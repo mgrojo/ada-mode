@@ -1181,10 +1181,10 @@ Source buffer is current."
     ;; The parser process has not finished starting up, or has not yet
     ;; been started. If this is the very first Ada file in the current
     ;; project, and there is more text in the file than the process
-    ;; send buffer holds, w-p-p--send-* hangs waiting for the process
+    ;; send buffer holds, w-p-p--send-* waits for the process
     ;; to start reading, which is after it loads the parse table,
     ;; which can take noticeable time for Ada.
-    (message "waiting for wisi parser %s in buffer %s ..."
+    (message "waiting for wisi parser %s start in buffer %s ..."
 	     (wisi-process--parser-label parser)
 	     (current-buffer)))
   (wisi-process-parse--prepare parser parse-action :nowait nowait)
