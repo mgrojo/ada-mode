@@ -30,7 +30,7 @@ all : byte-compile-clean update test-clean test docs
 pub : pub-gpr
 pub-install: build-elpa install-elpa
 
-docs : info html
+docs : gpr-mode.info gpr-mode.html
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
