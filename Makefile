@@ -42,7 +42,7 @@ two :: build_executables
 	./run_wisitoken_grammar_parse.exe $(RUN_ARGS)
 
 %.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf --task_count 1 $(<F)
+	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
