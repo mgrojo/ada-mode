@@ -865,6 +865,9 @@ package body WisiToken.BNF.Generate_Utils is
                  (Error_Message
                     (Source_File_Name, Item.Source_Line, Ada.Exceptions.Exception_Message (E)));
             end if;
+
+         when SAL.Duplicate_Key =>
+            Put_Error (Error_Message (Source_File_Name, Item.Source_Line, "duplicate conflict"));
          end;
       end loop;
       return Result;

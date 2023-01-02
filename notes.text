@@ -32,8 +32,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+translate %conflict_resolution to precedences
+    https://github.com/tree-sitter/tree-sitter/pull/939
+
 restore tree-sitter output
-    use to generate equivalent of https://github.com/briot/tree-sitter-ada
+    use to generate equivalent of  https://github.com/briot/tree-sitter-ada
     test/bnf/ada_full.wy
 
     t_bnf_one compares .js
@@ -41,25 +44,60 @@ restore tree-sitter output
         ada_full generates ada_full.js
             edit ada_full.js_good to match wisi generator order, briot changes
 
-        stack overflow
-            force split/optimize compilation_unit list
-                repeat until max depth < ?
 
     notes for briot:
         see tick
         basic_declaration missing abstract_subprogram_declaration
         name_not_function_call does not reduce conflicts?
         name_for_constraint does?
+        array_type_definition expanded for actions
+        missing ".all"?
+        slice: why do we care if Proc (Arr (1 .. 2)); is parsed as slice, subtype_indeciation instead of function_call, slice?
+            we are not building a compiler
+                (there we go presuming the application again. sigh).
 
+        record_component_association_list
+            enforces "if first is named, all must be named"
+            but not "after first named, all following must be named"
+            not worth it
+
+        why do we need prec in selected_component, name_list, raise_expression?
+
+    briot says "extension_aggregate allows (parent with value)"
+        if extension is a single component?
+
+    direct_name allows string_literal in many places where it makes no sense
+        which is why -briot.js doesn't use it
+        write bug report for ada RM (on github; ada rapporteur group)
+            write example program using all of these, compile with gnat
+        name: string_literal ok
+        selector_name: string_literal ok
+        statement_identifier: not ok
+        local_name: ?
+        at_clause: not ok
+
+    discriminant_specification_list has prec.right
+        specifies conflict resolution?
+        => %conflict_resolution ?
+        no conflict on discriminant_specification_list in ada_full.wy
 
     add label in .wy => field
         subtype_indication, object_declaration, etc
 
 
-    use repeat for canonical list
+    use repeat for canonical list?
         compilation, defining_identifier_list, etc.
+        find out how tree-sitter handles that for LR table generation
 
     add a test driver that runs the tree_sitter parser
+
+need parse js => output js in ada_full order to compare -briot.js to ada_full.wy
+    javascript_simple.wy
+        then can tell briot what I changed
+        https://github.com/tree-sitter/tree-sitter-javascript/blob/master/grammar.js
+        that also allows using any tree-sitter grammar directly
+            except it requires javascript interpreter to run embedded functions. sigh.
+            or require define Ada equivalents.
 
 add support in wisi Ada for named fields; wisitoken_grammar declaration.kind
 

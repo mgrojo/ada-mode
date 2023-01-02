@@ -609,7 +609,9 @@ package body WisiToken.Generate.Tree_Sitter is
                   Find_Nodes (Tree.Child (Node, 2));
 
                when IDENTIFIER_ID =>
-                  if To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) = STAR_ID then
+                  if Name = Get_Text (Tree.Child (Node, 1)) and
+                    To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) = STAR_ID
+                  then
                      Generate.Put_Error
                        (Tree.Error_Message (Node, "'" & Name & "' is both optional and possibly empty."));
                   end if;
@@ -1105,7 +1107,7 @@ package body WisiToken.Generate.Tree_Sitter is
             end if;
 
             Put_RHS_List (Children (1), First => False);
-            Put (",");
+            Put (", ");
             Put_RHS (Children (3));
 
             if First then
@@ -1138,19 +1140,7 @@ package body WisiToken.Generate.Tree_Sitter is
             Process_Node (Tree.Child (Node, 1));
 
          when compilation_unit_list_ID =>
-            declare
-               Children : constant Node_Access_Array := Tree.Children (Node);
-            begin
-               case To_Token_Enum (Tree.ID (Children (1))) is
-               when compilation_unit_list_ID =>
-                  Process_Node (Children (1));
-                  Process_Node (Children (2));
-               when compilation_unit_ID =>
-                  Process_Node (Children (1));
-               when others =>
-                  raise SAL.Programmer_Error;
-               end case;
-            end;
+            raise SAL.Programmer_Error;
 
          when declaration_ID =>
             case To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) is
@@ -1379,7 +1369,23 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
          end if;
 
-         Process_Node (Tree.Root);
+         --  A grammar typically consists of a large number of
+         --  compilation_units, each one fairly short. Process_Node is
+         --  recursive; if we use that to process the compilation_Units, it can
+         --  overflow the stack (it did for ada_full.wy). So we handle the
+         --  compilation_Units as a list here, and use recursion for the
+         --  declarations and nonterms.
+         declare
+            use Syntax_Trees.LR_Utils;
+            Compilation_Unit_List : constant Constant_List := Creators.Create_List
+              (Tree, Tree.Find_Descendant (Tree.Root, +compilation_unit_list_ID),
+               +compilation_unit_list_ID, +compilation_unit_ID);
+         begin
+            for Unit of Compilation_Unit_List loop
+               Process_Node (Unit);
+            end loop;
+         end;
+
          Put ("  }");
          Indent := @ - 3;
 

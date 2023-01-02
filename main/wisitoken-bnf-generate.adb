@@ -529,6 +529,18 @@ begin
                   Close (Parse_Table_File);
                end Parse_Table_Append_Stats;
 
+               function To_McKenzie return WisiToken.Parse.LR.McKenzie_Param_Type
+               is begin
+                  return Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover);
+               exception
+               when E : Not_Found =>
+                     WisiToken.Generate.Put_Error
+                       (WisiToken.Generate.Error_Message
+                          (Grammar_Parser.Tree.Lexer.File_Name, 1,
+                        "In some %mckenzie_*; " & Ada.Exceptions.Exception_Message (E)));
+                  return WisiToken.Parse.LR.Default_McKenzie_Param;
+               end To_McKenzie;
+
             begin
                if not Lexer_Done (Input_Data.User_Lexer) then
                   Lexer_Done (Input_Data.User_Lexer) := True;
@@ -562,7 +574,7 @@ begin
                         Grammar_Parser.Tree.Lexer.File_Name,
                         Input_Data.Language_Params.Error_Recover,
                         Generate_Data.Conflicts,
-                        Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                        To_McKenzie,
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
                         Include_Extra         => Test_Main,
@@ -604,7 +616,7 @@ begin
                         Grammar_Parser.Tree.Lexer.File_Name,
                         Input_Data.Language_Params.Error_Recover,
                         Generate_Data.Conflicts,
-                        Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                        To_McKenzie,
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
                         Include_Extra         => Test_Main,

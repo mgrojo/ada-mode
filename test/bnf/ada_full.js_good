@@ -8,7 +8,7 @@ module.exports = grammar({
    name: 'Ada_Full',
 
    rules: {
-      compilation: $ => choice($.compilation_unit,seq($.compilation, $.compilation_unit)),
+      compilation: $ => choice($.compilation_unit, seq($.compilation, $.compilation_unit)),
 
       ABORT: $ => reserved('abort'),
 
@@ -218,7 +218,7 @@ module.exports = grammar({
 
       TICK_2: $ => /"'"*(?!"('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'")/u,
 
-      tick: $ => choice($.TICK_1,$.TICK_2),
+      tick: $ => choice($.TICK_1, $.TICK_2),
 
       NUMERIC_LITERAL: $ => /([0-9])|([0-9_]+([.][0-9]+)?([eE][0-9_-]+)?)|([0-9]+"#"[0-9a-fA-F._-]+"#")/u,
 
@@ -248,100 +248,227 @@ module.exports = grammar({
 
       CHARACTER_LITERAL: $ => /"'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'"/u,
 
-      conditional_quantified_expression: $ => choice($.if_expression,$.case_expression,$.quantified_expression),
+      conditional_quantified_expression: $ => choice($.if_expression, $.case_expression, $.quantified_expression),
 
-      pragma_argument_association_list: $ => choice($.pragma_argument_association,seq($.pragma_argument_association_list, ',', $.pragma_argument_association)),
+      pragma_argument_association_list: $ => choice($.pragma_argument_association, seq($.pragma_argument_association_list, ',', $.pragma_argument_association)),
 
-      pragma_g: $ => choice(seq($.PRAGMA, $.IDENTIFIER, optional(seq('(', $.pragma_argument_association_list, ')')), ';'),seq($.PRAGMA, $.IDENTIFIER, optional(seq('(', $.conditional_quantified_expression, ')')), ';')),
+      pragma_g: $ => choice(seq($.PRAGMA, $.IDENTIFIER, optional(seq('(', $.pragma_argument_association_list, ')')), ';'), seq($.PRAGMA, $.IDENTIFIER, optional(seq('(', $.conditional_quantified_expression, ')')), ';')),
 
       pragma_argument_association: $ => seq(optional(seq($.aspect_mark, '=>')), $.expression),
 
-      basic_declaration: $ => choice($.type_declaration,$.subtype_declaration,$.object_declaration, $.number_declaration,$.subprogram_declaration,$.null_procedure_declaration,$.expression_function_declaration,$.package_declaration,$.renaming_declaration,$.exception_declaration,$.generic_declaration,$.generic_instantiation,),
+      basic_declaration: $ => choice($.type_declaration, $.subtype_declaration, $.object_declaration, $.number_declaration, $.subprogram_declaration, $.null_procedure_declaration, $.expression_function_declaration, $.package_declaration, $.renaming_declaration, $.exception_declaration, $.generic_declaration, $.generic_instantiation,),
       // missing abstract_subprogram_declaration
 
-      type_declaration: $ => choice($.full_type_declaration,$.incomplete_type_declaration,$.private_type_declaration,$.private_extension_declaration),
+      type_declaration: $ => choice($.full_type_declaration, $.incomplete_type_declaration, $.private_type_declaration, $.private_extension_declaration),
 
-      full_type_declaration: $ => choice(seq($.TYPE, $.IDENTIFIER, optional($.known_discriminant_part), $.IS, $.type_definition, optional($.aspect_specification), ';'),$.task_type_declaration,$.protected_type_declaration),
+      full_type_declaration: $ => choice(seq($.TYPE, $.IDENTIFIER, optional($.known_discriminant_part), $.IS, $.type_definition, optional($.aspect_specification), ';'), $.task_type_declaration, $.protected_type_declaration),
 
-      type_definition: $ => choice($.enumeration_type_definition,$.integer_type_definition,$.real_type_definition,$.array_type_definition,$.record_type_definition,$.access_type_definition,$.derived_type_definition,$.interface_type_definition),
+      type_definition: $ => choice($.enumeration_type_definition, $.integer_type_definition, $.real_type_definition, $.array_type_definition, $.record_type_definition, $.access_type_definition, $.derived_type_definition, $.interface_type_definition),
 
       subtype_declaration: $ => seq($.SUBTYPE, $.IDENTIFIER, $.IS, $.subtype_indication, optional($.aspect_specification), ';'),
 
-      subtype_indication: $ => seq(optional($.null_exclusion), $.name, optional($.constraint)),
+      subtype_indication: $ => seq(optional($.null_exclusion), $.name_not_function_call, optional($.constraint)),
 
-      constraint: $ => choice($.scalar_constraint,$.index_constraint,$.discriminant_constraint),
+      constraint: $ => choice($.scalar_constraint, $.index_constraint, $.discriminant_constraint),
 
-      scalar_constraint: $ => choice($.range_constraint,$.digits_constraint,$.delta_constraint),
+      scalar_constraint: $ => choice($.range_constraint, $.digits_constraint, $.delta_constraint),
 
-      assign_value: $ => seq(':=',$.expression),
+      assign_value: $ => seq(':=', $.expression),
 
-      object_declaration: $ => choice(seq(field('name',$.defining_identifier_list),':',optional(reserved('aliased')),optional(reserved('constant')),choice($.subtype_indication,$.access_definition,$.array_type_definition),optional($.assign_value),optional($.aspect_specification),';'),$.single_task_declaration,$.single_protected_declaration),
+      object_declaration: $ => choice(seq($.defining_identifier_list, ':', optional($.ALIASED), optional($.CONSTANT), choice($.subtype_indication, $.access_definition, $.array_type_definition), optional($.assign_value), optional($.aspect_specification), ';'), $.single_task_declaration, $.single_protected_declaration),
 
-      defining_identifier_list: $ => choice($.IDENTIFIER,seq($.defining_identifier_list,',',$.IDENTIFIER)),
+      defining_identifier_list: $ => choice($.IDENTIFIER, seq($.defining_identifier_list, ',', $.IDENTIFIER)),
 
-      number_declaration: $ => seq($.defining_identifier_list,':',reserved('constant'),$.assign_value,';'),
+      number_declaration: $ => seq($.defining_identifier_list, ':', $.CONSTANT, $.assign_value, ';'),
 
-      derived_type_definition: $ => seq(optional(reserved('abstract')),optional(reserved('limited')),reserved('new'),$.subtype_indication,optional(seq(optional(seq(reserved('and'),$.interface_list)),$.record_extension_part))),
+      derived_type_definition: $ => seq(optional($.ABSTRACT), optional($.LIMITED), $.NEW, $.subtype_indication, optional(seq(optional(seq($.AND, $.interface_list)), $.record_extension_part))),
+
+      range_constraint: $ => seq($.RANGE, $.range_g),
+
+      range_g: $ => choice(seq($.name, $.tick, $.range_attribute_designator), seq($.simple_expression, '..', $.simple_expression)),
+
+      enumeration_literal_list: $ => seq($.enumeration_literal_specification, repeat(seq(',', $.enumeration_literal_specification))),
+
+      enumeration_type_definition: $ => seq('(', $.enumeration_literal_list, ')'),
+
+      enumeration_literal_specification: $ => choice($.IDENTIFIER, $.CHARACTER_LITERAL),
+
+      integer_type_definition: $ => choice($.signed_integer_type_definition, $.modular_type_definition),
+
+      signed_integer_type_definition: $ => seq($.RANGE, $.simple_expression, '..', $.simple_expression),
+
+      modular_type_definition: $ => seq($.MOD, $.expression),
+
+      real_type_definition: $ => choice($.floating_point_definition, $.fixed_point_definition),
+
+      floating_point_definition: $ => seq($.DIGITS, $.expression, optional($.real_range_specification)),
+
+      real_range_specification: $ => seq($.RANGE, $.simple_expression, '..', $.simple_expression),
+
+      fixed_point_definition: $ => choice($.ordinary_fixed_point_definition, $.decimal_fixed_point_definition),
+
+      ordinary_fixed_point_definition: $ => seq($.DELTA, $.expression, $.real_range_specification),
+
+      decimal_fixed_point_definition: $ => seq($.DELTA, $.expression, $.DIGITS, $.expression, optional($.real_range_specification)),
+
+      digits_constraint: $ => seq($.DIGITS, $.simple_expression, optional($.range_constraint)),
+
+      array_type_definition: $ => choice(seq($.ARRAY, '(', $.index_subtype_definition_list, ')', $.OF, $.component_definition), seq($.ARRAY, '(', $.discrete_subtype_definition_list, ')', $.OF, $.component_definition)),
+
+      index_subtype_definition_list: $ => seq($.index_subtype_definition, repeat(seq(',', $.index_subtype_definition))),
+
+      index_subtype_definition: $ => seq($.name, $.RANGE, '<>'),
+
+      discrete_subtype_definition_list: $ => seq($.discrete_subtype_definition, repeat(seq(',', $.discrete_subtype_definition))),
+
+      discrete_subtype_definition: $ => choice($.subtype_indication, $.range_g),
+
+      component_definition: $ => choice(seq(optional($.ALIASED), $.subtype_indication), seq(optional($.ALIASED), $.access_definition)),
+
+      index_constraint: $ => seq('(', $.discrete_range, repeat(seq(',', $.discrete_range)), ')'),
+
+      discrete_range: $ => choice($.subtype_indication, $.range_g),
+
+      discriminant_part: $ => choice($.unknown_discriminant_part, $.known_discriminant_part),
+
+      unknown_discriminant_part: $ => seq('(', '<>', ')'),
+
+      discriminant_specification_list: $ => seq($.discriminant_specification, repeat(seq(';', $.discriminant_specification))),
+      // FIXME: -briot has prec.right
+
+      known_discriminant_part: $ => seq('(', $.discriminant_specification_list, ')'),
+
+      discriminant_specification: $ => choice(seq($.defining_identifier_list, ':', optional($.null_exclusion), $.name, optional($.assign_value)), seq($.defining_identifier_list, ':', $.access_definition, optional($.assign_value))),
+
+      discriminant_constraint: $ => choice($.parenthesized_expression, seq('(', $.discriminant_association, repeat(seq(',', $.discriminant_association)), ')')),
+
+      discriminant_association: $ => seq(optional(seq($.name_for_component_choice, repeat(seq('|', $.name_for_component_choice)), '=>')), $.expression),
+
+      record_type_definition: $ => seq(optional(seq(optional($.ABSTRACT), $.TAGGED)), optional($.LIMITED), $.record_definition),
+
+      record_definition: $ => choice(seq($.RECORD, $.component_list, $.END, $.RECORD, optional($.IDENTIFIER)), seq($.NULL, $.RECORD)),
+
+      component_list: $ => choice(seq($.component_item, repeat($.component_item)), seq(repeat($.component_item), $.variant_part), seq($.NULL, ';')),
+
+      component_item: $ => choice($.component_declaration, $.aspect_clause, $.pragma_g),
+
+      component_declaration: $ => seq($.defining_identifier_list, ':', $.component_definition, optional($.assign_value), optional($.aspect_specification), ';'),
+
+      variant_list: $ => choice($.variant, seq($.variant_list, $.variant)),
+
+      variant_part: $ => seq($.CASE, $.IDENTIFIER, $.IS, $.variant_list, $.END, $.CASE, ';'),
+
+      variant: $ => seq($.WHEN, $.discrete_choice_list, '=>', $.component_list),
+
+      discrete_choice_list: $ => choice($.discrete_choice, seq($.discrete_choice_list, '|', $.discrete_choice)),
+
+      discrete_choice: $ => choice($.expression, $.subtype_indication, $.range_g, $.OTHERS),
+
+      record_extension_part: $ => seq($.WITH, $.record_definition),
+
+      // missing abstract_subprogram_declaration
       
+      interface_type_definition: $ => seq(optional(choice($.LIMITED, $.TASK, $.PROTECTED, $.SYNCHRONIZED)), $.INTERFACE, optional(seq($.AND, $.interface_list))),
+
+      interface_list: $ => choice($.name, seq($.interface_list, $.AND, $.name)),
+
+      access_type_definition: $ => choice(seq(optional($.null_exclusion), $.access_to_object_definition), seq(optional($.null_exclusion), $.access_to_subprogram_definition)),
+
+      access_to_object_definition: $ => seq($.ACCESS, optional($.general_access_modifier), $.subtype_indication),
+
+      general_access_modifier: $ => choice($.ALL, $.CONSTANT),
+
+      access_to_subprogram_definition: $ => choice(seq($.ACCESS, optional($.PROTECTED), $.PROCEDURE, optional($.parameter_profile)), seq($.ACCESS, optional($.PROTECTED), $.FUNCTION, $.parameter_and_result_profile)),
+
+      null_exclusion: $ => seq($.NOT, $.NULL),
+
+      access_definition: $ => choice(seq(optional($.null_exclusion), $.ACCESS, optional($.CONSTANT), $.name), seq(optional($.null_exclusion), $.ACCESS, optional($.PROTECTED), $.PROCEDURE, optional($.parameter_profile)), seq(optional($.null_exclusion), $.ACCESS, optional($.PROTECTED), $.FUNCTION, $.parameter_and_result_profile)),
+
+      incomplete_type_declaration: $ => seq($.TYPE, $.IDENTIFIER, optional($.discriminant_part), optional(seq($.IS, $.TAGGED)), ';'),
+
+      declarative_item: $ => choice($.basic_declarative_item, $.proper_body, $.body_stub),
+
+      declarative_item_pragma: $ => choice($.declarative_item, $.pragma_g),
+
+      non_empty_declarative_part: $ => repeat1($.declarative_item_pragma),
+
+      basic_declarative_item: $ => choice($.basic_declaration, $.aspect_clause, $.use_clause),
+
+      proper_body: $ => choice($.subprogram_body, $.package_body, $.task_body, $.protected_body),
+
+      name_not_function_call: $ => choice($.IDENTIFIER, $.STRING_LITERAL, $.slice, $.selected_component, $.attribute_reference, $.CHARACTER_LITERAL, $.qualified_expression, $.target_name),
+      // missing explicit_dereference
+
+      name: $ => choice($.name_not_function_call, $.function_call),
+
+      // missing explicit_dereference
+      
+      slice: $ => seq($.name, '(', $.discrete_range, ')'),
+
+      selected_component: $ => seq($.name, '.', choice($.IDENTIFIER, $.STRING_LITERAL, $.CHARACTER_LITERAL)),
+      // FIXME: -briot has prec.left here
+
+      attribute_reference: $ => choice(seq($.name, $.tick, $.attribute_designator), $.reduction_attribute_reference),
+
+      attribute_designator: $ => choice($.IDENTIFIER, $.ACCESS, $.DELTA, $.DIGITS, $.MOD),
+
+      range_attribute_designator: $ => seq($.RANGE, optional(seq('(', $.expression, ')'))),
+
+      aggregate: $ => choice($.record_aggregate, $.extension_aggregate, $.array_aggregate, $.delta_aggregate),
+
+      record_aggregate: $ => seq('(', $.record_component_association_list, ')'),
+
+      record_component_association_list: $ => choice(seq($.record_component_association, repeat(seq(',', $.record_component_association))), seq($.NULL, $.RECORD)),
+
+      record_component_association: $ => choice(seq($.component_choice_list, $.assoc_expression), $.expression),
+
+      name_for_component_choice: $ => choice($.IDENTIFIER, $.STRING_LITERAL),
+
+      component_choice_list: $ => choice(reserved('others'), list_of('|',$.name_for_component_choice)),
+
+      extension_aggregate: $ => seq('(', $.expression, $.WITH, $.record_component_association_list, ')'),
+
+      array_aggregate: $ => choice($.positional_array_aggregate, $.null_array_aggregate, $.named_array_aggregate),
+
+      expression_list: $ => choice($.expression, seq($.expression_list, ',', $.expression)),
+
+      positional_array_aggregate: $ => choice(seq('(', $.expression_list, ')'), seq('(', $.expression_list, ',', $.OTHERS, $.assoc_expression, ')'), seq('[', $.expression_list, optional(seq(',', $.OTHERS, $.assoc_expression)), ']')),
+      // FIXME: -briot has prec.left
+
+      null_array_aggregate: $ => seq('[', ']'),
+
+      named_array_aggregate: $ => choice(seq('(', $.array_component_association_list, ')'), seq('[', $.array_component_association_list, ']')),
+
+      array_component_association_list: $ => seq($.array_component_association, repeat(seq(',', $.array_component_association))),
+
+      array_component_association: $ => choice(seq($.discrete_choice_list, $.assoc_expression), $.iterated_element_association),
+
+      delta_aggregate: $ => choice($.record_delta_aggregate, $.array_delta_aggregate),
+
+      record_delta_aggregate: $ => seq( '(', $.expression, reserved('with'), reserved('delta'), $.record_component_association_list_or_expression, ')'),
+
+      array_delta_aggregate: $ => choice(seq('(', $.expression, reserved('with'), reserved('delta'), $.array_component_association_list, ')'), seq('[', $.expression, reserved('with'), reserved('delta'), $.array_component_association_list, ']')),
+
+      iterated_element_association: $ => seq(reserved('for'), choice($.loop_parameter_specification, $.iterator_specification,), optional(seq(reserved('use'), $.expression,)), '=>', $.expression),
+
+      expression: $ => choice(list_of(seq(reserved('and'),optional(reserved('then'))), $.relation), list_of(seq(reserved('or'),optional(reserved('else'))), $.relation), list_of(reserved('xor'),$.relation),),
+      
+      _relation: $ => choice(seq($.simple_expression, optional(seq($.relational_operator, $.simple_expression))), $.relation_membership, $.raise_expression),
+
+      membership_choice_list: $ => prec.right(
+         list_of('|',$.membership_choice),
+      ),
+
       relational_operator: $ => choice('=','/=','<','<=','>','>='),
       binary_adding_operator: $ => choice('+','-','&'),
       unary_adding_operator: $ => choice('+','-'),
       multiplying_operator: $ => choice('*','/','mod','rem'),
       tick: $ => '\'',  // But is not the start of a character_literal
 
-      _name_not_function_call: $ => choice(           // RM 4.1
-         $.identifier,
-         $.selected_component,
-         $.attribute_reference,
-         $.qualified_expression,
-         $.target_name,
-         $.slice,
-         // $.explicit_dereference,// covered by $.selected_component
-         $.character_literal,
-         $.string_literal,// name of an operator. However,in a number of
-                           // places using a string doesn't make sense.
-      ),
-      _name: $ => choice(           // RM 4.1
-         $.name_not_function_call,
-         $.function_call,
-      ),
-      _name_for_component_choice: $ => choice(
-         // Do not allow slice,function_call,... as opposed to what RM allows
-         $.identifier,
-         $.string_literal,
-      ),
 
-      selected_component: $ => prec.left(seq(   // RM 4.1.3
-         field('prefix',$.name),
-         seq(
-            '.',
-            field('selector_name',choice(
-               $.identifier,
-               $.character_literal,
-               $.string_literal,
-            )),
-         ),
-      )),
       target_name: $ => '@',      // RM 5.2.1
       _name_list: $ => prec.left(comma_separated_list_of($.name)),
-      slice: $ => seq(   // RM 4.1.2
-         field('prefix',$.name),
-         '(',
-         $.range_g, // ??? Should be a $.discrete_range,but then the
-                     // following  Proc(Arr (1 .. 2)) is parsed as a slice of
-                     // Proc,using a subtype_indication "Arr (1..2)"
-//         $.discrete_range,
-         ')',
-      ),
 
-      _attribute_reference: $ => choice(
-         seq(
-            $.name,
-            $.tick,
-            $.attribute_designator,
-         ),
-         $.reduction_attribute_reference,
-      ),
       _reduction_attribute_reference: $ => seq(
          $.value_sequence,
          $.tick,
@@ -379,19 +506,6 @@ module.exports = grammar({
             $.discrete_subtype_definition,
          ),
       ),
-      iterated_element_association: $ => seq(         // RM 4.3.5
-         reserved('for'),
-         choice(
-            $.loop_parameter_specification,
-            $.iterator_specification,
-         ),
-         optional(seq(
-            reserved('use'),
-            $.expression,
-         )),
-         '=>',
-         $.expression,
-      ),
       _discrete_subtype_definition: $ => choice(
          $.subtype_indication,
          $.range_g,
@@ -425,13 +539,6 @@ module.exports = grammar({
          field('iterator_name',$.name),
          optional($.iterator_filter),
       ),
-      attribute_designator: $ => choice(   // ARM 4.1.4
-         $.identifier,
-         reserved('access'),
-         reserved('delta'),
-         reserved('digits'),
-         reserved('mod'),
-      ),
       qualified_expression: $ => seq(      // ARM 4.7
          field('subtype_name',$.name),
          $.tick,
@@ -456,20 +563,12 @@ module.exports = grammar({
          $.subunit,
          $.entry_declaration,
       ),
-      _declarative_item: $ => choice(
-         $.basic_declarative_item,
-         $.proper_body,
-         $.body_stub,
-      ),
-      _basic_declarative_item: $ => choice(
-         $.basic_declaration,
-         $.aspect_clause,
-         $.use_clause,
-      ),
       _package_declaration: $ => seq(
          $.package_specification,
          ';',
       ),
+      basic_declarative_item_pragma: $ => choice($.basic_declarative_item, $.pragma_g),
+
       package_specification: $ => seq(
          reserved('package'),
          field('name',$.name),
@@ -506,12 +605,6 @@ module.exports = grammar({
          ')',
          $.proper_body,
       ),
-      _proper_body: $ => choice(
-         $.subprogram_body,
-         $.package_body,
-         $.task_body,
-         $.protected_body,
-      ),
       subprogram_body: $ => seq(      // ARM 6.3
          optional($.overriding_indicator),
          $.subprogram_specification,
@@ -539,65 +632,12 @@ module.exports = grammar({
          optional(field('endname',$.name)),
          ';',
       ),
-      discriminant_constraint: $ => choice(    // RM 3.7.1
-         //  If we have a single positional discriminant,it can be an
-         //  if-expression without additional parenthesis  "A : R (if cond then
-         //  1 else 0)" but otherwise extra parenthesis are needed.
-         $.parenthesized_expression,  // not in ARM
-         seq(
-            '(',
-            comma_separated_list_of($.discriminant_association),
-            ')',
-         ),
-      ),
-      discriminant_association: $ => seq(  // RM 3.7.1
-         optional(seq(
-            list_of('|',$.name_for_component_choice),
-            '=>',
-         )),
-         $.expression,
-      ),
-      range_g: $ => choice(                         //  ARM 3.5
-         field('range_attribute_reference',seq(    //  ARM 4.1.4
-            field('prefix',$.name),
-            $.tick,
-            $.range_attribute_designator,
-         )),
-         seq(
-            $.simple_expression,
-            '..',
-            $.simple_expression,
-         ),
-      ),
-      range_attribute_designator: $ => seq(
-         reserved('range'),
-         optional(seq(
-            '(',
-            $.expression,
-            ')',
-         )),
-      ),
-      range_constraint: $ => seq(
-         reserved('range'),
-         $.range_g,
-      ),
       expression: $ => choice(
          list_of(seq(reserved('and'),optional(reserved('then'))),
                  $.relation),
          list_of(seq(reserved('or'),optional(reserved('else'))),
                  $.relation),
          list_of(reserved('xor'),$.relation),
-      ),
-      _relation: $ => choice(                            // RM 4.4
-         seq(
-            $.simple_expression,
-            optional(seq(
-               $.relational_operator,
-               $.simple_expression,
-            )),
-         ),
-         $.relation_membership,
-         $.raise_expression,                          // Added Ada 20x
       ),
       relation_membership: $ => seq(   //  Split from _relation RM 4.4
          $.simple_expression,
@@ -614,9 +654,6 @@ module.exports = grammar({
             $.simple_expression,
          )),
       )),
-      membership_choice_list: $ => prec.right(
-         list_of('|',$.membership_choice),
-      ),
       _membership_choice: $ => choice(
          $.simple_expression,
          $.range_g,
@@ -699,56 +736,6 @@ module.exports = grammar({
          field('subpool_handle_name',$.name),
          ')',
       ),
-      _access_type_definition: $ => seq(     // ARM 3.10
-         optional($.null_exclusion),
-         choice(
-            $.access_to_object_definition,
-            $.access_to_subprogram_definition,
-         ),
-      ),
-      access_to_subprogram_definition: $ => seq(    // ARM 3.10
-         reserved('access'),
-         optional(reserved('protected')),
-         choice(
-            seq(
-               reserved('procedure'),
-               optional($.formal_part), // parameter_profile,ARM 6.1
-            ),
-            seq(
-               reserved('function'),
-               $.parameter_and_result_profile,
-            ),
-         ),
-      ),
-      access_to_object_definition: $ => seq(
-         reserved('access'),
-         optional($.general_access_modifier),
-         $.subtype_indication,
-      ),
-      general_access_modifier: $ => choice(
-         reserved('all'),
-         reserved('constant'),
-      ),
-      access_definition: $ => seq(          // ARM 3.10
-         optional($.null_exclusion),
-         reserved('access'),
-         choice(
-            seq(
-               optional(reserved('constant')),
-               field('subtype_mark',$.name),
-            ),
-            seq(
-               optional(reserved('protected')),
-               reserved('procedure'),
-               optional($.formal_part),
-            ),
-            seq(
-               optional(reserved('protected')),
-               reserved('function'),
-               $.parameter_and_result_profile,
-            ),
-         ),
-      ),
       actual_parameter_part: $ => seq(    // ARM 6.4
          '(',
          choice(
@@ -819,20 +806,6 @@ module.exports = grammar({
          '=>',
          $.expression,
       ),
-      component_choice_list: $ => choice(                 // RM 4.3.1
-         reserved('others'),
-         list_of('|',$.name_for_component_choice),
-      ),
-      _aggregate: $ => choice(                            // RM 4.3
-         $.record_aggregate,
-         $.extension_aggregate,
-         $.array_aggregate,
-         $.delta_aggregate,                             // Ada 20x
-      ),
-      _delta_aggregate: $ => choice(
-         $.record_delta_aggregate,
-         $.array_delta_aggregate,
-      ),
       extension_aggregate: $ => seq(
          '(',
          $.expression,
@@ -840,58 +813,7 @@ module.exports = grammar({
          $.record_component_association_list_or_expression,
          ')',
       ),
-      record_delta_aggregate: $ => seq(
-         '(',
-         $.expression,
-         reserved('with'),
-         reserved('delta'),
-         $.record_component_association_list_or_expression,
-         ')',
-      ),
-      array_delta_aggregate: $ => choice(
-         seq(
-            '(',
-            $.expression,
-            reserved('with'),
-            reserved('delta'),
-            $.array_component_association_list,
-            ')',
-         ),
-         seq(
-            '[',
-            $.expression,
-            reserved('with'),
-            reserved('delta'),
-            $.array_component_association_list,
-            ']',
-         ),
-      ),
-      record_aggregate: $ => seq(
-         '(',
-         $.record_component_association_list,
-         ')',
-      ),
 
-      // Either:
-      // *  'null record'
-      // *  expression,{expression_or_named}
-      //    expression_or_named:: expression | choice => expression
-      // *  named {,named}
-      record_component_association_list: $ => choice(    // RM 4.3.1
-         seq(
-            reserved('null'),
-            reserved('record'),
-         ),
-         seq(
-            $.expression,
-            ',',  //  Need at least two components with positional
-            comma_separated_list_of(choice(
-               $.expression,
-               $.named_record_component_association,
-            )),
-         ),
-         comma_separated_list_of($.named_record_component_association),
-      ),
 
       // We have modified record_component_association_list to accept a
       // minimum of two positional expressions. However,in extension
@@ -909,28 +831,10 @@ module.exports = grammar({
             '<>',
          ),
       ),
-      null_exclusion: $ => seq(
-         reserved('not'),
-         reserved('null'),
-      ),
-      index_constraint: $ => seq(    // RM 3.6.1
-         '(',
-         comma_separated_list_of($.discrete_range),
-         ')',
-      ),
-      digits_constraint: $ => seq(
-         reserved('digits'),
-         $.simple_expression,
-         optional($.range_constraint),
-      ),
       delta_constraint: $ => seq(
          reserved('delta'),
          $.simple_expression,
          optional($.range_constraint),
-      ),
-      _basic_declarative_item_pragma: $ => choice(
-         $.basic_declarative_item,
-         $.pragma_g,
       ),
       private_type_declaration: $ => seq(
          reserved('type'),
@@ -967,127 +871,10 @@ module.exports = grammar({
          optional($.aspect_specification),
          ';',
       ),
-      _discriminant_part: $ => choice(   // ARM 3.7
-         $.known_discriminant_part,
-         $.unknown_discriminant_part,
-      ),
-      unknown_discriminant_part: $ => seq(   // ARM 3.7
-         '(',
-         '<>',
-         ')',
-      ),
-      known_discriminant_part: $ => seq(   // ARM 3.7
-         '(',
-         $.discriminant_specification_list,
-         ')',
-      ),
-      incomplete_type_declaration: $ => seq(
-         reserved('type'),
-         $.identifier,
-         optional($.discriminant_part),
-         optional(seq(
-            reserved('is'),
-            reserved('tagged'),
-         )),
-         ';',
-      ),
-      discriminant_specification_list: $ =>
-         prec.right(list_of(';',$.discriminant_specification)),
-      discriminant_specification: $ => seq(     // ARM 3.7
-         $.defining_identifier_list,
-         ':',
-         choice(
-            seq(
-               optional($.null_exclusion),
-               field('subtype_mark',$.name),
-            ),
-            $.access_definition,
-         ),
-         optional($.assign_value),
-      ),
-      array_type_definition: $ => seq(  // merges constrained and unconstrained
-         reserved('array'),
-         '(',
-         choice(
-            $.discrete_subtype_definition_list,
-            $.index_subtype_definition_list,
-         ),
-         ')',
-         reserved('of'),
-         $.component_definition,
-      ),
-      _discrete_subtype_definition_list: $ =>
-         comma_separated_list_of($.discrete_subtype_definition),
-      _discrete_subtype_definition: $ => choice(
-         $.subtype_indication,
-         $.range_g,
-      ),
-      _discrete_range: $ => choice(  //  3.6.1 == _discrete_subtype_definition
-         $.subtype_indication,
-         $.range_g,
-      ),
-      _index_subtype_definition_list: $ =>
-         comma_separated_list_of($.index_subtype_definition),
       index_subtype_definition: $ => seq(             // ARM 3.6
          field('subtype_mark',$.name),
          reserved('range'),
          '<>',
-      ),
-      enumeration_type_definition: $ => seq(
-         '(',
-         $.enumeration_literal_list,
-         ')',
-      ),
-      _enumeration_literal_list: $ =>
-         comma_separated_list_of($.enumeration_literal_specification),
-      _enumeration_literal_specification: $ => choice(
-         $.identifier,
-         $.character_literal,
-      ),
-      _integer_type_definition: $ => choice(
-         $.signed_integer_type_definition,
-         $.modular_type_definition,
-      ),
-      modular_type_definition: $ => seq(
-         reserved('mod'),
-         $.expression,
-      ),
-      _real_type_definition: $ => choice(
-         $.floating_point_definition,
-         $.fixed_point_definition,
-      ),
-      floating_point_definition: $ => seq(
-         reserved('digits'),
-         $.expression,
-         optional($.real_range_specification),
-      ),
-      real_range_specification: $ => seq(
-         reserved('range'),
-         $.simple_expression,
-         '..',
-         $.simple_expression,
-      ),
-      _fixed_point_definition: $ => choice(
-         $.ordinary_fixed_point_definition,
-         $.decimal_fixed_point_definition,
-      ),
-      decimal_fixed_point_definition: $ => seq(
-         reserved('delta'),
-         $.expression,
-         reserved('digits'),
-         $.expression,
-         optional($.real_range_specification),
-      ),
-      ordinary_fixed_point_definition: $ => seq(
-         reserved('delta'),
-         $.expression,
-         $.real_range_specification,
-      ),
-      signed_integer_type_definition: $ => seq(
-         reserved('range'),
-         $.simple_expression,
-         '..',
-         $.simple_expression,
       ),
       interface_type_definition: $ => seq(
          optional(choice(
@@ -1102,131 +889,9 @@ module.exports = grammar({
             $.interface_list,
          )),
       ),
-      _interface_list: $ =>
-         list_of(reserved('and'),$.name),
-      record_extension_part: $ => seq(
-         reserved('with'),  // record_extension_part in Ada grammar
-         $.record_definition,
-      ),
-      record_type_definition: $ => seq(
-         optional(seq(
-            optional(reserved('abstract')),
-            reserved('tagged'),
-         )),
-         optional(reserved('limited')),
-         $.record_definition,
-      ),
-      record_definition: $ => choice(
-         seq(
-            reserved('record'),
-            $.component_list,
-            reserved('end'),
-            reserved('record'),
-            optional($.identifier),
-         ),
-         seq(
-            reserved('null'),
-            reserved('record'),
-         ),
-      ),
-      component_list: $ => choice(   //  RM 3.8
-         repeat1($.component_item),
-         seq(
-            repeat($.component_item),
-            $.variant_part,
-         ),
-         seq(
-            reserved('null'),
-            reserved(';'),
-         ),
-      ),
-      _component_item: $ => choice(
-         $.component_declaration,
-         $.aspect_clause,
-         $.pragma_g,   // not in RM
-      ),
-      component_declaration: $ => seq(    // RM 3.8
-         $.defining_identifier_list,
-         ':',
-         $.component_definition,
-         optional($.assign_value),
-         optional($.aspect_specification),
-         ';'
-      ),
-      component_definition: $ => seq(
-         optional(reserved('aliased')),
-         choice(
-            $.subtype_indication,
-            $.access_definition,
-         ),
-      ),
-      _array_aggregate: $ => choice(
-         $.positional_array_aggregate,
-         $.null_array_aggregate,
-         $.named_array_aggregate,
-      ),
-      positional_array_aggregate: $ => choice(   //  4.3.3
-         seq(
-            '(',
-            $.expression,
-            ',',
-            prec.left(1,comma_separated_list_of($.expression)),
-            ')',
-         ),
-         seq(
-            '(',
-            comma_separated_list_of($.expression),
-            ',',
-            reserved('others'),
-            '=>',
-            choice(
-               $.expression,
-               '<>',
-            ),
-            ')',
-         ),
-         seq(
-            '[',
-            comma_separated_list_of($.expression),
-            optional(seq(
-               ',',
-               reserved('others'),
-               '=>',
-               choice(
-                  $.expression,
-                  '<>',
-               ),
-            )),
-            ']',
-         ),
-      ),
       null_array_aggregate: $ => seq(
          '[',
          ']',
-      ),
-      named_array_aggregate: $ => choice(
-         seq('(',$.array_component_association_list,')'),
-         seq('[',$.array_component_association_list,']'),
-      ),
-      _array_component_association_list: $ =>
-         comma_separated_list_of($.array_component_association),
-      array_component_association: $ => choice(    // ARM 4.3.3
-         seq(
-            $.discrete_choice_list,
-            '=>',
-            choice(
-               $.expression,
-               '<>',
-            ),
-         ),
-         $.iterated_element_association,
-      ),
-      discrete_choice_list: $ => list_of('|',$.discrete_choice),
-      discrete_choice: $ => choice(    // ARM 3.8.1
-         $.expression,
-         $.subtype_indication,
-         $.range_g,
-         reserved('others'),
       ),
       aspect_association: $ => seq(
          $.aspect_mark,
@@ -1404,17 +1069,6 @@ module.exports = grammar({
          '..',
          field('last_bit',$.simple_expression),
          ';',
-      ),
-      _declarative_item_pragma: $ => choice(
-         $.declarative_item,
-         $.pragma_g,
-         $.gnatprep_declarative_if_statement,
-      ),
-
-      // Although it doesn't add any new character,we keep this rule as an
-      // expplicit node in the tree for the sake of queries
-      non_empty_declarative_part: $ => repeat1(
-         $.declarative_item_pragma,
       ),
       entry_declaration: $ => seq(
          optional($.overriding_indicator),
@@ -2426,22 +2080,6 @@ module.exports = grammar({
       _subprogram_specification: $ => choice(
          $.procedure_specification,
          $.function_specification,
-      ),
-      variant_part: $ => seq(
-         reserved('case'),
-         $.identifier,
-         reserved('is'),
-         $.variant_list,
-         reserved('end'),
-         reserved('case'),
-         ';',
-      ),
-      variant_list: $ => repeat1($.variant),
-      variant: $ => seq(
-         reserved('when'),
-         $.discrete_choice_list,
-         '=>',
-         $.component_list,
       ),
    },
    conflicts: $ => [

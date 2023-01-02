@@ -5,9 +5,8 @@
 ;; Created: Sept 2012
 ;; Keywords: syntax
 ;;
-;;  Copied from Ada Language Reference Manual Annex P
-;;  (http://www.ada-auth.org/standards/ada2x.html), minimal changes
-;;  made to conform with WisiToken and tree-sitter requirements.
+;;  Copied from emacs ada-mode grammar, modified to match
+;;  https://github.com/briot/tree-sitter-ada
 
 %meta_syntax EBNF
 
@@ -30,6 +29,8 @@
 
 %generate LALR        Ada_Emacs re2c Process
 %generate Tree_Sitter Ada_Emacs tree_sitter
+
+%partial_recursion ;; for generate speed; we are not actually using the result for error correction
 
 %case_insensitive
 %start compilation
@@ -303,7 +304,7 @@ word : IDENTIFIER ;
 %mckenzie_cost_undo_reduce handled_sequence_of_statements 0
 %mckenzie_cost_undo_reduce sequence_of_statements 0
 %mckenzie_cost_undo_reduce sequence_of_statements 0
-%mckenzie_cost_undo_reduce declarative_part 0
+%mckenzie_cost_undo_reduce non_empty_declarative_part 0
 
 ;; Missing or extra closing paren and comma are common; missing
 ;; handled by Minimal_Complete.
@@ -324,28 +325,13 @@ word : IDENTIFIER ;
 
 %end_names_optional_option End_Names_Optional
 
-;; This is the first step in a 3 branch conflict below.
-%conflict REDUCE defining_identifier_list | REDUCE direct_name on token COLON
-
-%conflict REDUCE defining_identifier_list | REDUCE direct_name on token COMMA
-%conflict REDUCE discrete_choice | REDUCE selector_name on token BAR
-%conflict REDUCE discrete_choice | REDUCE selector_name on token EQUAL_GREATER
-%conflict REDUCE name | REDUCE selector_name on token BAR
-%conflict REDUCE name | REDUCE selector_name on token EQUAL_GREATER
+;;; FIXME: resolve these or doc why not:
 %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
 %conflict REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
-%conflict REDUCE subtype_indication | REDUCE iterator_specification on token EQUAL_GREATER
-%conflict REDUCE subtype_indication | REDUCE iterator_specification on token LOOP
-%conflict REDUCE subtype_indication | REDUCE iterator_specification on token USE
-%conflict REDUCE subtype_indication | REDUCE primary on token BAR
-%conflict REDUCE subtype_indication | REDUCE primary on token COMMA
-%conflict REDUCE subtype_indication | REDUCE primary on token EQUAL_GREATER
-%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
-%conflict SHIFT at_clause | REDUCE name on token USE
+%conflict REDUCE subtype_indication | REDUCE name on token EQUAL_GREATER
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE label_opt on token FOR
 %conflict SHIFT dispatching_operation_set | REDUCE extended_global_aspect_element on token COMMA
-%conflict SHIFT dispatching_operation_specifier | REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
 %conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
 %conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
@@ -355,19 +341,53 @@ word : IDENTIFIER ;
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PROCEDURE
 %conflict SHIFT global_set | REDUCE formal_parameter_set on token COMMA
 %conflict SHIFT global_set | REDUCE global_aspect_element on token COMMA
-%conflict SHIFT iterator_filter | REDUCE subtype_indication on token WHEN
-%conflict SHIFT membership_choice_list | REDUCE relation on token BAR
 %conflict SHIFT null_exclusion | REDUCE mode on token NOT
 %conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
-%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list | REDUCE direct_name on token COLON
-%conflict SHIFT package_body_stub | REDUCE direct_name on token IS
 %conflict SHIFT parallel_block_statement | REDUCE label_opt on token PARALLEL
 %conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
 %conflict SHIFT record_extension_part | REDUCE derived_type_definition on token WITH
-%conflict SHIFT tick | REDUCE direct_name on token TICK_1
-%conflict SHIFT tick | REDUCE direct_name on token TICK_2
 %conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
+%conflict REDUCE defining_identifier_list | REDUCE name_not_function_call on token COMMA
+%conflict REDUCE defining_identifier_list | REDUCE statement_identifier on token COLON
+%conflict REDUCE discrete_choice | REDUCE component_choice_list on token EQUAL_GREATER
+%conflict REDUCE name_not_function_call | REDUCE name_for_component_choice on token BAR
+%conflict REDUCE name_not_function_call | REDUCE name_for_component_choice on token EQUAL_GREATER
+%conflict REDUCE subtype_indication | REDUCE name on token AND
+%conflict REDUCE subtype_indication | REDUCE name on token BAR
+%conflict REDUCE subtype_indication | REDUCE name on token COMMA
+%conflict REDUCE subtype_indication | REDUCE name on token IN
+%conflict REDUCE subtype_indication | REDUCE name on token LOOP
+%conflict REDUCE subtype_indication | REDUCE name on token OR
+%conflict REDUCE subtype_indication | REDUCE name on token RIGHT_PAREN
+%conflict REDUCE subtype_indication | REDUCE name on token USE
+%conflict REDUCE subtype_indication | REDUCE name on token WHEN
+%conflict REDUCE subtype_indication | REDUCE name on token WITH
+%conflict SHIFT at_clause | REDUCE name_not_function_call on token USE
+%conflict SHIFT dispatching_operation_specifier | REDUCE primary on token RIGHT_PAREN
+%conflict SHIFT index_constraint | REDUCE name on token LEFT_PAREN
+%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list | REDUCE statement_identifier on token COLON
+%conflict SHIFT package_body_stub | REDUCE name_not_function_call on token IS
+%conflict SHIFT parenthesized_expression | REDUCE discriminant_association on token RIGHT_PAREN
+%conflict SHIFT parenthesized_expression | REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
+%conflict SHIFT range_constraint | REDUCE name on token RANGE
+%conflict SHIFT tick | REDUCE name_not_function_call on token TICK_1
+%conflict SHIFT tick | REDUCE name_not_function_call on token TICK_2
+
+;;; Resolved conflicts
+
+;; This is from:
+;;
+;; discrete_choice_list : expression '|' expression
+;; expression : relation
+;; relation : simple_expression 'in' membership_choice_list
+;;
+;; which is one reason Annex P has choice_relation and
+;; choice_expression; that excludes 'in' in a discrete_choice_list. So
+;; this conflict cannot arise in a legal Ada program; it doesn't
+;; matter how we resolve it. This resolution matches the one in the
+;; tree-sitter grammar.
+%conflict_resolution SHIFT membership_choice_list | REDUCE relation on token BAR : membership_choice_list
 
 ;;; grammar rules
 
@@ -497,24 +517,8 @@ assign_value ;;:new; split out from object_declaration assignment_statement, and
   ;
 
 object_declaration
-  : defining_identifier_list ':' ['aliased'] ['constant'] subtype_indication [assign_value]
-    [aspect_specification] ';'
-    %((wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
-                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
-                               ada-indent-broken ada-indent-broken]))%
-  | defining_identifier_list ':' ['aliased'] ['constant'] access_definition [assign_value]
-    [aspect_specification] ';'
-    %((wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
-                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
-                               ada-indent-broken ada-indent-broken]))%
-  | defining_identifier_list ':' ['aliased'] ['constant'] array_type_definition [assign_value]
-    [aspect_specification] ';'
+  : defining_identifier_list ':' ['aliased'] ['constant']
+      (subtype_indication | access_definition | array_type_definition) [assign_value] [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
@@ -547,7 +551,9 @@ derived_type_definition
 
 range_constraint ::= 'range' range_g ;
 
-range_g : range_attribute_reference | simple_expression '..' simple_expression ;
+range_g
+  : name tick range_attribute_designator ;; inlined range_attribute_reference
+  | simple_expression '..' simple_expression ;
 
 enumeration_literal_list ;;:new for action
   : enumeration_literal_specification {',' enumeration_literal_specification} ;
@@ -586,23 +592,18 @@ decimal_fixed_point_definition : 'delta' expression 'digits' expression [real_ra
 
 digits_constraint : 'digits' simple_expression [range_constraint] ;
 
-array_type_definition ::= unconstrained_array_definition | constrained_array_definition ;
-
-index_subtype_definition_list : index_subtype_definition {',' index_subtype_definition} ;
-
-unconstrained_array_definition
-  : 'array' '(' index_subtype_definition_list ')' 'of' component_definition
+array_type_definition
+  : 'array' '(' index_subtype_definition_list ')' 'of' component_definition ;; inlined unconstrained_array_definition
+    %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
+  | 'array' '(' discrete_subtype_definition_list ')' 'of' component_definition ;; inlined constrained_array_definition
     %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
   ;
+
+index_subtype_definition_list : index_subtype_definition {',' index_subtype_definition} ;
 
 index_subtype_definition : name 'range' '<>' ;
 
 discrete_subtype_definition_list : discrete_subtype_definition {',' discrete_subtype_definition} ;
-
-constrained_array_definition
-  : 'array' '(' discrete_subtype_definition_list ')' 'of' component_definition
-    %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
-  ;
 
 discrete_subtype_definition
   : subtype_indication
@@ -615,7 +616,7 @@ component_definition ::=
   ;
 
 index_constraint
-  : '(' discrete_range ',' discrete_range {',' discrete_range} ')' ;;:edited single discrete_range redundant with slice
+  : '(' discrete_range {',' discrete_range} ')'
   ;
 
 discrete_range
@@ -651,15 +652,18 @@ discriminant_specification
 
 ;; default_expression ::= expression ;;:inlined
 
-discriminant_association_list
-  : discriminant_association {',' discriminant_association} ;
-
 discriminant_constraint
   : parenthesized_expression ;; conditional expression
-  | '(' discriminant_association_list ')'
+  | '(' discriminant_association {',' discriminant_association} ')'
   ;
 
-discriminant_association : component_choice_list assoc_expression ;
+discriminant_association
+  : [name_for_component_choice {'|' name_for_component_choice} '=>'] expression
+    %((wisi-indent-action [nil nil ada-indent-broken nil
+                           (wisi-hanging%
+                                (wisi-anchored% 1 ada-indent-broken)
+                                (wisi-anchored% 1 (* 2 ada-indent-broken)))]))%
+  ;
 
 record_type_definition ::= [['abstract'] 'tagged'] ['limited'] record_definition ;
 
@@ -682,7 +686,7 @@ component_list
     %((wisi-statement-action [1 statement-start 2 statement-end]))%
   ;
 
-component_item ::= component_declaration | aspect_clause ;
+component_item : component_declaration | aspect_clause | pragma_g ;
 
 component_declaration
   : defining_identifier_list ':' component_definition [assign_value] [aspect_specification] ';'
@@ -700,7 +704,7 @@ variant_list ;;:new; split out from variant_part for action
   ;
 
 variant_part
-  : 'case' direct_name 'is' variant_list 'end' 'case' ';'
+  : 'case' IDENTIFIER 'is' variant_list 'end' 'case' ';'
     %((wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-motion-action [1 4 7])
       (wisi-indent-action [nil ada-indent-broken nil ada-indent-when nil ada-indent-broken ada-indent-broken]))%
@@ -755,7 +759,7 @@ interface_list
 
 access_type_definition
   : [null_exclusion] access_to_object_definition
-  | [null_exclusion] 'access' ['protected'] access_to_subprogram_definition ;;:edited
+  | [null_exclusion] access_to_subprogram_definition
   ;
 
 access_to_object_definition ::= 'access' [general_access_modifier] subtype_indication ;
@@ -763,19 +767,8 @@ access_to_object_definition ::= 'access' [general_access_modifier] subtype_indic
 general_access_modifier ::= 'all' | 'constant' ;
 
 access_to_subprogram_definition
-  : 'procedure' parameter_profile ;;:edited; move 'access' ['protected'] to access_type_definition for indent
-    ;; test/ada_mode-nominal.ads
-    ;; type Procedure_Access_Type_8 is access
-    ;;   protected procedure
-    ;;     (A_Param : out Integer);
-    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
-  | 'function' parameter_and_result_profile ;;:edited
-    ;; test/ada_mode-nominal.ads
-    ;; type Function_Access_Type_10 is access
-    ;;   protected function
-    ;;     (A_Param : in Float)
-    ;;     return Standard.Float;
-    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
+  : 'access' ['protected'] 'procedure' parameter_profile
+  | 'access' ['protected'] 'function' parameter_and_result_profile
   ;
 
 null_exclusion ::= 'not' 'null' ;
@@ -810,8 +803,7 @@ declarative_item_pragma
   | pragma_g
   ;
 
-;; FIXME: why is this not declarative_item_pragma* ? Might affect ada-mode code.
-declarative_part : [declarative_item_pragma+] ;
+non_empty_declarative_part : declarative_item_pragma+ ;
 
 basic_declarative_item : basic_declaration | aspect_clause | use_clause ;
 
@@ -821,7 +813,15 @@ basic_declarative_item : basic_declaration | aspect_clause | use_clause ;
 proper_body : subprogram_body | package_body | task_body | protected_body ;
 
 name_not_function_call
-  : direct_name
+  : IDENTIFIER
+    ;; marking this for possible later face-apply, to prevent applying
+    ;; face to the aggregate of an allocator, and other similar cases.
+    ;; test/ada_mode-nominal.adb
+    ;;    Object_3 : access Record_Type_3 := new Record_Type_3 (...)
+    %((wisi-face-mark-action [1 suffix]))%
+    %((wisi-propagate-name 1))%
+
+  | STRING_LITERAL
     %()%
     %((wisi-propagate-name 1))%
 
@@ -834,7 +834,6 @@ name_not_function_call
 
   | attribute_reference
   ;; type_conversion ;;:redundant with function_call
-  | function_call
   | CHARACTER_LITERAL
   | qualified_expression
   ;; name ;; redundant - inlined generalized_reference
@@ -842,18 +841,14 @@ name_not_function_call
   | target_name
   ;
 
-direct_name
-  : IDENTIFIER
-    ;; marking this for possible later face-apply, to prevent applying
-    ;; face to the aggregate of an allocator, and other similar cases.
-    ;; test/ada_mode-nominal.adb
-    ;;    Object_3 : access Record_Type_3 := new Record_Type_3 (...)
-    %((wisi-face-mark-action [1 suffix]))%
-    %((wisi-propagate-name 1))%
+name
+  : name_not_function_call
+  ;; indexed_component ;; redundant with 'name actual_parameter_part'
 
-  | STRING_LITERAL
-    %()%
-    %((wisi-propagate-name 1))%
+  ;; type_conversion ;;:redundant with function_call
+  | function_call
+  ;; name ;; redundant - inlined generalized_reference
+  ;; generalized_indexing ;; redundant with function_call
   ;
 
 ;; deleted prefix ::= name | implicit_dereference ;; inlined in 'name'
@@ -872,15 +867,10 @@ slice
   ;
 
 selected_component
-  : name '.' selector_name
+  : name '.' (IDENTIFIER | STRING_LITERAL | CHARACTER_LITERAL)
     ;; higher level productions should apply hanging indent to names
     %((wisi-face-mark-action [1 prefix 3 suffix]))%
     %((wisi-merge-names 1 3))%
-  ;
-
-selector_name
-  : direct_name ;; edited; redundant IDENTIFIER | STRING_LITERAL
-  | CHARACTER_LITERAL
   ;
 
 attribute_reference : name tick attribute_designator | reduction_attribute_reference ;
@@ -892,8 +882,6 @@ attribute_designator
   | 'digits'
   | 'mod'
   ;
-
-range_attribute_reference : name tick range_attribute_designator ;
 
 range_attribute_designator
   : 'range' ['(' expression ')']
@@ -913,16 +901,6 @@ aggregate
   | array_aggregate
   | delta_aggregate
   ;; container_aggregate ;; redundant with array_aggregate
-
-  ;; ARM 4.5.7(7), ARM 4.5.8(4), ARM 4.5.9(4) allow
-  ;; ( conditional | quantified_expression | declare_expression )
-  ;; instead of (( ... ))
-  | '(' conditional_expression ')' ;;:new
-    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
-  | '(' quantified_expression ')' ;;:new
-    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
-  | '(' declare_expression ')' ;;:new
-    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   ;
 
 record_aggregate
@@ -947,8 +925,7 @@ name_for_component_choice : IDENTIFIER | STRING_LITERAL ; ;; simplified from RM 
 
 component_choice_list
   : 'others'
-  | name_for_component_choice
-  | component_choice_list '|' name_for_component_choice
+  | name_for_component_choice {'|' name_for_component_choice}
     %((wisi-indent-action [nil nil ada-indent-broken]))%
   ;
 
@@ -1091,39 +1068,11 @@ iterated_element_association
                                ada-indent-broken]))%
   ;
 
-AND_relation_list ;;:new, split out from expression for action.
-  : 'and' relation
-  | AND_relation_list 'and' relation
-  ;
-
-AND_THEN_relation_list
-  : 'and' 'then' relation
-  | AND_THEN_relation_list 'and' 'then' relation
-  ;
-
-OR_relation_list
-  : 'or' relation
-  | OR_relation_list 'or' relation
-  ;
-
-OR_ELSE_relation_list
-  : 'or' 'else' relation
-  | OR_ELSE_relation_list 'or' 'else' relation
-  ;
-
-XOR_relation_list
-  : 'xor' relation
-  | XOR_relation_list 'xor' relation
-  ;
-
 expression
   ;; containing productions should apply hanging indent
-  : relation ;;:new to reduce conflicts
-  | relation AND_relation_list
-  | relation AND_THEN_relation_list
-  | relation OR_relation_list
-  | relation OR_ELSE_relation_list
-  | relation XOR_relation_list
+  : relation {'and' ['then'] relation}
+  | relation {'or' ['else'] relation}
+  | relation {'xor' relation}
   ;
 
 ;; choice_expression ;;:deleted; mostly redundant with expression, delete to reduce conflicts
@@ -1141,6 +1090,9 @@ relation
   ;
 
 membership_choice_list ::= membership_choice {'|' membership_choice} ;
+%if parser = Tree_Sitter
+%precedence membership_choice_list right
+%end if
 
 membership_choice
   : simple_expression
@@ -1165,10 +1117,19 @@ primary
     %((wisi-indent-action [(ada-indent-aggregate)]))%
   | name
   | allocator
-  ;;| '(' expression ')' ;;:redundant with positional_aggregate
-  ;; '(' conditional_expression ')' ;;:redundant with aggregate
-  ;; '(' quantified_expression ')' ;;:redundant with aggregate
-  ;; | '(' declare_expression ')';;:redundant with aggregate
+  | parenthesized_expression
+  ;
+%if parser = Tree_Sitter
+%precedence primary 2
+%end if
+
+;; These are all redundant with positional_array_aggregate, so we
+;; resolve the conflict in favor of primary.
+parenthesized_expression
+  : '(' expression ')'
+  | '(' conditional_expression ')' ;;:redundant with aggregate
+  | '(' quantified_expression ')' ;;:redundant with aggregate
+  | '(' declare_expression ')';;:redundant with aggregate
   ;
 
 ;; logical_operator ::= 'and' | 'or' | 'xor' ;;:deleted; not used in the grammar
@@ -1330,13 +1291,7 @@ subtype_indication_paren_constraint
 
 subpool_specification ::= '(' name ')' ;
 
-sequence_of_statements : statement {statement} {label} ;
-
-sequence_of_statements_opt  ;; new; eliminates many conflicts in entry_call and select
-  : [sequence_of_statements]
-  ;
-
-;; inlined "[sequence_of_statements]" to "sequence_of_statements_opt"
+sequence_of_statements : statement+ {label} ;
 
 statement : {label} simple_statement | {label} compound_statement ;
 
@@ -1378,7 +1333,7 @@ label
       (wisi-indent-action [ada-indent-label ada-indent-broken ada-indent-broken]))%
   ;
 
-statement_identifier ::= direct_name ;
+statement_identifier ::= IDENTIFIER ;
 
 assignment_statement
   : name assign_value ';'
@@ -1521,7 +1476,7 @@ label_opt ;;:new; split out from block_statement for match_names
   ;
 
 block_statement
-  : label_opt ['declare' declarative_part] 'begin' handled_sequence_of_statements
+  : label_opt ['declare' [non_empty_declarative_part]] 'begin' handled_sequence_of_statements
     'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 4 statement-override 8 statement-end])
       (wisi-motion-action [1 2 4 [5 WHEN] 8])
@@ -1688,7 +1643,7 @@ name_opt ;;:new; split out from subprogram_body for wisi-match-names
   ;
 
 subprogram_body
-  : [overriding_indicator] subprogram_specification [aspect_specification] 'is' declarative_part
+  : [overriding_indicator] subprogram_specification [aspect_specification] 'is' [non_empty_declarative_part]
     'begin' handled_sequence_of_statements 'end' name_opt ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 4 motion 6 motion 10 statement-end])
       (wisi-motion-action [1 2 4 6 [7 WHEN] 10])
@@ -1816,14 +1771,10 @@ basic_declarative_item_pragma
   | pragma_g
   ;
 
-basic_declarative_item_list ;;:new for action in package_specification
-  : basic_declarative_item_pragma+
-  ;
-
 ;; replace "[[name '.' ] IDENTIFIER" with "name_opt" for consistency and for actions
 package_specification
-  : 'package' name [aspect_specification] 'is' [basic_declarative_item_list]
-    ['private' [basic_declarative_item_list]] 'end' name_opt
+  : 'package' name [aspect_specification] 'is' basic_declarative_item_pragma*
+    ['private' basic_declarative_item_pragma*] 'end' name_opt
     %((wisi-statement-action [1 statement-start 4 motion 6 motion])
       (wisi-name-action 2)
       (wisi-motion-action [1 4 6])
@@ -1839,7 +1790,7 @@ package_specification
 
 ;; replace "[[name '.' ] IDENTIFIER" with "name" for consistency and for actions
 package_body
-  : 'package' 'body' name [aspect_specification] 'is' declarative_part
+  : 'package' 'body' name [aspect_specification] 'is' [non_empty_declarative_part]
     ['begin' handled_sequence_of_statements] 'end' name_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 7 motion 11 statement-end])
       (wisi-name-action 3)
@@ -2042,7 +1993,7 @@ task_definition
 task_item : entry_declaration | aspect_clause ;
 
 task_body
-  : 'task' 'body' IDENTIFIER [aspect_specification] 'is' declarative_part
+  : 'task' 'body' IDENTIFIER [aspect_specification] 'is' [non_empty_declarative_part]
     'begin' handled_sequence_of_statements 'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 7 motion 11 statement-end])
       (wisi-name-action 3)
@@ -2142,7 +2093,7 @@ entry_declaration
   ;
 
 accept_statement ::=
-    'accept' direct_name ['(' entry_index ')'] parameter_profile
+    'accept' IDENTIFIER ['(' entry_index ')'] parameter_profile
     ['do' handled_sequence_of_statements 'end' identifier_opt] ';'
     %((wisi-statement-action [1 statement-start 7 motion 11 statement-end])
       (wisi-motion-action [1 7 [8 WHEN] 11])
@@ -2159,8 +2110,8 @@ accept_statement ::=
 entry_index ::= expression ;
 
 entry_body
-  : 'entry' IDENTIFIER entry_body_formal_part [aspect_specification] entry_barrier 'is' declarative_part 'begin'
-    handled_sequence_of_statements 'end' identifier_opt ';'
+  : 'entry' IDENTIFIER entry_body_formal_part [aspect_specification] entry_barrier 'is' [non_empty_declarative_part]
+      'begin' handled_sequence_of_statements 'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 6 motion 8 motion 12 statement-end])
       (wisi-name-action 2)
       (wisi-motion-action [1 5 6 8 [9 WHEN] 12])
@@ -2257,11 +2208,11 @@ select_alternative
   ;
 
 accept_alternative
-  : accept_statement sequence_of_statements_opt
+  : accept_statement [sequence_of_statements]
   ;
 
 delay_alternative
-  : delay_statement sequence_of_statements_opt
+  : delay_statement [sequence_of_statements]
   ;
 
 terminate_alternative
@@ -2278,7 +2229,7 @@ timed_entry_call
                                ada-indent-broken ada-indent-broken]))%
   ;
 
-entry_call_alternative : procedure_call_statement sequence_of_statements_opt ;
+entry_call_alternative : procedure_call_statement [sequence_of_statements] ;
 
 ;; procedure_or_entry_call ::= procedure_call_statement | entry_call_statement ;; inlined to procedure_call_statement
 
@@ -2300,8 +2251,8 @@ asynchronous_select
 
 triggering_alternative
   ;; triggering_statement [sequence_of_statements] ;;:deleted; causes conflicts; replaced by the following:
-  : procedure_call_statement sequence_of_statements_opt ;;:new
-  | delay_statement sequence_of_statements_opt ;;:new
+  : procedure_call_statement [sequence_of_statements] ;;:new
+  | delay_statement [sequence_of_statements] ;;:new
   ;
 
 ;; triggering_statement ::= procedure_call_statement | delay_statement ;; deleted, inlined to reduce conflicts
@@ -2810,7 +2761,7 @@ delta_constraint
   ;
 
 at_clause
-  : 'for' direct_name 'use' 'at' expression ';'
+  : 'for' IDENTIFIER 'use' 'at' expression ';'
     %((wisi-statement-action [1 statement-start 6 statement-end]))%
   ;
 
