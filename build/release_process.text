@@ -14,21 +14,13 @@ doc changes since last release
     $ git log --since "dd mmm yyyy" > release.log
 
 bump version
-    ../Docs/wisitoken.html
-        wisitoken-*.tar.bz2
-
     ../Docs/wisitoken-user_guide.texinfo
         version in @node Top
 
     Makefile
         ZIP_VERSION
 
-    wisitoken_lib.gpr
-        Version
-
-    # *.bz2 on savannah; never deleted
-
-    ../wisitoken-bnf-generate.adb
+    ../main/wisitoken-bnf-generate.adb
         version in Put_Usage
             independent of ada-mode parser version
             bump if changes affect ada-mode or other clients
@@ -39,7 +31,7 @@ Makefile
         # check for missing clean actions
     all
 
-Makefile
+../Makefile
     alire-clean
     alire-build
 

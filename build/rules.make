@@ -16,18 +16,6 @@ vpath %.texinfo ../Docs
 vpath %.tex ../Docs
 vpath %.bib ../Docs
 
-# Variables for library creation
-export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
-ifneq (,$(findstring mingw,$(GPRBUILD_TARGET)))
-   export DYN_LIB_EXTENSION := dll
-else ifneq (,$(findstring darwin,$(GPRBUILD_TARGET)))
-   export DYN_LIB_EXTENSION := dylib
-else ifneq (,$(findstring linux,$(GPRBUILD_TARGET)))
-   export DYN_LIB_EXTENSION := so
-else
-   $(error "Don't know dynamic lib file extension for $(GPRBUILD_TARGET)")
-endif
-
 tests :: wisitoken_test.gpr
 tests :: wisitoken-bnf-generate.exe
 tests :: gen
@@ -107,20 +95,10 @@ endif
 
 test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables
 
-install: library wisitoken-bnf-generate.exe
-	make -f Install.make install
-
-uninstall:
-	make -f Install.make install-clean
-
-library:
-	gprbuild -p -j8 --RTS=$(ADA_RUN_TIME) -Pwisitoken_lib
-
 clean :: test-clean
 	rm -f Makefile.conf
-	rm -rf obj *.exe
+	rm -rf obj bin
 	rm -rf obj_pro exec_pro
-	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 	rm -f error_correction_algorithm.ps
 
 # don't delete prj.el, release_process.text
