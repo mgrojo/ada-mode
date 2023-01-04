@@ -103,8 +103,7 @@ ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 # ELPA builds .info from .texinfo; if add new here, add to ../../elpa/elpa-packages
 pub : force
 	rm -rf $(ELPA_ROOT)/packages/wisi/*
-	cp ../NEWS $(ELPA_ROOT)/packages/wisi/NEWS
-	cp ../README $(ELPA_ROOT)/packages/wisi/README
+	cp ../NEWS ../README ../*.make $(ELPA_ROOT)/packages/wisi
 	cp ../*.ad? ../*.el ../*.sh ../*.texi ../wisi.gpr.gp $(ELPA_ROOT)/packages/wisi
 	cd $(ELPA_ROOT)/packages/wisi; rm -f autoloads.el *libadalang* test*.ad?
 	cp $(WISITOKEN)/Docs/wisitoken-user_guide.texinfo $(ELPA_ROOT)/packages/wisi
@@ -151,7 +150,6 @@ pub : force
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors_sorted.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_sparse_ordered_sets.ad? $(ELPA_ROOT)/packages/wisi
-#	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-generic_decimal_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal.ad? $(ELPA_ROOT)/packages/wisi

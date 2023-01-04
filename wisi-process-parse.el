@@ -1,6 +1,6 @@
 ;;; wisi-process-parse.el --- interface to external parse program  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2014, 2017 - 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017 - 2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -22,7 +22,7 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
-(defconst wisi-process-parse-protocol-version "6"
+(defconst wisi-process-parse-protocol-version "7"
   "Defines data exchanged between this package and the background process.
 Must match emacs_wisi_common_parse.ads Protocol_Version.")
 

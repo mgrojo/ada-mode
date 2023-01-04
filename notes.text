@@ -37,8 +37,8 @@ org.emacs.wisi.stephe-4 (): available
 Most notes are in ../org.emacs.ada-mode/notes.text, for simplicity in finding them
 
  release process
-keep status in ~/projects.text
-do wisitoken release ../org.wisitoken/build/release_process.text
+org.emacs.wisi released together with ada-mode; see ada-mode notes
+all tests done in ada-mode
 
 check emacs buglist
     https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
@@ -61,18 +61,8 @@ check for ELPA patches by others
         (dvc-log "/Projects/elpa/packages/<dir>/<file>")
         apply changes to current
 
-run tests in ada-mode
-
 compare:
-    build/Makefile pub
-
-    reset package-load-list to '(all) to allow installing wisi:
-        (setq package-load-list '(all))
-
-    (list-packages)
-        install previous wisi from public ELPA for diffs
-
-    (ediff-directories "~/.emacs.d/elpa/wisi-3.1.8" "/Projects/elpa/packages/wisi" nil)
+    (ediff-directories "/Projects/elpa_release/wisi" "/Projects/elpa/packages/wisi" nil)
         NEWS
             copyright date
             add release date
@@ -80,6 +70,7 @@ compare:
 
 build in elpa; /Projects/elpa/packages/wisi/Makefile
     check for unused sources in wisi; no .o => edit Makefile pub-*
+    unless it's a separate subunit like wisitoken-parse-lr-parser-parse.adb
 
 Check copyright on files in elpa
     c:/Projects/elpa/GNUMakefile check-all
@@ -88,7 +79,7 @@ Check copyright on files in elpa
 bump versions
     Gnu ELPA requires single digits between dots in versions
 
-    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+    bump if _any_ changes, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
         bump second digit for major features, mostly backward-compatible
             - GPS indentation engine add/delete
@@ -102,15 +93,13 @@ bump versions
             - 3 project.el integration
             - 4 incremental parse
 
-         if current release is non-beta, propagate from elpa/packages/wisi to elpa_release/packages/wisi
-
     NEWS
 
-    emacs_wisi_common_parse.ads
+    emacs_wisi_common_parse.ads Protocol_Version
+    wisi-process-parse.el       wisi-process-parse-protocol-version
         (should have been changed already, but verify)
-        Protocol_Version if this file changed, or
-        wisi-process-parse.el -send-parse, -send-refactor, -execute
-        changed; ie, if installed parser must be replaced on upgrade or downgrade
+        bump if new, deleted, changed commands or parameters; ie, if
+        installed parser must be replaced on upgrade or downgrade
 
     wisi.el
         copyright date
@@ -132,6 +121,7 @@ bump versions
 (dvc-state-one ".")
 
 On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
+    # Alire emacs_wisi crate includes wisi.adb etc, but not wisitoken, sal etc.
     alr publish --tar
     # at "upload and enter url" prompt; in mys2
     cd /Projects/org.stephe-leake.sal/alire/archives
@@ -149,6 +139,10 @@ push to elpa
 
     (dvc-state-one "/Projects/elpa/packages/wisi") commit
     (dvc-push)
+
+if current release is non-beta:
+    propagate from elpa/packages/wisi to elpa_release/packages/wisi
+    push to elpa
 
 mark fixed bugs
     https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi

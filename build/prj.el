@@ -1,4 +1,4 @@
-;; Project definitions for working on wisi with Alire or in ELPA
+;; Project definitions for working on wisi with gprbuild
 
 (wisi-prj-select-cache
  "wisi.prj"
