@@ -64,7 +64,7 @@ check emacs buglist
         tags nnn + pending
 
 run all tests without elpa:
-    build/Makefile byte-compile test byte-compile-clean
+    build/Makefile all
 
     - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat

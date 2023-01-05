@@ -10,7 +10,7 @@
   (setq gpr-process-parse-exec (expand-file-name "~/.local/bin/gpr_mode_wisi_parse")))
 
  (t
-  (setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" gpr-mode-dir))))
+  (setq gpr-process-parse-exec (expand-file-name "bin/gpr_mode_wisi_parse" gpr-mode-dir))))
 
 (setq wisi-incremental-parse-enable t)
 

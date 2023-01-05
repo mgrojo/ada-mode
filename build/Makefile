@@ -23,14 +23,14 @@ endif
 # export Standard_Common_Build := Debug
 # export Standard_Common_Assertions := Off
 
-all : byte-compile-clean update test-clean test docs
+all : byte-compile-clean update test-clean test doc
 
 # 'pub' does not do install, because 'build-elpa' uses the last
 # commit, not the current workspace.
 pub : pub-gpr
 pub-install: build-elpa install-elpa
 
-docs : gpr-mode.info gpr-mode.html
+doc : gpr-mode.info gpr-mode.html
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
