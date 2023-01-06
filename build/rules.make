@@ -107,10 +107,10 @@ compile-ada-test : force
 recursive-clean : force
 	gprclean -r -P ../ada_mode_wisi_parse.gpr
 
-clean :: generate-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
+clean :: generate-clean compile-ada-test-clean docs-clean elisp-clean exe-clean source-clean test-clean profile-clean
 	rm -f check.gpr Makefile.conf
 
-doc-clean ::
+docs-clean ::
 	rm -f ../*.info ../*.html ../dir-ada-mode
 
 # delete the gpr_query database, to be sure it is rebuilt accurately

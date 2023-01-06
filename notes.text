@@ -1613,8 +1613,6 @@ sync with Debian
 
 update benchmark_results.text
 
-find info cross reference checker; ref to wisi from ada-mode was wrong.
-
 drop emacs 26 - not tested? at least drop emacs 25
 
 check for ELPA patches by others
@@ -1675,19 +1673,12 @@ do other package releases:
     ../org.emacs.gpr-mode/notes.text elpa, alire
 
 Alire.make
-    alire-clean
+    rm -rf alire config
     alire-build
 
 compare:
-    build/Makefile pub
-
-    (setq package-load-list '(all))
-    (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel/"))
-    (list-packages)
-        install previous ada-mode from public ELPA for diffs
-        change versions in compares below to match installed versions.
-
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.3beta1.0.20220711.185004" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "/Projects/elpa/packages/ada-mode" "/Projects/org.emacs.ada-mode" nil)
+    (ediff-directories "/Projects/elpa_release/ada-mode" "/Projects/org.emacs.ada-mode" nil)
         NEWS
             add release date
             add new features
