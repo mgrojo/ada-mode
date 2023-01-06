@@ -39,7 +39,9 @@ o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): available
    ("../org.emacs.gpr-mode.stephe-2"   . "../org.emacs.gpr-mode")))
 
  current work
-apparently there is a gpr_lsp, bundled with ada_lsp
+create d:/Web/savannah/gpr-mode/index.html
+
+There is a gpr_lsp, bundled with ada_lsp
 
  release process
 keep status in ~/projects.text
@@ -84,17 +86,7 @@ run all tests without elpa:
         gprbuild
 
 compare:
-    build stuff to compare with previous release in elpa:
-        build/Makefile pub
-
-    ~/.emacs.d/early-init.el
-        reset package-load-list to '(all) to allow installing gpr-mode
-
-    (list-packages)
-        install previous gpr-mode from public ELPA for diffs
-        change versions in compares below to match installed versions.
-
-    (ediff-directories "~/.emacs.d/elpa/gpr-mode-1.0.0" "/Projects/elpa/packages/gpr-mode" nil)
+    (ediff-directories "/Projects/elpa_release/gpr-mode" "/Projects/org.emacs.gpr-mode" nil)
         NEWS
             copyright date
             add release date
@@ -102,13 +94,13 @@ compare:
             list fixed bugs
 
 Check copyright on files in elpa
-    c:/Projects/elpa/GNUMakefile check-all
+    c:/Projects/elpa/GNUMakefile check/gpr-mode
     if any files added to output, fix them (add or change to FSF)
 
 bump versions
     Gnu ELPA requires single digits between dots in versions
 
-    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+    bump if _any_ changes, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
 
         bump second digit for major features, mostly backward-compatible
@@ -124,31 +116,23 @@ bump versions
 
     gpr-mode.el
         Version:
-        package-requires wisi version
+        package-requires
 
     NEWS
         if not done above
 
     gpr-mode.texi
         @title
-        @node top
 
     README
         first line
 
     build.sh
-        if -d ../wisi-, WISI_DIR (twice)
-
-    install.sh
-        if -d ../wisi-, WISI_DIR (twice)
+        if -d ../wisi-, WISI_DIR
 
     alire.toml
         version
         depends-on
-
-    build/Makefile
-        run uninstall-elpa with old values before changing!
-        GPR_MODE_VERSION       for beta, must include timestamp; copy from c:/Projects/elpa/archive-devel
 
     # Windows only
     d:/Web/savannah/gpr-mode/index.html
@@ -157,8 +141,7 @@ bump versions
         echoed to savannah web page on CVS commit.
         other files in that dir updated by ~/web/Makefile
 
-    ~/Web/Makefile
-        GPR_MODE_VERSION
+dvc-state-multiple above
 
 On Debian
     (dvc-state-one ".") ;; commit or stash
