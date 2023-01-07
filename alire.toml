@@ -21,9 +21,9 @@ type = "pre-build"
 command = ["make", "-f", "Alire.make", "ada_annex_p_re2c.c"]
 
 [[depends-on]]
-stephes_ada_library = "~3.7.1"
-wisitoken = "~4.0.1"
-emacs_wisi = "~4.1.1"
+stephes_ada_library = "~3.7.2"
+wisitoken = "~4.1.0"
+emacs_wisi = "~4.2.0"
 re2c = ">=2.2"
 
 # We use Ada 2022 syntax, so need the -gnat2022 switch; introduced in gnat FSF 11, Community 2021. 

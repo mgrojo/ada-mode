@@ -58,7 +58,8 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-run all tests
+Add ALIRE_BUILD_ARGS ?= --release to Alire.make
+
 c:/Projects/org.emacs.ada-mode/test/ada_mode-recover_02.adb:5 tests passed 0
 partial parse:
 indenting
@@ -1689,6 +1690,7 @@ compare:
             add release date, new features
 
 build in elpa; /Projects/elpa/packages/ada-mode/ELPA.make all
+    build/Makefile pub
     check for unused sources in wisi; no .o => edit Makefile pub-*
 
 Check copyright on files in elpa
@@ -1778,13 +1780,8 @@ bump versions
         _not_ WisiToken (done in wisitoken release)
 
         echoed to savannah web page on CVS commit.
-        other files in that dir updated by ~/web/Makefile
 
     _not_ d:/Web/stephe-leake/ada/wisitoken.html - done in wisitoken release
-
-    ~/Web/Makefile
-        ADA_MODE_VERSION
-        _not_ WISITOKEN_ZIP_VERSION
 
 On Debian
     (dvc-status)

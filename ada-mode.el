@@ -1,13 +1,13 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
 ;; Version: 8.0.2
-;; package-requires: ((uniquify-files "1.0.1") (wisi "4.1.1") (gnat-compiler "1.0.0") (emacs "25.3"))
+;; package-requires: ((uniquify-files "1.0.1") (wisi "4.2.0") (gnat-compiler "1.0.1") (emacs "25.3"))
 ;; url: https://www.nongnu.org/ada-mode/
 ;;
 ;; This file is part of GNU Emacs.
