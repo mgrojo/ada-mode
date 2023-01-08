@@ -41,9 +41,11 @@ On Debian
     (dvc-state-one ".") ;; commit or stash
     (dvc-push)
     cd /Projects/org.wisitoken/
-    ~/bin/alire_publish-tar.sh
-    # at "upload and enter url" prompt; in mys2
+    ~/bin/alire-publish-tar.sh
+    # at "upload and enter url" prompt, C-c C-k
     cd alire/archives
+    ls *.tgz*
+    # delete old *.tgz*
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
     # wait until wget https://download.savannah.nongnu.org/releases/ada-mode/wisitoken-4.0.0.tgz; diff succeeds
