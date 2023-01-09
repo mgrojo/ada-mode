@@ -6,7 +6,7 @@ gpr_project_path=../org.stephe_leake.makerules
 
 gpr_file=wisitoken_grammar.gpr
 
-casing=$WISITOKEN/build/emacs_case_exceptions
+casing=$WISITOKEN/build/wisitoken.casing
 casing=$SAL/build/sal.casing
 
 -- end of file
