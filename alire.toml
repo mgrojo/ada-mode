@@ -10,8 +10,7 @@ maintainers-logins = ["stephe-ada-guru"]
 
 website = "https://elpa.gnu.org/packages/wisitoken-grammar-mode.html"
 
-long-description =
-"""
+long-description = """
 Generalized LR error-correcting parser for WisiToken grammar source
 files, generated using WisiToken, interfaced to Emacs via the wisi
 package.
