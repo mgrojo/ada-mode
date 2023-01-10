@@ -20,7 +20,7 @@ WISITOKEN_GENERATE := $(ALIRE_PREFIX)/build/bin/wisitoken-bnf-generate.exe
 # need a rule to build it here.
 %.re2c : %.wy
 	$(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --output_bnf $(<F)
-	for file in $(*F)_*parse_table.txt ; do mkdir -p bin; mv $$file bin; done
+	if [ -f $(*F)_*parse_table.txt ]; then for file in $(*F)_*parse_table.txt; do mv $$file bin; done fi
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
