@@ -18,9 +18,11 @@ WISITOKEN_GENERATE := $(ALIRE_PREFIX)/build/bin/wisitoken-bnf-generate.exe
 
 # The wisitoken crate builds wisitoken-bnf-generate.exe, so we don't
 # need a rule to build it here.
+
+# This is run before gprbuild, so the bin dir is not yet created.
 %.re2c : %.wy
 	$(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --output_bnf $(<F)
-	if [ -f $(*F)_*parse_table.txt ]; then for file in $(*F)_*parse_table.txt; do mv $$file bin; done fi
+	if [ -f $(*F)_*parse_table.txt ]; then mkdir -p bin; for file in $(*F)_*parse_table.txt; do mv $$file bin; done fi
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
