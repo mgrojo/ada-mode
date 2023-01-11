@@ -1,20 +1,20 @@
 -- GNAT project file for Alire crate
 
-with "config/emacs_wisitoken_grammar_config.gpr";
+with "config/emacs_wisitoken_grammar_mode_config.gpr";
 with "standard_common_alire";
 with "wisi_alire";
-project Emacs_Wisitoken_Grammar is
+project Emacs_Wisitoken_Grammar_Mode is
 
    for Source_Dirs use (".", "config/");
    for Languages use ("Ada", "C");
 
-   for Object_Dir use "obj/" & Emacs_Wisitoken_Grammar_Config.Build_Profile;
+   for Object_Dir use "obj/" & Emacs_Wisitoken_Grammar_Mode_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
    for Main use ("wisitoken_grammar_mode_parse.ads");
 
    package Compiler is
-      case Emacs_Wisitoken_Grammar_Config.Build_Profile is
+      case Emacs_Wisitoken_Grammar_Mode_Config.Build_Profile is
       when "release" =>
          for Default_Switches ("Ada") use Standard_Common_Alire.Release_Switches & Standard_Common_Alire.Style_Checks;
 
@@ -32,4 +32,4 @@ project Emacs_Wisitoken_Grammar is
       for Artifacts (".") use ("share");
    end Install;
 
-end Emacs_Wisitoken_Grammar;
+end Emacs_Wisitoken_Grammar_Mode;

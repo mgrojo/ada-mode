@@ -18,7 +18,7 @@ package.
 Provides semantic highlighting, indent, single-file navigation. 
 """
 
-project-files = ["emacs_wisitoken_grammar.gpr"]
+project-files = ["emacs_wisitoken_grammar_mode.gpr"]
 
 executables = ["wisitoken_grammar_mode_parse"]
 
