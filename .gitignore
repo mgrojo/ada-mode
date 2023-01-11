@@ -20,3 +20,6 @@ wisitoken_grammar_1_re2c.c
 wisitoken_grammar_1_re2c_c.ads
 wisitoken_grammar_1-process.el
 autoloads.el~
+alire/
+bin/
+config/
