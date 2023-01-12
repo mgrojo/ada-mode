@@ -107,7 +107,7 @@ clean : byte-compile-clean exe-clean generate-clean source-clean test-clean
 
 exe-clean :
 	rm -rf obj
-	rm -rf *.exe
+	rm -rf bin
 
 # delete all files created by wisitoken-bnf-generate
 generate-clean :
