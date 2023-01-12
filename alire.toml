@@ -1,7 +1,7 @@
 name = "wisitoken"
 description = "Generalized error correcting LALR and packrat parser generator"
 tags = ["parser", "generator", "generalized"]
-version = "4.0.1"
+version = "4.1.0"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -17,10 +17,10 @@ executables = ["wisitoken-bnf-generate.exe"]
 
 [[depends-on]]
 gnatcoll = "^22.0.0"
-stephes_ada_library = "~3.7.0"
+stephes_ada_library = "~3.7.2"
 
 # We use Ada 2022 syntax, so need the -gnat2022 switch; introduced in gnat FSF 11, Community 2021. 
-gnat = ">=11 & <2000"
+gnat = "(>=11 & <2000) | >=2021"
 
 [[pins]]
 stephes_ada_library = { path='../org.stephe_leake.sal' }

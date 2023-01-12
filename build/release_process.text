@@ -14,21 +14,13 @@ doc changes since last release
     $ git log --since "dd mmm yyyy" > release.log
 
 bump version
-    ../Docs/wisitoken.html
-        wisitoken-*.tar.bz2
-
     ../Docs/wisitoken-user_guide.texinfo
         version in @node Top
 
     Makefile
         ZIP_VERSION
 
-    wisitoken_lib.gpr
-        Version
-
-    # *.bz2 on savannah; never deleted
-
-    ../wisitoken-bnf-generate.adb
+    ../main/wisitoken-bnf-generate.adb
         version in Put_Usage
             independent of ada-mode parser version
             bump if changes affect ada-mode or other clients
@@ -39,7 +31,7 @@ Makefile
         # check for missing clean actions
     all
 
-Makefile
+../Makefile
     alire-clean
     alire-build
 
@@ -49,9 +41,11 @@ On Debian
     (dvc-state-one ".") ;; commit or stash
     (dvc-push)
     cd /Projects/org.wisitoken/
-    ~/bin/alire_publish-tar.sh
-    # at "upload and enter url" prompt; in mys2
+    ~/bin/alire-publish-tar.sh
+    # at "upload and enter url" prompt, C-c C-k
     cd alire/archives
+    ls *.tgz*
+    # delete old *.tgz*
     gpg -b *.tgz
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
     # wait until wget https://download.savannah.nongnu.org/releases/ada-mode/wisitoken-4.0.0.tgz; diff succeeds

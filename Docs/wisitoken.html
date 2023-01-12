@@ -55,10 +55,7 @@ and adding support for simple Packrat parsers.
 
   <li>Emacs package "wisi".
 
-  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-4.0.tar.bz2">source
-  Gnu tar bzip2 wisitoken-4.0.tar.bz2</a>, from
-  the <a href="http://download.savannah.gnu.org/releases/ada-mode/">Gnu
-  savannah ada-mode download page</a>.
+  <li>Clone the <a href="https://savannah.nongnu.org/git/?group=ada-mode">git repository</a>.
 </ul>
 
 <p>The source package relies on external libraries/tools (automatically included by Alire):
@@ -68,9 +65,9 @@ and adding support for simple Packrat parsers.
   </ul>
 
 <p>WisiToken has been tested with AdaCore GNAT Community Edition 2021,
-and Pro 22. It uses Ada 2012 containers, so it requires an Ada 2012
-compiler. It also uses some gnatcoll packages, so it may only work
-with GNAT.
+Debian gnat 12, Alire gnat 12, and gnat Pro 23. It uses Ada 2012
+containers, so it requires an Ada 2012 compiler. It also uses some
+gnatcoll packages, so it may only work with GNAT.
 
 <p>Some packages have SPARK annotations, and can be proven by SPARK.
 
@@ -82,6 +79,13 @@ the <a href="https://lists.nongnu.org/mailman/listinfo/ada-mode-users">Emacs
 Ada mode mailing list</a>.
 
 <h2><a name="History"></a> History</h2>
+
+<h3>Version 4.1 </h3>
+<ul>
+  <li>3 Jan 2023
+  <li>wisitoken-bnf-generate no longer supports parallel generate LR1.
+  <li>Alire packaging improvements.
+</ul>
 
 <h3>Version 4.0 </h3>
 <ul>
@@ -204,6 +208,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Sat Oct  8 09:59:09 PDT 2022 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Jan  3 02:31:05 Pacific Standard Time 2023 <!-- hhmts end -->
 </body>
 </html>
