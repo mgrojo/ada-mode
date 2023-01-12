@@ -11,7 +11,7 @@ DIFF_OPT := -u -w
 .PHONY : clean force
 clean ::
 	rm -f *.diff *.out
-	rm -rf devel_obj bin
+	rm -rf obj bin
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print -delete
