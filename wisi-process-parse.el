@@ -842,6 +842,10 @@ Source buffer is current."
 
 (cl-defun wisi-process-parse--prepare (parser parse-action &key nowait)
   "Check for parser busy and startup, mark parser busy, require parser process."
+  (unless (process-live-p (wisi-process--parser-process parser))
+    (wisi-parse-log-message parser "process died")
+    (error "parser process died"))
+
   (when (wisi-process--parser-busy parser)
     (when (< 1 wisi-debug)
       (wisi-parse-log-message parser (format "parse--prepare %s in %s parser busy" parse-action (current-buffer))))
