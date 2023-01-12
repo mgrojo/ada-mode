@@ -124,9 +124,7 @@ compile-ada-test-clean :
 
 exe-clean ::
 	rm -rf ../obj
-	rm -rf ../ada_mode_wisi_*_parse$(EXE_EXT)
-	rm -rf ../run_ada_*_parse$(EXE_EXT)
-	rm -rf ../dump_*_corrected$(EXE_EXT)
+	rm -rf ../bin
 
 profile-clean ::
 	rm -rf ../exec_pro ../obj_pro

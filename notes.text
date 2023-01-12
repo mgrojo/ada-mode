@@ -58,6 +58,8 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+in .texi, need both title and top version numbers?
+
 Add ALIRE_BUILD_ARGS ?= --release to Alire.make
 
 c:/Projects/org.emacs.ada-mode/test/ada_mode-recover_02.adb:5 tests passed 0
@@ -1702,10 +1704,7 @@ bump versions
     Gnu ELPA requires single digits between dots in versions; always use three digits
 
     beta test: don't push to release branch
-
-    (dvc-propagate-multiple
-        '(("/Projects/elpa/packages/ada-mode" . "/Projects/elpa_release/ada-mode")
-          ("/Projects/elpa/packages/wisi"     . "/Projects/elpa_release/wisi")))
+    release: propagated to release below.
 
     (dvc-push "/Projects/elpa/admin")
 
@@ -1787,22 +1786,28 @@ On Debian
     (dvc-status)
     (dvc-push)
     ~/bin/alire_publish-tar.sh
-    # at "upload and enter url" prompt
+    # at "upload and enter url" prompt, C-c C-k
     ~/bin/alire-to-savannah.sh
     # wait until http download actually works; even then alr publish may fail; wait some more
-    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-1.0.0.tgz
-    # when checking for changed file, remember that wget does _not_
-      overwrite existing file; it appends an integer. pay attention to
-      the status message!
+    cd ~/Downloads; curl -L -O https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-1.0.0.tgz
+
+    similarly for all depends-on
+    when all are in local index:
+    cd /Projects/alire-workspace
+    rm -rf emacs_ada_mode*
+    alr get emacs_ada_mode --build
+
+    if that works, tag all:
+    git tag <branch>-alire-<version>
 
     IMPROVEME: patch als to store URL host/dir in alire.toml, or in config. also use ssh to push .tgz there.
-        on the other hand, just use git
+        on the other hand, just use git after download.savannah is in approved host list
 
     (dvc-status "~/.config/alire/indexes/stephe/repo")
     (dvc-push "~/.config/alire/indexes/stephe/repo/")
 
-if doing beta test:
-    (gpr-query-kill-all-sessions)
+publish to elpa devel:
+    /Projects/org.emacs.wisi/build/Makefile pub
     build/Makefile pub
 
     # sometimes this is useful
@@ -1813,13 +1818,12 @@ if doing beta test:
     (dvc-push "/Projects/elpa")
 
 prep for elpa tests:
-    build/Makefile byte-compile-clean pub
-    # pushes to elpa workspace
-    # commit: (dvc-state-multiple "c:/Projects/elpa/packages")
+    build/Makefile byte-compile-clean
     build/Makefile pub-install
     # builds local elpa archive, installs it
+    build/Makefile uninstall-elpa
 
-Emacs 25.3, current gnat
+Emacs 25.3, current gnat/alire
     ~/bin/emacs-25.sh
     build/Makefile install-elpa
     (gpr-query-kill-all-sessions)
@@ -1838,14 +1842,7 @@ Emacs 25.3, current gnat
     (gpr-query-kill-all-sessions)
     build/Makefile recursive-clean clean # if changing compilers
 
-push for Debian
-    current Emacs for dvc
-    # dvc-state-multiple above
-    # only uniquify-files in elpa ; commit ada-mode, wisi elpa on Debian for file permissions
-    (dvc-push "/Projects/elpa")
-    (dvc-push "/Projects/org.emacs.ada-mode")
-
-Debian testing has elpa checkout
+Debian
     build/Makefile uninstall-elpa
         # before versions change
 
@@ -1866,7 +1863,7 @@ Debian testing has elpa checkout
 
     build/Makefile
         # no ARM_INFO on Debian
-        docs pub-ada pub-wisi clean-elpa
+        docs pub
         # build-elpa uses latest commit
         (dvc-state-multiple "/Projects/elpa/packages")
         build-elpa uninstall-elpa
@@ -1882,12 +1879,22 @@ Debian testing has elpa checkout
 
     commit elpa:
     (dvc-state-multiple "/Projects/elpa/packages")
-        add/delete, stage, commit ada-mode, wisi
+        add/delete, stage, commit
 
     (dvc-push "/Projects/elpa")
 
     # dvc-state-multiple above
     (dvc-push ".")
+
+If release:
+    (dvc-propagate-multiple
+     '(("/Projects/elpa/packages/ada-mode"      . "/Projects/elpa_release/packages/ada-mode")
+       ("/Projects/elpa/packages/gnat-compiler" . "/Projects/elpa_release/packages/gnat-compiler")
+       ("/Projects/elpa/packages/gpr-mode"      . "/Projects/elpa_release/packages/gpr-mode")
+       ("/Projects/elpa/packages/gpr-query"     . "/Projects/elpa_release/packages/gpr-query")
+       ("/Projects/elpa/packages/wisi"          . "/Projects/elpa_release/packages/wisi")))
+
+    git push
 
 On Windows
 (dvc-pull)

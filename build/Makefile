@@ -369,7 +369,7 @@ pub-ada : force | $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_mode.prj ../ada-mode.casing ../prj.el $(ELPA_ROOT)/packages/ada-mode/
 	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
-	cp ../*.wy ../ada*.ad? ../run_ada*.ad? ../wisi-ada*.ad? $(ELPA_ROOT)/packages/ada-mode
+	cp ../ada_annex_p.wy ../ada*.ad? ../run_ada*.ad? ../wisi-ada*.ad? $(ELPA_ROOT)/packages/ada-mode
 	cd $(ELPA_ROOT)/packages/ada-mode; rm -f ada-ref-man.el ada_annex_p_bnf.wy ada_annex_p_txt.wy autoloads.el
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode

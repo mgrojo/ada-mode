@@ -1,6 +1,6 @@
 ;;; ada-core.el --- core facilities for ada-mode -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -238,7 +238,7 @@ declarative region start, goto containing region start."
 	       ((protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
 		(while (not (eq 'IS (wisi-cache-token cache)))
 		  (setq cache (wisi-next-statement-cache cache)))
-		(when (looking-at "\<new\>")
+		(when (looking-at "\\<new\\>")
 		  (while (not (eq 'WITH (wisi-cache-token cache)))
 		    (setq cache (wisi-next-statement-cache cache))))
 
@@ -780,7 +780,7 @@ Deselects the current project first."
    ((wisi-in-string-p)
     ;; In an operator, or a string literal
     (let (start)
-      (skip-chars-backward "+*/&<>=-andxorme") ;; Ada operator string content (see ada-operator-re).
+      (skip-chars-backward "-+*/&<>=andxorme") ;; Ada operator string content (see ada-operator-re).
       (setq start (point))
       (cond
        ((and (= (char-before) ?\")

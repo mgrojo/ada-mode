@@ -6,7 +6,7 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 8.0.2
+;; Version: 8.0.3
 ;; package-requires: ((uniquify-files "1.0.1") (wisi "4.2.0") (gnat-compiler "1.0.1") (emacs "25.3"))
 ;; url: https://www.nongnu.org/ada-mode/
 ;;
@@ -117,7 +117,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "8.0.2"))
+  (let ((version-string "8.0.3"))
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
@@ -1323,7 +1323,7 @@ Point must have been set by `ada-wisi-find-begin'."
 		    (buffer-substring-no-properties
 		     (point)
 		     (progn
-		       (skip-syntax-forward "ws._")
+		       (skip-syntax-forward "w-._")
 		       (point)))
 		    ";"))
       (if (search-forward-regexp end-regexp nil t)
