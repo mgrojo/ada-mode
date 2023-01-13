@@ -1,6 +1,6 @@
 name = "emacs_gpr_mode"
 description = "parser for Emacs gpr mode"
-tags = ["ident", "highlight", "parser", "gpr"]
+tags = ["indent", "highlight", "parser", "gpr", "emacs"]
 version = "1.0.2"
 licenses = "GPL-3.0-or-later"
 
