@@ -58,8 +58,6 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-in .texi, need both title and top version numbers?
-
 Add ALIRE_BUILD_ARGS ?= --release to Alire.make
 
 c:/Projects/org.emacs.ada-mode/test/ada_mode-recover_02.adb:5 tests passed 0
@@ -1609,10 +1607,16 @@ to test compiling info files:
 if package is not published, check https://elpa.gnu.org/devel/<package>-build-failure.log
 
  release process
+Do everything on Debian
+    required for Alire
+    git is faster
+
+upgrade debian (to avoid eventually needing to reinstall from scratch)
+
 keep status in ~/projects.text
     dependency releases done below, after tests that test all of them.
 
-sync with Debian
+sync Windows with Debian
 
 update benchmark_results.text
 
@@ -1745,8 +1749,8 @@ bump versions
         ada-mode-version
 
     ada-mode.texi
-        @title
         @node top
+        FIXME: don't need @titlepage at all; it does not appear in html or info
 
     README
         first line
@@ -1782,9 +1786,7 @@ bump versions
 
     _not_ d:/Web/stephe-leake/ada/wisitoken.html - done in wisitoken release
 
-On Debian
-    (dvc-status)
-    (dvc-push)
+Publish Alire crate
     ~/bin/alire_publish-tar.sh
     # at "upload and enter url" prompt, C-c C-k
     ~/bin/alire-to-savannah.sh
@@ -1797,11 +1799,7 @@ On Debian
     rm -rf emacs_ada_mode*
     alr get emacs_ada_mode --build
 
-    if that works, tag all:
-    git tag <branch>-alire-<version>
-
-    IMPROVEME: patch als to store URL host/dir in alire.toml, or in config. also use ssh to push .tgz there.
-        on the other hand, just use git after download.savannah is in approved host list
+    git tag done below after pull request accepted; review may find problems
 
     (dvc-status "~/.config/alire/indexes/stephe/repo")
     (dvc-push "~/.config/alire/indexes/stephe/repo/")
@@ -1814,14 +1812,27 @@ publish to elpa devel:
     # (ediff-directories "/Projects/org.emacs.ada-mode" "/Projects/elpa/packages/ada-mode" nil)
     # (ediff-directories "/Projects/org.emacs.wisi" "/Projects/elpa/packages/wisi" nil)
 
+    check for bogus execute permissions in elpa
+        $ cd /Projects/elpa/
+        $ ls -R -l packages/ada-mode | grep -- -rwx
+        $ ls -R -l packages/wisi | grep -- -rwx
+        $ chmod -x *.el *.adb
+        # keep execute on *.sh
+
     (dvc-state-multiple "/Projects/elpa/packages" t)
     (dvc-push "/Projects/elpa")
+
+    If the ELPA processing fails, it logs the error messages in
+        https://elpa.gnu.org/devel/<package>-build-failure.txt
+        https://elpa.gnu.org/packages/<package>-build-failure.txt
 
 prep for elpa tests:
     build/Makefile byte-compile-clean
     build/Makefile pub-install
     # builds local elpa archive, installs it
+
     build/Makefile uninstall-elpa
+        # for other emacs versions
 
 Emacs 25.3, current gnat/alire
     ~/bin/emacs-25.sh
@@ -1842,49 +1853,19 @@ Emacs 25.3, current gnat/alire
     (gpr-query-kill-all-sessions)
     build/Makefile recursive-clean clean # if changing compilers
 
-Debian
-    build/Makefile uninstall-elpa
-        # before versions change
+Emacs 26
+Emacs 27
+Emacs 28
+Emacs master testing done above.
 
-    (dvc-pull ".")
-    (dvc-sync-review ".")
+do alire pull request
+    when accepted:
+    git tag <branch>-alire-<version>
 
-    upgrade debian (to avoid eventually needing to reinstall from scratch)
-
-    test with the latest Debian gnat release
-        bugs to https://gcc.gnu.org/bugzilla/buglist.cgi?quicksearch=comp%3Aada
-
-    if new machine, install gnat CE 2019, gnatcoll
-        http://libre.adacore.com
-        ada-mode.texi
-
-    (dvc-pull "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
-
-    build/Makefile
-        # no ARM_INFO on Debian
-        docs pub
-        # build-elpa uses latest commit
-        (dvc-state-multiple "/Projects/elpa/packages")
-        build-elpa uninstall-elpa
-        install-elpa
-            # byte-compile errors, warnings show in *compile-log*
-
-    check for bogus execute permissions in elpa
-        $ cd /Projects/elpa/
-        $ ls -R -l packages/ada-mode | grep -- -rwx
-        $ ls -R -l packages/wisi | grep -- -rwx
-        $ chmod -x *.el *.adb
-        # keep execute on *.sh
-
-    commit elpa:
-    (dvc-state-multiple "/Projects/elpa/packages")
-        add/delete, stage, commit
-
-    (dvc-push "/Projects/elpa")
-
-    # dvc-state-multiple above
-    (dvc-push ".")
+install current version from ELPA, to test upgrade to new
+    (list-packages)
+    ~/.emacs.d/early-init.el
+        ada-mode 7.1.5 should have required wisi 3.1.5
 
 If release:
     (dvc-propagate-multiple
@@ -1895,36 +1876,6 @@ If release:
        ("/Projects/elpa/packages/wisi"          . "/Projects/elpa_release/packages/wisi")))
 
     git push
-
-On Windows
-(dvc-pull)
-(dvc-sync-review ".")
-
-delete changes in elpa:
-    $ cd c:/Projects/elpa/
-    $ git checkout .
-
-install current version from ELPA, to test upgrade to new
-    (list-packages)
-    ~/.emacs.d/early-init.el
-        ada-mode 7.1.5 should have required wisi 3.1.5
-
-do alire pull request before elpa release, so alire crates are available when elpa is.
-
-update elpa, commit elpa/ada-ref-man (not done on Debian)
-    (dvc-pull "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
-
-    check version ada-ref-man.el
-
-    build/Makefile pub-ada-ref-man
-
-    (dvc-state-one "/Projects/elpa")
-    (dvc-state-one "/Projects/elpa/packages/ada-mode")
-
-    (dvc-push "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
-
     # 24 hrs for web repository to update
 
 after Gnu ELPA updated, test install from GNU ELPA
@@ -1932,27 +1883,15 @@ after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
     see 'build.sh; install.sh' above for compiling
 
-    also wisitoken-grammar-mode
-
-(dvc-state-one ".")
-
 tag savannah:
     cd c:/Projects/org.emacs.ada-mode
-    git tag ada-mode-8.0.1
-
-tag elpa release:
-    cd /Projects/elpa_release/packages/ada-mode
-    git tag ada-mode-7.3.0
-
-tag elpa devel:
-    cd /Projects/elpa_release/packages/ada-mode
     git tag ada-mode-8.0.1
 
 ~/Web/Makefile
     # no 'sync' here; all on savannah via cvs, scp
     ada-mode
 
-commit savannah
+commit savannah web
     if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
         # see projects.text "conflicting keys for savannah"
         $ cd /d/Web/savannah/ada-mode
