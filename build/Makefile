@@ -118,7 +118,6 @@ pub : force
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-parse-tree_sitter.ad?
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-utf_8.ad?
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/build/alire_rules.make $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-unix_text_io.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-ada_containers* $(ELPA_ROOT)/packages/wisi
