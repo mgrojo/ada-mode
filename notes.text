@@ -45,10 +45,10 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
 (dvc-sync-run "/Projects/elpa/packages/wisi")
 (dvc-sync-review "/Projects/elpa/packages/wisi")
 
-(ediff-directories "/Projects/elpa_release/wisi" "/Projects/elpa/packages/wisi" nil)
-     NEWS
+build/Makefile pub
+/Projects/elpa/packages/wisi/ELPA.make all
 
-/Projects/elpa/packages/wisi/ELPA.make
+(ediff-directories "/Projects/elpa_release/packages/wisi" "/Projects/elpa/packages/wisi" nil)
 
 bump versions
     NEWS
