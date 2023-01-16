@@ -1497,7 +1497,8 @@ package WisiToken.Syntax_Trees is
    procedure Set_Augmented
      (Tree  : in Syntax_Trees.Tree;
       Node  : in Valid_Node_Access;
-      Value : in Augmented_Class_Access);
+      Value : in Augmented_Class_Access)
+   with Pre => Tree.Augmented (Node) = null;
    --  Value will be deallocated when Tree is finalized.
 
    function Augmented

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -609,7 +609,8 @@ package body WisiToken_Grammar_Runtime is
             --  % CONFLICT conflict_item_list ON TOKEN on_symbol [: resolution]
             --  1 2        3                  4  5     6          7 8
             --
-            --  conflict_item_list : [action] LHS (| [action] LHS)*
+            --  conflict_item_list : action LHS (| action LHS)*
+            --  conflict_item_list : LHS*
 
             Conflict_Items : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals
               (Tree.Child (Nonterm, 3));

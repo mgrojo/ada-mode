@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2015, 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -71,11 +71,11 @@ package body WisiToken.BNF is
 
    function From_Generate_Env_Var return Generate_Algorithm_Set
    is
-      Gen_String : constant String := Ada.Environment_Variables.Value ("GENERATE", "BNF_EBNF");
+      Gen_String : constant String := Ada.Environment_Variables.Value ("GENERATE", "");
    begin
       --  GENERATE env var defined in wisitoken_test.gpr
       if Gen_String = "" then
-         return (Tree_Sitter => False, others => True);
+         return (others => True);
       elsif Gen_String = "BNF_EBNF_Tree_Sitter" then
          return (others => True);
       elsif Gen_String = "BNF_EBNF" or

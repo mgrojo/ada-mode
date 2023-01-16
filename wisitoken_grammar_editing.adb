@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -3518,12 +3518,16 @@ package body WisiToken_Grammar_Editing is
                         then "%conflict "
                         else "%conflict_resolution "));
                   Put (File, Get_Text (Data, Tree, Children (3))); -- conflict_item_list
-                  Put (File, " on token " & Get_Text (Data, Tree, Children (6)));
-                  if Children'Last = 8 then
-                     Put (File, " : " & Get_Text (Data, Tree, Children (8)));
-                     Put_Comments (Children (8), Force_New_Line => True);
-                  else
-                     Put_Comments (Children (6), Force_New_Line => True);
+                  if Children'Last >= 6 then
+                     --  wisi format
+                     Put (File, " on token " & Get_Text (Data, Tree, Children (6)));
+                     if Children'Last = 8 then
+                        Put (File, " : " & Get_Text (Data, Tree, Children (8)));
+                        Put_Comments (Children (8), Force_New_Line => True);
+                     else
+                        Put_Comments (Children (6), Force_New_Line => True);
+                     end if;
+                     --  else tree_sitter format
                   end if;
 
                when IDENTIFIER_ID =>

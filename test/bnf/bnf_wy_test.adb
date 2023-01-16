@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2022 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2023 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -257,8 +257,8 @@ package body BNF_WY_Test is
       McKenzie_Recover : Boolean;
       Meta_Syntax      : WisiToken_Grammar_Runtime.Meta_Syntax;
    begin
-      --  wisi-generate, re2c, gprbuild are run from the Makefile, since
-      --  some of the generated files are shared with other tests.
+      --  wisitoken-bnf-generate, re2c, gprbuild are run from the Makefile,
+      --  since some of the generated files are shared with other tests.
 
       Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 

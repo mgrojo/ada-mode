@@ -2,7 +2,7 @@
 --
 --  Run Test_BNF_Suite
 --
---  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2021, 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -47,7 +47,12 @@ is
 
 begin
    if Argument_Count >= 1 then
-      Filter.Test_Name    := Ada.Strings.Unbounded.To_Unbounded_String ("bnf_wy_test.adb " & Argument (1));
+      if Argument (1)(1 .. 6) = "bnf_wy" then
+         --  Allow bnf_wy_errors_test
+         Filter.Test_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (1));
+      else
+         Filter.Test_Name := Ada.Strings.Unbounded.To_Unbounded_String ("bnf_wy_test.adb " & Argument (1));
+      end if;
    end if;
 
    if Argument_Count = 2 then

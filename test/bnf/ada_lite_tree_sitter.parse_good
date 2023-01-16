@@ -1,92 +1,101 @@
 new_parse
-process version:0, version_count:1, state:1, row:1, col:0
-lex_internal state:104, row:1, column:0
+process version:0, version_count:1, state:1, row:0, col:0
+lex_internal state:82, row:0, column:0
 lexed_lookahead sym:COMMENT, size:87
 shift_extra
-process version:0, version_count:1, state:1, row:1, col:87
-lex_internal state:104, row:1, column:87
+process version:0, version_count:1, state:1, row:0, col:87
+lex_internal state:82, row:0, column:87
 lexed_lookahead sym:COMMENT, size:71
 shift_extra
-process version:0, version_count:1, state:1, row:2, col:70
-lex_internal state:104, row:2, column:70
+process version:0, version_count:1, state:1, row:1, col:70
+lex_internal state:82, row:1, column:70
 lexed_lookahead sym:procedure, size:11
-shift state:586
-process version:0, version_count:1, state:586, row:4, col:9
-lex_internal state:98, row:4, column:9
+shift state:965
+process version:0, version_count:1, state:965, row:3, col:9
+lex_internal state:34, row:3, column:9
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:4, col:17
-lex_internal state:0, row:4, column:17
-lexed_lookahead sym:;, size:1
+reduce sym:PROCEDURE, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:3, col:17
+lex_internal state:37, row:3, column:17
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 reduce sym:procedure_specification, child_count:2
 reduce sym:subprogram_specification, child_count:1
-shift state:196
-process version:0, version_count:1, state:196, row:4, col:18
-lex_internal state:104, row:4, column:18
+shift state:245
+process version:0, version_count:1, state:245, row:3, col:18
+lex_internal state:82, row:3, column:18
 lexed_lookahead sym:procedure, size:11
 reduce sym:subprogram_declaration, child_count:2
 reduce sym:compilation_unit, child_count:1
 reduce sym:compilation_unit_list, child_count:1
-shift state:586
-process version:0, version_count:1, state:586, row:6, col:9
-lex_internal state:98, row:6, column:9
+shift state:965
+process version:0, version_count:1, state:965, row:5, col:9
+lex_internal state:34, row:5, column:9
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:6, col:17
-lex_internal state:0, row:6, column:17
+reduce sym:PROCEDURE, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:5, col:17
+lex_internal state:37, row:5, column:17
 lexed_lookahead sym:is, size:3
 reduce sym:name, child_count:1
 reduce sym:procedure_specification, child_count:2
-shift state:855
-process version:1, version_count:2, state:583, row:6, col:17
+shift state:810
+process version:1, version_count:2, state:576, row:5, col:17
 reduce sym:subprogram_specification, child_count:1
-shift state:126
-process version:0, version_count:2, state:855, row:6, col:20
-lex_internal state:0, row:6, column:20
-lex_internal state:0, row:6, column:20
-skip_unrecognized_character
-lex_internal state:0, row:7, column:4
-lexed_lookahead sym:ERROR, size:5, character:'A'
-detect_error
-process version:1, version_count:2, state:126, row:6, col:20
-lex_internal state:96, row:6, column:20
+shift state:397
+process version:0, version_count:2, state:810, row:5, col:20
+lex_internal state:0, row:5, column:20
 lexed_lookahead sym:IDENTIFIER, size:5
-shift state:937
+detect_error
+process version:1, version_count:2, state:397, row:5, col:20
+lex_internal state:38, row:5, column:20
+lexed_lookahead sym:IDENTIFIER, size:5
+reduce sym:IS, child_count:1
+shift state:698
 condense
-process version:0, version_count:1, state:937, row:7, col:4
-lex_internal state:0, row:7, column:4
-lexed_lookahead sym::, size:2
-shift state:506
-process version:0, version_count:1, state:506, row:7, col:6
-lex_internal state:98, row:7, column:6
+process version:0, version_count:1, state:698, row:6, col:4
+lex_internal state:0, row:6, column:4
+lexed_lookahead sym:COLON, size:2
+reduce sym:defining_identifier_list, child_count:1
+shift state:609
+process version:1, version_count:2, state:639, row:6, col:4
+shift state:571
+process version:0, version_count:2, state:609, row:6, col:6
+lex_internal state:34, row:6, column:6
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:7, col:14
-lex_internal state:0, row:7, column:14
-lexed_lookahead sym::=, size:3
+shift state:125
+process version:1, version_count:2, state:571, row:6, col:6
+shift state:125
+condense
+process version:0, version_count:1, state:125, row:6, col:14
+lex_internal state:37, row:6, column:14
+lexed_lookahead sym:COLON_EQUAL, size:3
 reduce sym:name, child_count:1
 reduce sym:subtype_indication, child_count:1
-shift state:144
-process version:0, version_count:1, state:144, row:7, col:17
-lex_internal state:91, row:7, column:17
+detect_error
+process version:1, version_count:2, state:704, row:6, col:14
+shift state:186
+condense
+process version:0, version_count:1, state:186, row:6, col:17
+lex_internal state:33, row:6, column:17
 lexed_lookahead sym:NUMERIC_LITERAL, size:3
-shift state:123
-process version:0, version_count:1, state:123, row:7, col:20
-lex_internal state:0, row:7, column:20
-lexed_lookahead sym:/, size:2
+shift state:156
+process version:0, version_count:1, state:156, row:6, col:20
+lex_internal state:37, row:6, column:20
+lexed_lookahead sym:SLASH, size:2
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
-shift state:466
-process version:0, version_count:1, state:466, row:7, col:22
-lex_internal state:91, row:7, column:22
+shift state:499
+process version:0, version_count:1, state:499, row:6, col:22
+lex_internal state:33, row:6, column:22
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
 reduce sym:multiplying_operator, child_count:1
-shift state:123
-process version:0, version_count:1, state:123, row:7, col:24
-lex_internal state:0, row:7, column:24
-lexed_lookahead sym:;, size:1
+shift state:156
+process version:0, version_count:1, state:156, row:6, col:24
+lex_internal state:37, row:6, column:24
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:3
@@ -94,44 +103,45 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:378
-process version:0, version_count:1, state:378, row:7, col:25
-lex_internal state:96, row:7, column:25
+shift state:451
+process version:0, version_count:1, state:451, row:6, col:25
+lex_internal state:38, row:6, column:25
 lexed_lookahead sym:begin, size:6
 reduce sym:object_declaration, child_count:6
 reduce sym:declaration, child_count:1
 reduce sym:declarations, child_count:1
 reduce sym:declarative_part, child_count:1
-shift state:19
-process version:0, version_count:1, state:19, row:8, col:5
-lex_internal state:101, row:8, column:5
+shift state:369
+process version:0, version_count:1, state:369, row:7, col:5
+lex_internal state:43, row:7, column:5
 lexed_lookahead sym:IDENTIFIER, size:5
-shift state:462
-process version:0, version_count:1, state:462, row:9, col:4
-lex_internal state:0, row:9, column:4
-lexed_lookahead sym::=, size:3
+reduce sym:BEGIN, child_count:1
+shift state:492
+process version:0, version_count:1, state:492, row:8, col:4
+lex_internal state:0, row:8, column:4
+lexed_lookahead sym:COLON_EQUAL, size:3
 reduce sym:name, child_count:1
-shift state:154
-process version:0, version_count:1, state:154, row:9, col:7
-lex_internal state:91, row:9, column:7
+shift state:176
+process version:0, version_count:1, state:176, row:8, col:7
+lex_internal state:33, row:8, column:7
 lexed_lookahead sym:IDENTIFIER, size:2
-shift state:55
-process version:0, version_count:1, state:55, row:9, col:9
-lex_internal state:0, row:9, column:9
-lexed_lookahead sym:*, size:2
+shift state:125
+process version:0, version_count:1, state:125, row:8, col:9
+lex_internal state:37, row:8, column:9
+lexed_lookahead sym:STAR, size:2
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
-shift state:466
-process version:0, version_count:1, state:466, row:9, col:11
-lex_internal state:91, row:9, column:11
+shift state:499
+process version:0, version_count:1, state:499, row:8, col:11
+lex_internal state:33, row:8, column:11
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
 reduce sym:multiplying_operator, child_count:1
-shift state:123
-process version:0, version_count:1, state:123, row:9, col:13
-lex_internal state:0, row:9, column:13
-lexed_lookahead sym:;, size:1
+shift state:156
+process version:0, version_count:1, state:156, row:8, col:13
+lex_internal state:37, row:8, column:13
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:3
@@ -139,203 +149,215 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:271
-process version:0, version_count:1, state:271, row:9, col:14
-lex_internal state:103, row:9, column:14
+shift state:315
+process version:0, version_count:1, state:315, row:8, col:14
+lex_internal state:42, row:8, column:14
 lexed_lookahead sym:end, size:4
 reduce sym:assignment_statement, child_count:4
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:handled_sequence_of_statements, child_count:1
-shift state:479
-process version:0, version_count:1, state:479, row:10, col:3
-lex_internal state:98, row:10, column:3
-lexed_lookahead sym:;, size:1
-shift state:215
-process version:0, version_count:1, state:215, row:10, col:4
-lex_internal state:104, row:10, column:4
+shift state:659
+process version:0, version_count:1, state:659, row:9, col:3
+lex_internal state:34, row:9, column:3
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:END, child_count:1
+shift state:227
+process version:0, version_count:1, state:227, row:9, col:4
+lex_internal state:82, row:9, column:4
 lexed_lookahead sym:function, size:10
 reduce sym:subprogram_body, child_count:7
 reduce sym:compilation_unit, child_count:1
 reduce sym:compilation_unit_list, child_count:2
-shift state:539
-process version:0, version_count:1, state:539, row:12, col:8
-lex_internal state:98, row:12, column:8
+shift state:967
+process version:0, version_count:1, state:967, row:11, col:8
+lex_internal state:34, row:11, column:8
 lexed_lookahead sym:IDENTIFIER, size:7
-shift state:55
-process version:0, version_count:1, state:55, row:12, col:15
-lex_internal state:0, row:12, column:15
+reduce sym:FUNCTION, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:11, col:15
+lex_internal state:37, row:11, column:15
 lexed_lookahead sym:(, size:2
 reduce sym:name, child_count:1
-shift state:89
-process version:0, version_count:1, state:89, row:12, col:17
-lex_internal state:91, row:12, column:17
+shift state:403
+process version:0, version_count:1, state:403, row:11, col:17
+lex_internal state:33, row:11, column:17
 lexed_lookahead sym:IDENTIFIER, size:4
-shift state:171
-process version:0, version_count:1, state:171, row:12, col:21
-lex_internal state:0, row:12, column:21
-lexed_lookahead sym::, size:2
-shift state:708
-process version:0, version_count:1, state:708, row:12, col:23
-lex_internal state:98, row:12, column:23
+reduce sym:LEFT_PAREN, child_count:1
+shift state:198
+process version:0, version_count:1, state:198, row:11, col:21
+lex_internal state:37, row:11, column:21
+lexed_lookahead sym:COLON, size:2
+shift state:826
+process version:0, version_count:1, state:826, row:11, col:23
+lex_internal state:34, row:11, column:23
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:553
-process version:0, version_count:1, state:553, row:12, col:31
-lex_internal state:0, row:12, column:31
-lexed_lookahead sym:;, size:1
+shift state:599
+process version:0, version_count:1, state:599, row:11, col:31
+lex_internal state:0, row:11, column:31
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:parameter_specification, child_count:3
 reduce sym:parameter_specification_list, child_count:1
-shift state:499
-process version:0, version_count:1, state:499, row:12, col:32
-lex_internal state:98, row:12, column:32
+shift state:532
+process version:0, version_count:1, state:532, row:11, col:32
+lex_internal state:34, row:11, column:32
 lexed_lookahead sym:IDENTIFIER, size:6
-shift state:751
-process version:0, version_count:1, state:751, row:12, col:38
-lex_internal state:0, row:12, column:38
-lexed_lookahead sym::, size:2
-shift state:708
-process version:0, version_count:1, state:708, row:12, col:40
-lex_internal state:98, row:12, column:40
+shift state:945
+process version:0, version_count:1, state:945, row:11, col:38
+lex_internal state:0, row:11, column:38
+lexed_lookahead sym:COLON, size:2
+shift state:826
+process version:0, version_count:1, state:826, row:11, col:40
+lex_internal state:34, row:11, column:40
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:553
-process version:0, version_count:1, state:553, row:12, col:48
-lex_internal state:0, row:12, column:48
+shift state:599
+process version:0, version_count:1, state:599, row:11, col:48
+lex_internal state:0, row:11, column:48
 lexed_lookahead sym:), size:1
 reduce sym:parameter_specification, child_count:3
 reduce sym:parameter_specification_list, child_count:3
-shift state:498
-process version:0, version_count:1, state:498, row:12, col:49
-lex_internal state:0, row:12, column:49
+shift state:128
+process version:0, version_count:1, state:128, row:11, col:49
+lex_internal state:37, row:11, column:49
 lexed_lookahead sym:return, size:7
+reduce sym:RIGHT_PAREN, child_count:1
 reduce sym:formal_part, child_count:3
-shift state:803
-process version:0, version_count:1, state:803, row:12, col:56
-lex_internal state:98, row:12, column:56
+shift state:966
+process version:0, version_count:1, state:966, row:11, col:56
+lex_internal state:34, row:11, column:56
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:557
-process version:0, version_count:1, state:557, row:12, col:64
-lex_internal state:0, row:12, column:64
-lexed_lookahead sym:;, size:1
+reduce sym:RETURN, child_count:1
+shift state:582
+process version:0, version_count:1, state:582, row:11, col:64
+lex_internal state:37, row:11, column:64
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:parameter_and_result_profile, child_count:3
 reduce sym:function_specification, child_count:3
 reduce sym:subprogram_specification, child_count:1
-shift state:196
-process version:0, version_count:1, state:196, row:12, col:65
-lex_internal state:104, row:12, column:65
+shift state:245
+process version:0, version_count:1, state:245, row:11, col:65
+lex_internal state:82, row:11, column:65
 lexed_lookahead sym:function, size:9
 reduce sym:subprogram_declaration, child_count:2
 reduce sym:compilation_unit, child_count:1
 reduce sym:compilation_unit_list, child_count:2
-shift state:539
-process version:0, version_count:1, state:539, row:13, col:8
-lex_internal state:98, row:13, column:8
+shift state:967
+process version:0, version_count:1, state:967, row:12, col:8
+lex_internal state:34, row:12, column:8
 lexed_lookahead sym:IDENTIFIER, size:7
-shift state:55
-process version:0, version_count:1, state:55, row:13, col:15
-lex_internal state:0, row:13, column:15
+reduce sym:FUNCTION, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:12, col:15
+lex_internal state:37, row:12, column:15
 lexed_lookahead sym:(, size:2
 reduce sym:name, child_count:1
-shift state:89
-process version:0, version_count:1, state:89, row:13, col:17
-lex_internal state:91, row:13, column:17
+shift state:403
+process version:0, version_count:1, state:403, row:12, col:17
+lex_internal state:33, row:12, column:17
 lexed_lookahead sym:IDENTIFIER, size:4
-shift state:171
-process version:0, version_count:1, state:171, row:13, col:21
-lex_internal state:0, row:13, column:21
-lexed_lookahead sym::, size:2
-shift state:708
-process version:0, version_count:1, state:708, row:13, col:23
-lex_internal state:98, row:13, column:23
+reduce sym:LEFT_PAREN, child_count:1
+shift state:198
+process version:0, version_count:1, state:198, row:12, col:21
+lex_internal state:37, row:12, column:21
+lexed_lookahead sym:COLON, size:2
+shift state:826
+process version:0, version_count:1, state:826, row:12, col:23
+lex_internal state:34, row:12, column:23
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:553
-process version:0, version_count:1, state:553, row:13, col:31
-lex_internal state:0, row:13, column:31
-lexed_lookahead sym:;, size:1
+shift state:599
+process version:0, version_count:1, state:599, row:12, col:31
+lex_internal state:0, row:12, column:31
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:parameter_specification, child_count:3
 reduce sym:parameter_specification_list, child_count:1
-shift state:499
-process version:0, version_count:1, state:499, row:13, col:32
-lex_internal state:98, row:13, column:32
+shift state:532
+process version:0, version_count:1, state:532, row:12, col:32
+lex_internal state:34, row:12, column:32
 lexed_lookahead sym:IDENTIFIER, size:6
-shift state:751
-process version:0, version_count:1, state:751, row:13, col:38
-lex_internal state:0, row:13, column:38
-lexed_lookahead sym::, size:2
-shift state:708
-process version:0, version_count:1, state:708, row:13, col:40
-lex_internal state:98, row:13, column:40
+shift state:945
+process version:0, version_count:1, state:945, row:12, col:38
+lex_internal state:0, row:12, column:38
+lexed_lookahead sym:COLON, size:2
+shift state:826
+process version:0, version_count:1, state:826, row:12, col:40
+lex_internal state:34, row:12, column:40
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:553
-process version:0, version_count:1, state:553, row:13, col:48
-lex_internal state:0, row:13, column:48
+shift state:599
+process version:0, version_count:1, state:599, row:12, col:48
+lex_internal state:0, row:12, column:48
 lexed_lookahead sym:), size:1
 reduce sym:parameter_specification, child_count:3
 reduce sym:parameter_specification_list, child_count:3
-shift state:498
-process version:0, version_count:1, state:498, row:13, col:49
-lex_internal state:0, row:13, column:49
+shift state:128
+process version:0, version_count:1, state:128, row:12, col:49
+lex_internal state:37, row:12, column:49
 lexed_lookahead sym:return, size:7
+reduce sym:RIGHT_PAREN, child_count:1
 reduce sym:formal_part, child_count:3
-shift state:803
-process version:0, version_count:1, state:803, row:13, col:56
-lex_internal state:98, row:13, column:56
+shift state:966
+process version:0, version_count:1, state:966, row:12, col:56
+lex_internal state:34, row:12, column:56
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:557
-process version:0, version_count:1, state:557, row:13, col:64
-lex_internal state:0, row:13, column:64
+reduce sym:RETURN, child_count:1
+shift state:582
+process version:0, version_count:1, state:582, row:12, col:64
+lex_internal state:37, row:12, column:64
 lexed_lookahead sym:is, size:3
 reduce sym:parameter_and_result_profile, child_count:3
 reduce sym:function_specification, child_count:3
 reduce sym:subprogram_specification, child_count:1
-shift state:126
-process version:0, version_count:1, state:126, row:14, col:2
-lex_internal state:96, row:14, column:2
+shift state:397
+process version:0, version_count:1, state:397, row:13, col:2
+lex_internal state:38, row:13, column:2
 lexed_lookahead sym:begin, size:6
-shift state:50
-process version:0, version_count:1, state:50, row:14, col:8
-lex_internal state:101, row:14, column:8
+reduce sym:IS, child_count:1
+shift state:369
+process version:0, version_count:1, state:369, row:13, col:8
+lex_internal state:43, row:13, column:8
 lexed_lookahead sym:return, size:10
-shift state:120
-process version:0, version_count:1, state:120, row:15, col:9
-lex_internal state:91, row:15, column:9
+reduce sym:BEGIN, child_count:1
+shift state:411
+process version:0, version_count:1, state:411, row:14, col:9
+lex_internal state:33, row:14, column:9
 lexed_lookahead sym:IDENTIFIER, size:5
-shift state:178
-process version:0, version_count:1, state:178, row:15, col:14
-lex_internal state:0, row:15, column:14
-lexed_lookahead sym:+, size:2
+reduce sym:RETURN, child_count:1
+shift state:200
+process version:0, version_count:1, state:200, row:14, col:14
+lex_internal state:37, row:14, column:14
+lexed_lookahead sym:PLUS, size:2
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
 reduce sym:term_list, child_count:1
-shift state:465
-process version:0, version_count:1, state:465, row:15, col:16
-lex_internal state:91, row:15, column:16
+shift state:501
+process version:0, version_count:1, state:501, row:14, col:16
+lex_internal state:33, row:14, column:16
 lexed_lookahead sym:(, size:2
 reduce sym:binary_adding_operator, child_count:1
-shift state:155
-process version:0, version_count:1, state:155, row:15, col:18
-lex_internal state:91, row:15, column:18
+shift state:403
+process version:0, version_count:1, state:403, row:14, col:18
+lex_internal state:33, row:14, column:18
 lexed_lookahead sym:IDENTIFIER, size:5
-shift state:55
-process version:0, version_count:1, state:55, row:15, col:23
-lex_internal state:0, row:15, column:23
-lexed_lookahead sym:-, size:2
+reduce sym:LEFT_PAREN, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:14, col:23
+lex_internal state:37, row:14, column:23
+lexed_lookahead sym:MINUS, size:2
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
 reduce sym:term_list, child_count:1
-shift state:465
-process version:0, version_count:1, state:465, row:15, col:25
-lex_internal state:91, row:15, column:25
+shift state:501
+process version:0, version_count:1, state:501, row:14, col:25
+lex_internal state:33, row:14, column:25
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
 reduce sym:binary_adding_operator, child_count:1
-shift state:123
-process version:0, version_count:1, state:123, row:15, col:27
-lex_internal state:0, row:15, column:27
+shift state:156
+process version:0, version_count:1, state:156, row:14, col:27
+lex_internal state:37, row:14, column:27
 lexed_lookahead sym:), size:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
@@ -344,10 +366,11 @@ reduce sym:term_list, child_count:3
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:116
-process version:0, version_count:1, state:116, row:15, col:28
-lex_internal state:0, row:15, column:28
-lexed_lookahead sym:;, size:1
+shift state:128
+process version:0, version_count:1, state:128, row:14, col:28
+lex_internal state:37, row:14, column:28
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:RIGHT_PAREN, child_count:1
 reduce sym:paren_expression, child_count:3
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
@@ -356,136 +379,157 @@ reduce sym:term_list, child_count:3
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:276
-process version:0, version_count:1, state:276, row:15, col:29
-lex_internal state:103, row:15, column:29
+shift state:325
+process version:0, version_count:1, state:325, row:14, col:29
+lex_internal state:42, row:14, column:29
 lexed_lookahead sym:end, size:4
 reduce sym:simple_return_statement, child_count:3
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:handled_sequence_of_statements, child_count:1
-shift state:451
-process version:0, version_count:1, state:451, row:16, col:3
-lex_internal state:98, row:16, column:3
+shift state:659
+process version:0, version_count:1, state:659, row:15, col:3
+lex_internal state:34, row:15, column:3
 lexed_lookahead sym:IDENTIFIER, size:7
-shift state:55
-process version:0, version_count:1, state:55, row:16, col:10
-lex_internal state:0, row:16, column:10
-lexed_lookahead sym:;, size:1
+reduce sym:END, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:15, col:10
+lex_internal state:37, row:15, column:10
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 reduce sym:name_opt, child_count:1
-shift state:215
-process version:0, version_count:1, state:215, row:16, col:11
-lex_internal state:104, row:16, column:11
+shift state:227
+process version:0, version_count:1, state:227, row:15, col:11
+lex_internal state:82, row:15, column:11
 lexed_lookahead sym:procedure, size:11
 reduce sym:subprogram_body, child_count:7
 reduce sym:compilation_unit, child_count:1
 reduce sym:compilation_unit_list, child_count:2
-shift state:586
-process version:0, version_count:1, state:586, row:18, col:9
-lex_internal state:98, row:18, column:9
+shift state:965
+process version:0, version_count:1, state:965, row:17, col:9
+lex_internal state:34, row:17, column:9
 lexed_lookahead sym:IDENTIFIER, size:7
-shift state:55
-process version:0, version_count:1, state:55, row:18, col:16
-lex_internal state:0, row:18, column:16
+reduce sym:PROCEDURE, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:17, col:16
+lex_internal state:37, row:17, column:16
 lexed_lookahead sym:is, size:3
 reduce sym:name, child_count:1
 reduce sym:procedure_specification, child_count:2
-shift state:855
-process version:1, version_count:2, state:583, row:18, col:16
+shift state:810
+process version:1, version_count:2, state:576, row:17, col:16
 reduce sym:subprogram_specification, child_count:1
-shift state:126
-process version:0, version_count:2, state:855, row:19, col:2
-lex_internal state:0, row:19, column:2
-lex_internal state:0, row:19, column:2
-skip_unrecognized_character
-lex_internal state:0, row:20, column:4
-lexed_lookahead sym:ERROR, size:5, character:'A'
-detect_error
-process version:1, version_count:2, state:126, row:19, col:2
-lex_internal state:96, row:19, column:2
+shift state:397
+process version:0, version_count:2, state:810, row:18, col:2
+lex_internal state:0, row:18, column:2
 lexed_lookahead sym:IDENTIFIER, size:5
-shift state:937
+detect_error
+process version:1, version_count:2, state:397, row:18, col:2
+lex_internal state:38, row:18, column:2
+lexed_lookahead sym:IDENTIFIER, size:5
+reduce sym:IS, child_count:1
+shift state:698
 condense
-process version:0, version_count:1, state:937, row:20, col:4
-lex_internal state:0, row:20, column:4
-lexed_lookahead sym::, size:2
-shift state:506
-process version:0, version_count:1, state:506, row:20, col:6
-lex_internal state:98, row:20, column:6
+process version:0, version_count:1, state:698, row:19, col:4
+lex_internal state:0, row:19, column:4
+lexed_lookahead sym:COLON, size:2
+reduce sym:defining_identifier_list, child_count:1
+shift state:609
+process version:1, version_count:2, state:639, row:19, col:4
+shift state:571
+process version:0, version_count:2, state:609, row:19, col:6
+lex_internal state:34, row:19, column:6
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:20, col:14
-lex_internal state:0, row:20, column:14
-lexed_lookahead sym:;, size:1
+shift state:125
+process version:1, version_count:2, state:571, row:19, col:6
+shift state:125
+condense
+process version:0, version_count:1, state:125, row:19, col:14
+lex_internal state:37, row:19, column:14
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 reduce sym:subtype_indication, child_count:1
-shift state:421
-process version:0, version_count:1, state:421, row:20, col:15
-lex_internal state:96, row:20, column:15
+detect_error
+process version:1, version_count:2, state:704, row:19, col:14
+shift state:478
+condense
+process version:0, version_count:1, state:478, row:19, col:15
+lex_internal state:38, row:19, column:15
 lexed_lookahead sym:IDENTIFIER, size:5
 reduce sym:object_declaration, child_count:4
 reduce sym:declaration, child_count:1
 reduce sym:declarations, child_count:1
-shift state:937
-process version:0, version_count:1, state:937, row:21, col:4
-lex_internal state:0, row:21, column:4
-lexed_lookahead sym::, size:2
-shift state:506
-process version:0, version_count:1, state:506, row:21, col:6
-lex_internal state:98, row:21, column:6
+shift state:698
+process version:0, version_count:1, state:698, row:20, col:4
+lex_internal state:0, row:20, column:4
+lexed_lookahead sym:COLON, size:2
+reduce sym:defining_identifier_list, child_count:1
+shift state:609
+process version:1, version_count:2, state:639, row:20, col:4
+shift state:571
+process version:0, version_count:2, state:609, row:20, col:6
+lex_internal state:34, row:20, column:6
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:21, col:14
-lex_internal state:0, row:21, column:14
-lexed_lookahead sym:;, size:1
+shift state:125
+process version:1, version_count:2, state:571, row:20, col:6
+shift state:125
+condense
+process version:0, version_count:1, state:125, row:20, col:14
+lex_internal state:37, row:20, column:14
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 reduce sym:subtype_indication, child_count:1
-shift state:421
-process version:0, version_count:1, state:421, row:21, col:15
-lex_internal state:96, row:21, column:15
+detect_error
+process version:1, version_count:2, state:704, row:20, col:14
+shift state:478
+condense
+process version:0, version_count:1, state:478, row:20, col:15
+lex_internal state:38, row:20, column:15
 lexed_lookahead sym:begin, size:6
 reduce sym:object_declaration, child_count:4
 reduce sym:declaration, child_count:1
 reduce sym:declarations, child_count:2
 reduce sym:declarative_part, child_count:1
-shift state:19
-process version:0, version_count:1, state:19, row:22, col:5
-lex_internal state:101, row:22, column:5
+shift state:369
+process version:0, version_count:1, state:369, row:21, col:5
+lex_internal state:43, row:21, column:5
 lexed_lookahead sym:loop, size:8
-shift state:74
-process version:0, version_count:1, state:74, row:23, col:7
-lex_internal state:102, row:23, column:7
+reduce sym:BEGIN, child_count:1
+shift state:367
+process version:0, version_count:1, state:367, row:22, col:7
+lex_internal state:43, row:22, column:7
 lexed_lookahead sym:exit, size:8
-shift state:493
-process version:0, version_count:1, state:493, row:24, col:7
-lex_internal state:99, row:24, column:7
+reduce sym:LOOP, child_count:1
+shift state:622
+process version:0, version_count:1, state:622, row:23, col:7
+lex_internal state:40, row:23, column:7
 lexed_lookahead sym:when, size:5
-shift state:140
-process version:0, version_count:1, state:140, row:24, col:12
-lex_internal state:91, row:24, column:12
+reduce sym:EXIT, child_count:1
+shift state:387
+process version:0, version_count:1, state:387, row:23, col:12
+lex_internal state:33, row:23, column:12
 lexed_lookahead sym:IDENTIFIER, size:2
-shift state:55
-process version:0, version_count:1, state:55, row:24, col:14
-lex_internal state:0, row:24, column:14
-lexed_lookahead sym:=, size:2
+reduce sym:WHEN, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:23, col:14
+lex_internal state:37, row:23, column:14
+lexed_lookahead sym:EQUAL, size:2
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
 reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
-shift state:365
-process version:0, version_count:1, state:365, row:24, col:16
-lex_internal state:91, row:24, column:16
+shift state:394
+process version:0, version_count:1, state:394, row:23, col:16
+lex_internal state:33, row:23, column:16
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
 reduce sym:relational_operator, child_count:1
-shift state:123
-process version:0, version_count:1, state:123, row:24, col:18
-lex_internal state:0, row:24, column:18
-lexed_lookahead sym:;, size:1
+shift state:156
+process version:0, version_count:1, state:156, row:23, col:18
+lex_internal state:37, row:23, column:18
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
@@ -493,36 +537,37 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:3
 reduce sym:expression, child_count:1
-shift state:334
-process version:0, version_count:1, state:334, row:24, col:19
-lex_internal state:102, row:24, column:19
+shift state:352
+process version:0, version_count:1, state:352, row:23, col:19
+lex_internal state:44, row:23, column:19
 lexed_lookahead sym:if, size:9
 reduce sym:exit_statement, child_count:4
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
-shift state:174
-process version:0, version_count:1, state:174, row:25, col:8
-lex_internal state:91, row:25, column:8
+reduce sym:sequence_of_statements, child_count:1
+shift state:374
+process version:0, version_count:1, state:374, row:24, col:8
+lex_internal state:33, row:24, column:8
 lexed_lookahead sym:IDENTIFIER, size:2
-shift state:55
-process version:0, version_count:1, state:55, row:25, col:10
-lex_internal state:0, row:25, column:10
-lexed_lookahead sym:>, size:2
+reduce sym:IF, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:24, col:10
+lex_internal state:37, row:24, column:10
+lexed_lookahead sym:GREATER, size:2
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
 reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
-shift state:365
-process version:0, version_count:1, state:365, row:25, col:12
-lex_internal state:91, row:25, column:12
+shift state:394
+process version:0, version_count:1, state:394, row:24, col:12
+lex_internal state:33, row:24, column:12
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
 reduce sym:relational_operator, child_count:1
-shift state:123
-process version:0, version_count:1, state:123, row:25, col:14
-lex_internal state:0, row:25, column:14
+shift state:156
+process version:0, version_count:1, state:156, row:24, col:14
+lex_internal state:37, row:24, column:14
 lexed_lookahead sym:then, size:5
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
@@ -531,63 +576,24 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:3
 reduce sym:expression, child_count:1
-shift state:3
-process version:0, version_count:1, state:3, row:25, col:19
-lex_internal state:89, row:25, column:19
-lexed_lookahead sym:elsif, size:12
-shift state:147
-process version:0, version_count:1, state:147, row:26, col:11
-lex_internal state:91, row:26, column:11
-lexed_lookahead sym:IDENTIFIER, size:2
-shift state:55
-process version:0, version_count:1, state:55, row:26, col:13
-lex_internal state:0, row:26, column:13
-lexed_lookahead sym:<, size:2
-reduce sym:name, child_count:1
-reduce sym:primary, child_count:1
-reduce sym:factor, child_count:1
-reduce sym:term, child_count:1
-reduce sym:term_list, child_count:1
-reduce sym:simple_expression, child_count:1
-shift state:365
-process version:0, version_count:1, state:365, row:26, col:15
-lex_internal state:91, row:26, column:15
-lexed_lookahead sym:NUMERIC_LITERAL, size:2
-reduce sym:relational_operator, child_count:1
-shift state:123
-process version:0, version_count:1, state:123, row:26, col:17
-lex_internal state:0, row:26, column:17
-lexed_lookahead sym:then, size:5
-reduce sym:primary, child_count:1
-reduce sym:factor, child_count:1
-reduce sym:term, child_count:1
-reduce sym:term_list, child_count:1
-reduce sym:simple_expression, child_count:1
-reduce sym:relation, child_count:3
-reduce sym:expression, child_count:1
-shift state:8
-process version:0, version_count:1, state:8, row:26, col:22
-lex_internal state:89, row:26, column:22
-lexed_lookahead sym:else, size:11
-reduce sym:elsif_statement_item, child_count:3
-reduce sym:elsif_statement_list, child_count:1
-shift state:60
-process version:0, version_count:1, state:60, row:27, col:10
-lex_internal state:102, row:27, column:10
+shift state:368
+process version:0, version_count:1, state:368, row:24, col:19
+lex_internal state:43, row:24, column:19
 lexed_lookahead sym:IDENTIFIER, size:11
-shift state:462
-process version:0, version_count:1, state:462, row:28, col:10
-lex_internal state:0, row:28, column:10
-lexed_lookahead sym::=, size:3
+reduce sym:THEN, child_count:1
+shift state:492
+process version:0, version_count:1, state:492, row:25, col:10
+lex_internal state:0, row:25, column:10
+lexed_lookahead sym:COLON_EQUAL, size:3
 reduce sym:name, child_count:1
-shift state:151
-process version:0, version_count:1, state:151, row:28, col:13
-lex_internal state:91, row:28, column:13
+shift state:187
+process version:0, version_count:1, state:187, row:25, col:13
+lex_internal state:33, row:25, column:13
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
-shift state:123
-process version:0, version_count:1, state:123, row:28, col:15
-lex_internal state:0, row:28, column:15
-lexed_lookahead sym:;, size:1
+shift state:156
+process version:0, version_count:1, state:156, row:25, col:15
+lex_internal state:37, row:25, column:15
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
 reduce sym:term, child_count:1
@@ -595,140 +601,260 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:328
-process version:0, version_count:1, state:328, row:28, col:16
-lex_internal state:102, row:28, column:16
+shift state:267
+process version:0, version_count:1, state:267, row:25, col:16
+lex_internal state:41, row:25, column:16
+lexed_lookahead sym:elsif, size:12
+reduce sym:assignment_statement, child_count:4
+reduce sym:simple_statement, child_count:1
+reduce sym:statement, child_count:1
+reduce sym:sequence_of_statements, child_count:1
+shift state:398
+process version:0, version_count:1, state:398, row:26, col:11
+lex_internal state:33, row:26, column:11
+lexed_lookahead sym:IDENTIFIER, size:2
+reduce sym:ELSIF, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:26, col:13
+lex_internal state:37, row:26, column:13
+lexed_lookahead sym:LESS, size:2
+reduce sym:name, child_count:1
+reduce sym:primary, child_count:1
+reduce sym:factor, child_count:1
+reduce sym:term, child_count:1
+reduce sym:term_list, child_count:1
+reduce sym:simple_expression, child_count:1
+shift state:394
+process version:0, version_count:1, state:394, row:26, col:15
+lex_internal state:33, row:26, column:15
+lexed_lookahead sym:NUMERIC_LITERAL, size:2
+reduce sym:relational_operator, child_count:1
+shift state:156
+process version:0, version_count:1, state:156, row:26, col:17
+lex_internal state:37, row:26, column:17
+lexed_lookahead sym:then, size:5
+reduce sym:primary, child_count:1
+reduce sym:factor, child_count:1
+reduce sym:term, child_count:1
+reduce sym:term_list, child_count:1
+reduce sym:simple_expression, child_count:1
+reduce sym:relation, child_count:3
+reduce sym:expression, child_count:1
+shift state:368
+process version:0, version_count:1, state:368, row:26, col:22
+lex_internal state:43, row:26, column:22
+lexed_lookahead sym:IDENTIFIER, size:11
+reduce sym:THEN, child_count:1
+shift state:492
+process version:0, version_count:1, state:492, row:27, col:10
+lex_internal state:0, row:27, column:10
+lexed_lookahead sym:COLON_EQUAL, size:3
+reduce sym:name, child_count:1
+shift state:187
+process version:0, version_count:1, state:187, row:27, col:13
+lex_internal state:33, row:27, column:13
+lexed_lookahead sym:NUMERIC_LITERAL, size:2
+shift state:156
+process version:0, version_count:1, state:156, row:27, col:15
+lex_internal state:37, row:27, column:15
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:primary, child_count:1
+reduce sym:factor, child_count:1
+reduce sym:term, child_count:1
+reduce sym:term_list, child_count:1
+reduce sym:simple_expression, child_count:1
+reduce sym:relation, child_count:1
+reduce sym:expression, child_count:1
+shift state:267
+process version:0, version_count:1, state:267, row:27, col:16
+lex_internal state:41, row:27, column:16
+lexed_lookahead sym:else, size:11
+reduce sym:assignment_statement, child_count:4
+reduce sym:simple_statement, child_count:1
+reduce sym:statement, child_count:1
+reduce sym:sequence_of_statements, child_count:1
+reduce sym:elsif_statement_item, child_count:4
+reduce sym:elsif_statement_list, child_count:1
+shift state:370
+process version:0, version_count:1, state:370, row:28, col:10
+lex_internal state:43, row:28, column:10
+lexed_lookahead sym:IDENTIFIER, size:11
+reduce sym:ELSE, child_count:1
+shift state:492
+process version:0, version_count:1, state:492, row:29, col:10
+lex_internal state:0, row:29, column:10
+lexed_lookahead sym:COLON_EQUAL, size:3
+reduce sym:name, child_count:1
+shift state:181
+process version:0, version_count:1, state:181, row:29, col:13
+lex_internal state:33, row:29, column:13
+lexed_lookahead sym:NUMERIC_LITERAL, size:2
+shift state:156
+process version:0, version_count:1, state:156, row:29, col:15
+lex_internal state:37, row:29, column:15
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:primary, child_count:1
+reduce sym:factor, child_count:1
+reduce sym:term, child_count:1
+reduce sym:term_list, child_count:1
+reduce sym:simple_expression, child_count:1
+reduce sym:relation, child_count:1
+reduce sym:expression, child_count:1
+shift state:351
+process version:0, version_count:1, state:351, row:29, col:16
+lex_internal state:44, row:29, column:16
 lexed_lookahead sym:end, size:10
 reduce sym:assignment_statement, child_count:4
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
-shift state:748
-process version:0, version_count:1, state:748, row:29, col:9
-lex_internal state:0, row:29, column:9
+shift state:613
+process version:0, version_count:1, state:613, row:30, col:9
+lex_internal state:0, row:30, column:9
 lexed_lookahead sym:if, size:3
-shift state:839
-process version:0, version_count:1, state:839, row:29, col:12
-lex_internal state:0, row:29, column:12
-lexed_lookahead sym:;, size:1
-shift state:333
-process version:0, version_count:1, state:333, row:29, col:13
-lex_internal state:102, row:29, column:13
+reduce sym:END, child_count:1
+shift state:374
+process version:0, version_count:1, state:374, row:30, col:12
+lex_internal state:33, row:30, column:12
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:IF, child_count:1
+shift state:337
+process version:0, version_count:1, state:337, row:30, col:13
+lex_internal state:44, row:30, column:13
 lexed_lookahead sym:end, size:7
-reduce sym:if_statement, child_count:9
+reduce sym:if_statement, child_count:10
 reduce sym:compound_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:2
-reduce sym:sequence_of_statements, child_count:1
-shift state:701
-process version:0, version_count:1, state:701, row:30, col:6
-lex_internal state:0, row:30, column:6
+reduce sym:sequence_of_statements, child_count:2
+shift state:613
+process version:0, version_count:1, state:613, row:31, col:6
+lex_internal state:0, row:31, column:6
 lexed_lookahead sym:loop, size:5
-shift state:536
-process version:0, version_count:1, state:536, row:30, col:11
-lex_internal state:98, row:30, column:11
-lexed_lookahead sym:;, size:1
-shift state:267
-process version:0, version_count:1, state:267, row:30, col:12
-lex_internal state:103, row:30, column:12
+reduce sym:END, child_count:1
+shift state:783
+process version:0, version_count:1, state:783, row:31, col:11
+lex_internal state:34, row:31, column:11
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:LOOP, child_count:1
+shift state:310
+process version:0, version_count:1, state:310, row:31, col:12
+lex_internal state:42, row:31, column:12
 lexed_lookahead sym:end, size:4
 reduce sym:loop_statement, child_count:5
 reduce sym:compound_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:handled_sequence_of_statements, child_count:1
-shift state:479
-process version:0, version_count:1, state:479, row:31, col:3
-lex_internal state:98, row:31, column:3
-lexed_lookahead sym:;, size:1
-shift state:215
-process version:0, version_count:1, state:215, row:31, col:4
-lex_internal state:104, row:31, column:4
+shift state:659
+process version:0, version_count:1, state:659, row:32, col:3
+lex_internal state:34, row:32, column:3
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:END, child_count:1
+shift state:227
+process version:0, version_count:1, state:227, row:32, col:4
+lex_internal state:82, row:32, column:4
 lexed_lookahead sym:procedure, size:11
 reduce sym:subprogram_body, child_count:7
 reduce sym:compilation_unit, child_count:1
 reduce sym:compilation_unit_list, child_count:2
-shift state:586
-process version:0, version_count:1, state:586, row:33, col:9
-lex_internal state:98, row:33, column:9
+shift state:965
+process version:0, version_count:1, state:965, row:34, col:9
+lex_internal state:34, row:34, column:9
 lexed_lookahead sym:IDENTIFIER, size:7
-shift state:55
-process version:0, version_count:1, state:55, row:33, col:16
-lex_internal state:0, row:33, column:16
+reduce sym:PROCEDURE, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:34, col:16
+lex_internal state:37, row:34, column:16
 lexed_lookahead sym:is, size:3
 reduce sym:name, child_count:1
 reduce sym:procedure_specification, child_count:2
-shift state:855
-process version:1, version_count:2, state:583, row:33, col:16
+shift state:810
+process version:1, version_count:2, state:576, row:34, col:16
 reduce sym:subprogram_specification, child_count:1
-shift state:126
-process version:0, version_count:2, state:855, row:34, col:2
-lex_internal state:0, row:34, column:2
-lex_internal state:0, row:34, column:2
-skip_unrecognized_character
-lex_internal state:0, row:35, column:4
-lexed_lookahead sym:ERROR, size:5, character:'A'
-detect_error
-process version:1, version_count:2, state:126, row:34, col:2
-lex_internal state:96, row:34, column:2
+shift state:397
+process version:0, version_count:2, state:810, row:35, col:2
+lex_internal state:0, row:35, column:2
 lexed_lookahead sym:IDENTIFIER, size:5
-shift state:937
+detect_error
+process version:1, version_count:2, state:397, row:35, col:2
+lex_internal state:38, row:35, column:2
+lexed_lookahead sym:IDENTIFIER, size:5
+reduce sym:IS, child_count:1
+shift state:698
 condense
-process version:0, version_count:1, state:937, row:35, col:4
-lex_internal state:0, row:35, column:4
-lexed_lookahead sym::, size:2
-shift state:506
-process version:0, version_count:1, state:506, row:35, col:6
-lex_internal state:98, row:35, column:6
+process version:0, version_count:1, state:698, row:36, col:4
+lex_internal state:0, row:36, column:4
+lexed_lookahead sym:COLON, size:2
+reduce sym:defining_identifier_list, child_count:1
+shift state:609
+process version:1, version_count:2, state:639, row:36, col:4
+shift state:571
+process version:0, version_count:2, state:609, row:36, col:6
+lex_internal state:34, row:36, column:6
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:35, col:14
-lex_internal state:0, row:35, column:14
-lexed_lookahead sym:;, size:1
+shift state:125
+process version:1, version_count:2, state:571, row:36, col:6
+shift state:125
+condense
+process version:0, version_count:1, state:125, row:36, col:14
+lex_internal state:37, row:36, column:14
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 reduce sym:subtype_indication, child_count:1
-shift state:421
-process version:0, version_count:1, state:421, row:35, col:15
-lex_internal state:96, row:35, column:15
+detect_error
+process version:1, version_count:2, state:704, row:36, col:14
+shift state:478
+condense
+process version:0, version_count:1, state:478, row:36, col:15
+lex_internal state:38, row:36, column:15
 lexed_lookahead sym:IDENTIFIER, size:5
 reduce sym:object_declaration, child_count:4
 reduce sym:declaration, child_count:1
 reduce sym:declarations, child_count:1
-shift state:937
-process version:0, version_count:1, state:937, row:36, col:4
-lex_internal state:0, row:36, column:4
-lexed_lookahead sym::, size:2
-shift state:506
-process version:0, version_count:1, state:506, row:36, col:6
-lex_internal state:98, row:36, column:6
+shift state:698
+process version:0, version_count:1, state:698, row:37, col:4
+lex_internal state:0, row:37, column:4
+lexed_lookahead sym:COLON, size:2
+reduce sym:defining_identifier_list, child_count:1
+shift state:609
+process version:1, version_count:2, state:639, row:37, col:4
+shift state:571
+process version:0, version_count:2, state:609, row:37, col:6
+lex_internal state:34, row:37, column:6
 lexed_lookahead sym:IDENTIFIER, size:8
-shift state:55
-process version:0, version_count:1, state:55, row:36, col:14
-lex_internal state:0, row:36, column:14
-lexed_lookahead sym:;, size:1
+shift state:125
+process version:1, version_count:2, state:571, row:37, col:6
+shift state:125
+condense
+process version:0, version_count:1, state:125, row:37, col:14
+lex_internal state:37, row:37, column:14
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 reduce sym:subtype_indication, child_count:1
-shift state:421
-process version:0, version_count:1, state:421, row:36, col:15
-lex_internal state:96, row:36, column:15
+detect_error
+process version:1, version_count:2, state:704, row:37, col:14
+shift state:478
+condense
+process version:0, version_count:1, state:478, row:37, col:15
+lex_internal state:38, row:37, column:15
 lexed_lookahead sym:begin, size:6
 reduce sym:object_declaration, child_count:4
 reduce sym:declaration, child_count:1
 reduce sym:declarations, child_count:2
 reduce sym:declarative_part, child_count:1
-shift state:19
-process version:0, version_count:1, state:19, row:37, col:5
-lex_internal state:101, row:37, column:5
+shift state:369
+process version:0, version_count:1, state:369, row:38, col:5
+lex_internal state:43, row:38, column:5
 lexed_lookahead sym:case, size:8
-shift state:172
-process version:0, version_count:1, state:172, row:38, col:7
-lex_internal state:91, row:38, column:7
+reduce sym:BEGIN, child_count:1
+shift state:375
+process version:0, version_count:1, state:375, row:39, col:7
+lex_internal state:33, row:39, column:7
 lexed_lookahead sym:IDENTIFIER, size:2
-shift state:55
-process version:0, version_count:1, state:55, row:38, col:9
-lex_internal state:0, row:38, column:9
+reduce sym:CASE, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:39, col:9
+lex_internal state:37, row:39, column:9
 lexed_lookahead sym:is, size:3
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
@@ -738,29 +864,32 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:556
-process version:0, version_count:1, state:556, row:38, col:12
-lex_internal state:0, row:38, column:12
+shift state:810
+process version:0, version_count:1, state:810, row:39, col:12
+lex_internal state:0, row:39, column:12
 lexed_lookahead sym:when, size:8
-shift state:816
-process version:0, version_count:1, state:816, row:39, col:7
-lex_internal state:0, row:39, column:7
+reduce sym:IS, child_count:1
+shift state:387
+process version:0, version_count:1, state:387, row:40, col:7
+lex_internal state:33, row:40, column:7
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
-shift state:722
-process version:0, version_count:1, state:722, row:39, col:9
-lex_internal state:0, row:39, column:9
-lexed_lookahead sym:=>, size:3
-shift state:13
-process version:0, version_count:1, state:13, row:39, col:12
-lex_internal state:90, row:39, column:12
+reduce sym:WHEN, child_count:1
+shift state:818
+process version:0, version_count:1, state:818, row:40, col:9
+lex_internal state:0, row:40, column:9
+lexed_lookahead sym:EQUAL_GREATER, size:3
+shift state:103
+process version:0, version_count:1, state:103, row:40, col:12
+lex_internal state:43, row:40, column:12
 lexed_lookahead sym:case, size:12
-shift state:149
-process version:0, version_count:1, state:149, row:40, col:10
-lex_internal state:91, row:40, column:10
+shift state:375
+process version:0, version_count:1, state:375, row:41, col:10
+lex_internal state:33, row:41, column:10
 lexed_lookahead sym:IDENTIFIER, size:2
-shift state:55
-process version:0, version_count:1, state:55, row:40, col:12
-lex_internal state:0, row:40, column:12
+reduce sym:CASE, child_count:1
+shift state:125
+process version:0, version_count:1, state:125, row:41, col:12
+lex_internal state:37, row:41, column:12
 lexed_lookahead sym:is, size:3
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
@@ -770,63 +899,66 @@ reduce sym:term_list, child_count:1
 reduce sym:simple_expression, child_count:1
 reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
-shift state:572
-process version:0, version_count:1, state:572, row:40, col:15
-lex_internal state:0, row:40, column:15
+shift state:810
+process version:0, version_count:1, state:810, row:41, col:15
+lex_internal state:0, row:41, column:15
 lexed_lookahead sym:when, size:11
-shift state:816
-process version:0, version_count:1, state:816, row:41, col:10
-lex_internal state:0, row:41, column:10
+reduce sym:IS, child_count:1
+shift state:387
+process version:0, version_count:1, state:387, row:42, col:10
+lex_internal state:33, row:42, column:10
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
-shift state:722
-process version:0, version_count:1, state:722, row:41, col:12
-lex_internal state:0, row:41, column:12
-lexed_lookahead sym:=>, size:3
-shift state:13
-process version:0, version_count:1, state:13, row:41, col:15
-lex_internal state:90, row:41, column:15
+reduce sym:WHEN, child_count:1
+shift state:818
+process version:0, version_count:1, state:818, row:42, col:12
+lex_internal state:0, row:42, column:12
+lexed_lookahead sym:EQUAL_GREATER, size:3
+shift state:103
+process version:0, version_count:1, state:103, row:42, col:15
+lex_internal state:43, row:42, column:15
 lexed_lookahead sym:IDENTIFIER, size:16
-shift state:462
-process version:0, version_count:1, state:462, row:42, col:15
-lex_internal state:0, row:42, column:15
-lexed_lookahead sym:;, size:1
+shift state:492
+process version:0, version_count:1, state:492, row:43, col:15
+lex_internal state:0, row:43, column:15
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 shift state:316
-process version:0, version_count:1, state:316, row:42, col:16
-lex_internal state:90, row:42, column:16
+process version:0, version_count:1, state:316, row:43, col:16
+lex_internal state:45, row:43, column:16
 lexed_lookahead sym:when, size:11
 reduce sym:procedure_call_statement, child_count:2
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:case_statement_alternative, child_count:4
 reduce sym:case_statement_alternative_list, child_count:1
-shift state:816
-process version:0, version_count:1, state:816, row:43, col:10
-lex_internal state:0, row:43, column:10
+shift state:387
+process version:0, version_count:1, state:387, row:44, col:10
+lex_internal state:33, row:44, column:10
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
-shift state:722
-process version:0, version_count:1, state:722, row:43, col:12
-lex_internal state:0, row:43, column:12
-lexed_lookahead sym:=>, size:3
-shift state:13
-process version:0, version_count:1, state:13, row:43, col:15
-lex_internal state:90, row:43, column:15
+reduce sym:WHEN, child_count:1
+shift state:818
+process version:0, version_count:1, state:818, row:44, col:12
+lex_internal state:0, row:44, column:12
+lexed_lookahead sym:EQUAL_GREATER, size:3
+shift state:103
+process version:0, version_count:1, state:103, row:44, col:15
+lex_internal state:43, row:44, column:15
 lexed_lookahead sym:IDENTIFIER, size:16
-shift state:462
-process version:0, version_count:1, state:462, row:44, col:15
-lex_internal state:0, row:44, column:15
+shift state:492
+process version:0, version_count:1, state:492, row:45, col:15
+lex_internal state:0, row:45, column:15
 lexed_lookahead sym:(, size:2
 reduce sym:name, child_count:1
-shift state:91
-process version:0, version_count:1, state:91, row:44, col:17
-lex_internal state:91, row:44, column:17
+shift state:403
+process version:0, version_count:1, state:403, row:45, col:17
+lex_internal state:33, row:45, column:17
 lexed_lookahead sym:IDENTIFIER, size:1
-shift state:138
-process version:0, version_count:1, state:138, row:44, col:18
-lex_internal state:0, row:44, column:18
-lexed_lookahead sym:,, size:1
+reduce sym:LEFT_PAREN, child_count:1
+shift state:165
+process version:0, version_count:1, state:165, row:45, col:18
+lex_internal state:37, row:45, column:18
+lexed_lookahead sym:COMMA, size:1
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
 reduce sym:factor, child_count:1
@@ -837,13 +969,13 @@ reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
 reduce sym:association_opt, child_count:1
 reduce sym:association_list, child_count:1
-shift state:93
-process version:0, version_count:1, state:93, row:44, col:19
-lex_internal state:91, row:44, column:19
+shift state:147
+process version:0, version_count:1, state:147, row:45, col:19
+lex_internal state:33, row:45, column:19
 lexed_lookahead sym:IDENTIFIER, size:2
-shift state:138
-process version:0, version_count:1, state:138, row:44, col:21
-lex_internal state:0, row:44, column:21
+shift state:165
+process version:0, version_count:1, state:165, row:45, col:21
+lex_internal state:37, row:45, column:21
 lexed_lookahead sym:), size:1
 reduce sym:name, child_count:1
 reduce sym:primary, child_count:1
@@ -855,95 +987,98 @@ reduce sym:relation, child_count:1
 reduce sym:expression, child_count:1
 reduce sym:association_opt, child_count:1
 reduce sym:association_list, child_count:3
-shift state:80
-process version:0, version_count:1, state:80, row:44, col:22
-lex_internal state:0, row:44, column:22
-lexed_lookahead sym:;, size:1
+shift state:128
+process version:0, version_count:1, state:128, row:45, col:22
+lex_internal state:37, row:45, column:22
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:RIGHT_PAREN, child_count:1
 reduce sym:actual_parameter_part, child_count:3
 reduce sym:name, child_count:2
 shift state:316
-process version:0, version_count:1, state:316, row:44, col:23
-lex_internal state:90, row:44, column:23
+process version:0, version_count:1, state:316, row:45, col:23
+lex_internal state:45, row:45, column:23
 lexed_lookahead sym:end, size:10
 reduce sym:procedure_call_statement, child_count:2
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:case_statement_alternative, child_count:4
 reduce sym:case_statement_alternative_list, child_count:2
-shift state:789
-process version:0, version_count:1, state:789, row:45, col:9
-lex_internal state:0, row:45, column:9
+shift state:613
+process version:0, version_count:1, state:613, row:46, col:9
+lex_internal state:0, row:46, column:9
 lexed_lookahead sym:case, size:5
-shift state:686
-process version:0, version_count:1, state:686, row:45, col:14
-lex_internal state:0, row:45, column:14
-lexed_lookahead sym:;, size:1
-shift state:294
-process version:0, version_count:1, state:294, row:45, col:15
-lex_internal state:90, row:45, column:15
+reduce sym:END, child_count:1
+shift state:375
+process version:0, version_count:1, state:375, row:46, col:14
+lex_internal state:33, row:46, column:14
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:CASE, child_count:1
+shift state:297
+process version:0, version_count:1, state:297, row:46, col:15
+lex_internal state:45, row:46, column:15
 lexed_lookahead sym:when, size:8
 reduce sym:case_statement, child_count:7
 reduce sym:compound_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:case_statement_alternative, child_count:4
 reduce sym:case_statement_alternative_list, child_count:1
-shift state:816
-process version:0, version_count:1, state:816, row:46, col:7
-lex_internal state:0, row:46, column:7
+shift state:387
+process version:0, version_count:1, state:387, row:47, col:7
+lex_internal state:33, row:47, column:7
 lexed_lookahead sym:NUMERIC_LITERAL, size:2
-shift state:722
-process version:0, version_count:1, state:722, row:46, col:9
-lex_internal state:0, row:46, column:9
-lexed_lookahead sym:=>, size:3
-shift state:13
-process version:0, version_count:1, state:13, row:46, col:12
-lex_internal state:90, row:46, column:12
+reduce sym:WHEN, child_count:1
+shift state:818
+process version:0, version_count:1, state:818, row:47, col:9
+lex_internal state:0, row:47, column:9
+lexed_lookahead sym:EQUAL_GREATER, size:3
+shift state:103
+process version:0, version_count:1, state:103, row:47, col:12
+lex_internal state:43, row:47, column:12
 lexed_lookahead sym:IDENTIFIER, size:14
-shift state:462
-process version:0, version_count:1, state:462, row:47, col:13
-lex_internal state:0, row:47, column:13
-lexed_lookahead sym:;, size:1
+shift state:492
+process version:0, version_count:1, state:492, row:48, col:13
+lex_internal state:0, row:48, column:13
+lexed_lookahead sym:SEMICOLON, size:1
 reduce sym:name, child_count:1
 shift state:316
-process version:0, version_count:1, state:316, row:47, col:14
-lex_internal state:90, row:47, column:14
+process version:0, version_count:1, state:316, row:48, col:14
+lex_internal state:45, row:48, column:14
 lexed_lookahead sym:end, size:7
 reduce sym:procedure_call_statement, child_count:2
 reduce sym:simple_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:case_statement_alternative, child_count:4
 reduce sym:case_statement_alternative_list, child_count:2
-shift state:709
-process version:0, version_count:1, state:709, row:48, col:6
-lex_internal state:0, row:48, column:6
+shift state:613
+process version:0, version_count:1, state:613, row:49, col:6
+lex_internal state:0, row:49, column:6
 lexed_lookahead sym:case, size:5
-shift state:784
-process version:0, version_count:1, state:784, row:48, col:11
-lex_internal state:0, row:48, column:11
-lexed_lookahead sym:;, size:1
-shift state:281
-process version:0, version_count:1, state:281, row:48, col:12
-lex_internal state:103, row:48, column:12
+reduce sym:END, child_count:1
+shift state:375
+process version:0, version_count:1, state:375, row:49, col:11
+lex_internal state:33, row:49, column:11
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:CASE, child_count:1
+shift state:301
+process version:0, version_count:1, state:301, row:49, col:12
+lex_internal state:42, row:49, column:12
 lexed_lookahead sym:end, size:4
 reduce sym:case_statement, child_count:7
 reduce sym:compound_statement, child_count:1
 reduce sym:statement, child_count:1
-reduce sym:sequence_of_statements_list, child_count:1
 reduce sym:sequence_of_statements, child_count:1
 reduce sym:handled_sequence_of_statements, child_count:1
-shift state:479
-process version:0, version_count:1, state:479, row:49, col:3
-lex_internal state:98, row:49, column:3
-lexed_lookahead sym:;, size:1
-shift state:215
-process version:0, version_count:1, state:215, row:49, col:4
-lex_internal state:104, row:49, column:4
+shift state:659
+process version:0, version_count:1, state:659, row:50, col:3
+lex_internal state:34, row:50, column:3
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:END, child_count:1
+shift state:227
+process version:0, version_count:1, state:227, row:50, col:4
+lex_internal state:82, row:50, column:4
 lexed_lookahead sym:end, size:1
 reduce sym:subprogram_body, child_count:7
 reduce sym:compilation_unit, child_count:1

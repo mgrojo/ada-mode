@@ -1,4 +1,4 @@
-build/Makefile gprbuild
+build/Makefile gprbuild, tests
 Makefile       alire
 
 branches:
@@ -24,7 +24,7 @@ incremental_parse-pre-config.input_stream o.w.s-2
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-3")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -32,11 +32,29 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-translate %conflict_resolution to precedences
+t_bnf
+    indent_param_count is a bnf_errors_test
+        not failing; indent param count check broke?
+        passes in main
+
+test alire build
+    need separate crate for tree_sitter, so not required for most wisitoken use?
+    also a separate crate for tree_sitter_ada (ie a binding crate)
+
+review FIXME tree-sitter:
+
+add tree_sitter in character_literal.wy
+
+propagate to o.w.s-1
+
+add right-associativity for tree-sitter lists
+    see fixme in o.e.a-m.s-4/ada_annex_p.wy
+
+translate %conflict_resolution to precedences?
     https://github.com/tree-sitter/tree-sitter/pull/939
 
-restore tree-sitter output
-    use to generate equivalent of  https://github.com/briot/tree-sitter-ada
+consider https://github.com/briot/tree-sitter-ada
+    some good conflict reduction
     test/bnf/ada_full.wy
 
     t_bnf_one compares .js
@@ -89,7 +107,12 @@ restore tree-sitter output
         compilation, defining_identifier_list, etc.
         find out how tree-sitter handles that for LR table generation
 
-    add a test driver that runs the tree_sitter parser
+add emacs wisi tree-sitter
+    wisitoken-parse-tree_sitter.ads:
+        derive syntax_tree from wisitoken.syntax_trees.base_tree
+        add common operations to base_tree
+            id, text ...
+            change wisitoken-parse.ads Parser to use Base_Tree'class?
 
 need parse js => output js in ada_full order to compare -briot.js to ada_full.wy
     javascript_simple.wy

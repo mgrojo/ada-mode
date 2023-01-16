@@ -1,29 +1,33 @@
 new_parse
-process version:0, version_count:1, state:1, row:1, col:0
-lex_internal state:0, row:1, column:0
+process version:0, version_count:1, state:1, row:0, col:0
+lex_internal state:0, row:0, column:0
 lexed_lookahead sym:COMMENT, size:12
 shift_extra
-process version:0, version_count:1, state:1, row:1, col:12
-lex_internal state:0, row:1, column:12
+process version:0, version_count:1, state:1, row:0, col:12
+lex_internal state:0, row:0, column:12
 lexed_lookahead sym:c, size:2
-shift state:2
-process version:0, version_count:1, state:2, row:2, col:1
-lex_internal state:0, row:2, column:1
+shift state:7
+process version:0, version_count:1, state:7, row:1, col:1
+lex_internal state:0, row:1, column:1
 lexed_lookahead sym:d, size:1
-shift state:3
-process version:0, version_count:1, state:3, row:2, col:2
-lex_internal state:0, row:2, column:2
+reduce sym:LOWER_C, child_count:1
+shift state:4
+process version:0, version_count:1, state:4, row:1, col:2
+lex_internal state:0, row:1, column:2
 lexed_lookahead sym:c, size:1
+reduce sym:LOWER_D, child_count:1
 reduce sym:upper_c, child_count:1
 reduce sym:upper_c, child_count:2
-shift state:2
-process version:0, version_count:1, state:2, row:2, col:3
-lex_internal state:0, row:2, column:3
+shift state:7
+process version:0, version_count:1, state:7, row:1, col:3
+lex_internal state:0, row:1, column:3
 lexed_lookahead sym:d, size:1
-shift state:3
-process version:0, version_count:1, state:3, row:2, col:4
-lex_internal state:0, row:2, column:4
+reduce sym:LOWER_C, child_count:1
+shift state:4
+process version:0, version_count:1, state:4, row:1, col:4
+lex_internal state:0, row:1, column:4
 lexed_lookahead sym:end, size:1
+reduce sym:LOWER_D, child_count:1
 reduce sym:upper_c, child_count:1
 reduce sym:upper_c, child_count:2
 reduce sym:upper_s, child_count:2

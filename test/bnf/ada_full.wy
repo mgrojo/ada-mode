@@ -11,7 +11,7 @@
 %meta_syntax EBNF
 
 %code copyright_license %{
---  Copyright (C) 2013 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2013 - 2023 Free Software Foundation, Inc.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -197,23 +197,35 @@ tick : TICK_1 | TICK_2 ;
 %non_grammar <comment-new-line> CONFLICT_MARK_B ">>>>>>>"
 %non_grammar <comment-new-line> CONFLICT_MARK_END "======="
 
+%if lexer = re2c
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER
     %[ ([$a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
   "A_Bogus_Identifier"
 
-%if lexer = tree_sitter
+%elsif lexer = tree_sitter
+%token <symbol> IDENTIFIER
+    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
+
 ;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
-;; wisitoken-generate-tree_sitter.adb shouldb be in user guide.)
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
 word : IDENTIFIER ;
 %end if
 
+%if lexer = re2c
 ;; \x22 is "
 %token <string-double-one-line> STRING_LITERAL
     %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]% '""'
 %escape_delimiter_doubled STRING_LITERAL
 
 %token <string-single-one-line> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]% "' '"
+
+%elsif lexer = tree_sitter
+;; This allows newline in string, which may actually be a good thing when editing.
+%token <string> STRING_LITERAL %[ ("|[^"])* ]%
+%token <string> CHARACTER_LITERAL %[ '.' ]%
+
+%end if
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -522,6 +534,8 @@ object_declaration
     %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
                                (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
                                               (wisi-anchored% 5 (* 2 ada-indent-broken)))
                                ada-indent-broken ada-indent-broken]))%
@@ -659,10 +673,11 @@ discriminant_constraint
 
 discriminant_association
   : [name_for_component_choice {'|' name_for_component_choice} '=>'] expression
-    %((wisi-indent-action [nil nil ada-indent-broken nil
-                           (wisi-hanging%
-                                (wisi-anchored% 1 ada-indent-broken)
-                                (wisi-anchored% 1 (* 2 ada-indent-broken)))]))%
+    ;; %((wisi-indent-action [nil ada-indent-broken nil nil
+    ;;                        (wisi-hanging%
+    ;;                             (wisi-anchored% 1 ada-indent-broken)
+    ;;                             (wisi-anchored% 1 (* 2 ada-indent-broken)))]))%
+    ;; broken by list syntax
   ;
 
 record_type_definition ::= [['abstract'] 'tagged'] ['limited'] record_definition ;
@@ -867,8 +882,15 @@ slice
   ;
 
 selected_component
-  : name '.' (IDENTIFIER | STRING_LITERAL | CHARACTER_LITERAL)
-    ;; higher level productions should apply hanging indent to names
+  ;; higher level productions should apply hanging indent to names
+  ;; Not combined into one rhs to allow wisi-merge-names
+  : name '.' IDENTIFIER
+    %((wisi-face-mark-action [1 prefix 3 suffix]))%
+    %((wisi-merge-names 1 3))%
+  | name '.' STRING_LITERAL
+    %((wisi-face-mark-action [1 prefix 3 suffix]))%
+    %((wisi-merge-names 1 3))%
+  | name '.' CHARACTER_LITERAL
     %((wisi-face-mark-action [1 prefix 3 suffix]))%
     %((wisi-merge-names 1 3))%
   ;
@@ -926,7 +948,7 @@ name_for_component_choice : IDENTIFIER | STRING_LITERAL ; ;; simplified from RM 
 component_choice_list
   : 'others'
   | name_for_component_choice {'|' name_for_component_choice}
-    %((wisi-indent-action [nil nil ada-indent-broken]))%
+    ;; %((wisi-indent-action [nil nil ada-indent-broken]))% broken by list syntax
   ;
 
 extension_aggregate

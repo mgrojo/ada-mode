@@ -6,7 +6,7 @@
 ;; deleting stuff.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -90,19 +90,26 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
+%non_grammar <comment-new-line> COMMENT "--"
+
 %if lexer = re2c
 %token <string-double-one-line> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %escape_delimiter_doubled STRING_LITERAL
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
-%non_grammar <comment-new-line> COMMENT "--"
 
 %elsif lexer = tree_sitter
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
 ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 %token <string-double> STRING_LITERAL %[ "(""|[^"])*" ]%
-%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
-%non_grammar <comment-new-line> COMMENT "--"
+
+%token <symbol> IDENTIFIER
+    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
+
+;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+word : IDENTIFIER ;
+
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%

@@ -475,6 +475,17 @@ than once, first with two branches, then with one more, etc. This is
 due to the way conflicts are found during the parse table generation
 process.
 
+When translating a wisitoken grammar to a tree-sitter grammar, it is
+sometimes necessary to express the conflicts differently. In that
+case, the syntax is:
+@verbatim
+%conflict abstract_limited_opt abstract_limited_synchronized_opt
+@end verbatim
+which translates to one item in the conflicts list:
+@verbatim
+   [$.abstract_limited_opt, $.abstract_limited_synchronized_opt]
+@end verbatim
+
 Resolving conflicts in the grammar can be difficult, but leaving them
 in can increase parse time and cause ambiguous parses.
 

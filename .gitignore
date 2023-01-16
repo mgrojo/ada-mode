@@ -42,3 +42,6 @@ alire/
 config/
 build/lib/
 build/bin/
+build/Cargo.toml
+build/bindings/
+build/package.json

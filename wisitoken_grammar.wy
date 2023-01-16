@@ -23,7 +23,7 @@
 ;;  EBNF syntax.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -120,6 +120,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
 %conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
+%conflict SHIFT identifier_list | REDUCE declaration on token IDENTIFIER
 %conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
 %conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT
 
@@ -159,6 +160,9 @@ declaration
   | PERCENT KEYWORD IDENTIFIER regexp_string
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
   | PERCENT CODE identifier_list RAW_CODE
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT CONFLICT identifier_list
+    ;; Tree_Sitter format
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
   | PERCENT CONFLICT conflict_item_list ON TOKEN token_name
     %(Add_Declaration (User_Data, Tree, Nonterm);)%

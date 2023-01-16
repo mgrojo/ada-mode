@@ -330,6 +330,8 @@ begin
                BNF_Tree.Print_Tree;
             end if;
 
+            BNF_Tree.Clear_Augmented;
+
             if Output_BNF then
                --  FIXME: if %if is present, it can change the bnf tree; output one for each tuple.
                WisiToken_Grammar_Editing.Print_Source (-Output_File_Name_Root & "_bnf.wy", BNF_Tree, Input_Data);
@@ -387,6 +389,8 @@ begin
             if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
                Translate_To_BNF;
             end if;
+
+            Grammar_Parser.Tree.Clear_Augmented;
 
             if BNF_Tree.Is_Empty then
                if Trace_Generate > Outline then

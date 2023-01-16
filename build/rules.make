@@ -21,11 +21,6 @@ tests :: wisitoken-bnf-generate.exe
 tests :: gen
 tests :: test_all_harness.diff
 
-Makefile.conf : create_makefile_conf.sh
-	$(SHELL) -c ./create_makefile_conf.sh
-
-include Makefile.conf
-
 # generated code used by test_bnf_suite.adb and others.
 # If add to this, add to wisitoken_test.gpr
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
@@ -80,7 +75,7 @@ gen_Tree_Sitter :: dragon_4_43_tree_sitter.c
 
 # GENERATE is used by wisitoken_test.gpr; see there for valid values.
 # We assume tree-sitter is not installed; can be overridden by user.
-GENERATE ?= BNF_EBNF
+GENERATE ?= BNF_EBNF_Tree_Sitter
 ifeq ($(GENERATE),BNF_EBNF_Tree_Sitter)
 gen :: gen_BNF gen_EBNF gen_Tree_Sitter
 else ifeq ($(GENERATE),BNF_EBNF)
@@ -90,7 +85,7 @@ gen :: gen_BNF
 else ifeq ($(GENERATE),EBNF)
 gen :: gen_EBNF
 else ifeq ($(GENERATE),Tree_Sitter)
-gen :: Tree_Sitter
+gen :: gen_Tree_Sitter
 endif
 
 test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables
@@ -138,11 +133,8 @@ wisitoken-to_tree_sitter.exe : force
 wisitoken-followed_by.exe : force
 	gprbuild -p -j8 -P wisitoken.gpr wisitoken-followed_by
 
-wisitoken_test.gpr : wisitoken_test.gpr.gp
-	gnatprep -DHAVE_TREE_SITTER=$(HAVE_TREE_SITTER) $< $@
-
 test-executables : force wisitoken_test.gpr
-	gprbuild -p -j8 -P wisitoken_test.gpr
+	gprbuild -p -j8 -P wisitoken_test.gpr $(GPRBUILD_ARGS)
 
 # gprbuild can run gnatprep as part of the compiler, but that requires
 # putting the gnatprep symbols in the .ad? file, which means we have
@@ -162,7 +154,7 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-%.re2c : %.wy wisitoken-bnf-generate.exe
+%.re2c %.js : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**_actions.adb $**_actions.ads $*.js $*_bnf.wy $**_main.adb $**.parse_table
 
@@ -172,8 +164,8 @@ DIFF_OPT := -u -w
 	re2c --location-format gnu --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
-%_tree_sitter.c : %.re2c wisitoken-bnf-generate.exe
-	tree-sitter generate ./$*.js
+%_tree_sitter.c : %.js
+	tree-sitter generate $^
 	mv src/parser.c $*_tree_sitter.c
 
 %_bnf.wy : %.wy wisitoken-bnf-generate.exe

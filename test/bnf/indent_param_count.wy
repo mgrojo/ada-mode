@@ -1,3 +1,5 @@
+;; Test reporting an error in indent parameter count; too many are specified here.
+
 %meta_syntax EBNF
 
 %generate LALR Ada_Emacs re2c Process

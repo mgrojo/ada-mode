@@ -2,7 +2,7 @@
 --
 --  Ada binding to tree-sitter runtime.
 --
---  Copyright (C) 2020, 2022 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2022, 2023 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -44,6 +44,7 @@ package WisiToken.Parse.Tree_Sitter is
    --  Tagged for Object.Method notation.
 
    function Root (Tree : in Syntax_Tree) return Syntax_Tree_Node;
+
    type Parser (Language : Language_Function) is new Ada.Finalization.Limited_Controlled with private;
 
    overriding procedure Initialize (Parser : in out Tree_Sitter.Parser);
@@ -52,6 +53,7 @@ package WisiToken.Parse.Tree_Sitter is
    procedure Parse
      (Parser    : in out Tree_Sitter.Parser;
       File_Name : in     String);
+   --  FIXME: need other sources; string, emacs module access emacs source buffer
 
    function Buffer_Text (Parser : in Tree_Sitter.Parser; Region : in Buffer_Region) return String;
 

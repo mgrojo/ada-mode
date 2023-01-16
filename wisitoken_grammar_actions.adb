@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -130,7 +130,7 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
    begin
-      Start_If (User_Data, Tree, Nonterm);
+      Add_Declaration (User_Data, Tree, Nonterm);
    end declaration_11;
 
    procedure declaration_12
@@ -165,10 +165,19 @@ package body Wisitoken_Grammar_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
+   begin
+      Start_If (User_Data, Tree, Nonterm);
+   end declaration_15;
+
+   procedure declaration_16
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
       pragma Unreferenced (Tree, Nonterm);
    begin
       End_If (User_Data);
-   end declaration_15;
+   end declaration_16;
 
    procedure nonterminal_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

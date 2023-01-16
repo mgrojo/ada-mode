@@ -6,7 +6,7 @@
 ;; See ada_lite_ebnf_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -44,8 +44,7 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when change sequence_of_statements to statement+
-;; and more broke when changed wisitoken_grammar.wy declaration
+%generate Tree_Sitter Ada tree_sitter
 
 %meta_syntax EBNF
 
@@ -72,25 +71,27 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
+%non_grammar <comment-new-line> COMMENT "--"
+
 %if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %escape_delimiter_doubled STRING_LITERAL
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
-%non_grammar <comment-new-line> COMMENT %[ "--" ]%
 
 %elsif lexer = tree_sitter
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
 ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 ;;
-;; FIXME tree-sitter: that only allows 16 bit code points, not 32 bit characters.
-;; And even then, it still complains about non-Unicode chars; limiting
-;; to ASCII + π (see ada_lite.input) for now. See tree-sitter github
-;; issue #621.
+%token <string-double> STRING_LITERAL %[ "(""|[^"])*" ]%
 
-%token <string-double> STRING_LITERAL %[ ("[π\x20-\x21\x23-\x7F]*")+ ]%
-%token <symbol> IDENTIFIER %[ [πa-zA-Z][π0-9a-zA-Z_]* ]%
-%non_grammar <comment-new-line> COMMENT '--'
+%token <symbol> IDENTIFIER
+    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
+
+;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+word : IDENTIFIER ;
+
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%

@@ -6,7 +6,7 @@
 --
 --  [1] tree-sitter grammar: https://tree-sitter.github.io/tree-sitter/creating-parsers#the-grammar-dsl
 --
---  Copyright (C) 2020 - 2022 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2020 - 2023 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1401,6 +1401,8 @@ package body WisiToken.Generate.Tree_Sitter is
          end if;
 
          if Extras.Length > 0 then
+            --  Since we have an explicit 'extras', we need to specify space and newline.
+            Extras.Append ("/\s|\\\r?\n/");
             Put_Line (",");
             Put_Line ("  extras: $ => [");
             Indent := @ + 3;
