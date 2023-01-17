@@ -104,7 +104,7 @@ ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 pub : force
 	rm -rf $(ELPA_ROOT)/packages/wisi/*
 	cp ../NEWS ../README ../*.make $(ELPA_ROOT)/packages/wisi
-	cp ../*.ad? ../*.el ../*.sh ../*.texi ../wisi.gpr.gp $(ELPA_ROOT)/packages/wisi
+	cp ../*.ad? ../*.el ../*.texi ../wisi.gpr.gp $(ELPA_ROOT)/packages/wisi
 	cd $(ELPA_ROOT)/packages/wisi; rm -f autoloads.el *libadalang* test*.ad?
 	cp $(WISITOKEN)/Docs/wisitoken-user_guide.texinfo $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi

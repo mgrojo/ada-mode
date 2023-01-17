@@ -37,7 +37,7 @@ org.emacs.wisi.stephe-4 (): available
 Most notes are in ../org.emacs.ada-mode/notes.text, for simplicity in finding them
 
  release process
-org.emacs.wisi released together with ada-mode; see ada-mode notes
+see ada-mode notes for full process; only wisi-specific details here.
 all tests done in ada-mode
 
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
