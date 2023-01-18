@@ -45,238 +45,27 @@ There is a gpr_lsp, bundled with ada_lsp
 
  release process
 keep status in ~/projects.text
+see ada-mode notes for full process; only gpr-specific notes here
 do sal, wisitoken, wisi
 
-check for ELPA patches by others
-    (dvc-status "/Projects/elpa/packages/gpr-mode")
-    (dvc-pull "/Projects/elpa/packages/gpr-mode")
-    (dvc-sync-review "/Projects/elpa/packages/gpr-mode")
-        update
-        clean, quit sync
-    cd c:/Projects/elpa/packages/gpr-mode
-    git log -2
-    if changes, apply changes to current via ediff
+(dvc-status "/Projects/elpa/packages/gpr-mode")
+(dvc-pull "/Projects/elpa/packages/gpr-mode")
+(dvc-sync-review "/Projects/elpa/packages/gpr-mode")
 
-check emacs buglist
-    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
-    to update a bug: nnn@debbugs.gnu.org
-        subject: from bug title, for people who rely on that.
-    if fixed in devel sources, add 'pending' tag:
-        control@debbugs.gnu.org
-        tags nnn + pending
+https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
 
-run all tests without elpa:
-    build/Makefile all
+(ediff-directories "/Projects/elpa_release/gpr-mode" "/Projects/org.emacs.gpr-mode" nil)
 
-    - Windows Emacs master, current gnat
-    - Windows Emacs 25.3, current gnat
-    - Windows Emacs 26.1, current gnat
-    - Windows Emacs 27.1, current gnat
-    - Windows Emacs 28.1, current gnat
-
-    #dvc-state-multiple above
-    (dvc-push)
-    - Debian testing, Emacs master, current gnat (community or pro)
-    - Debian testing, Emacs master, Debian gnat
-        su -l root
-            aptitude update
-            aptitude full-upgrade --without-recommends
-        gnat
-        libgnatcoll-xrefnn-dev
-        gprbuild
-
-compare:
-    (ediff-directories "/Projects/elpa_release/gpr-mode" "/Projects/org.emacs.gpr-mode" nil)
-        NEWS
-            copyright date
-            add release date
-            add new features
-            list fixed bugs
-
-Check copyright on files in elpa
-    c:/Projects/elpa/GNUMakefile check/gpr-mode
-    if any files added to output, fix them (add or change to FSF)
+c:/Projects/elpa/GNUMakefile check/gpr-mode
 
 bump versions
-    Gnu ELPA requires single digits between dots in versions
-
-    bump if _any_ changes, so ELPA package handler knows to update
-        bump third digit for bug fixes, minor features, no user-incompatible changes
-
-        bump second digit for major features, mostly backward-compatible
-            or if third digit gets to 10
-
-        bump first digit for really major elisp user-visible changes:
-
     wisi-gpr.ads
-        (should have been changed already, but verify;
-         should match last mention of language protocol version in NEWS)
-        Language_Protocol_Version if this file changed
-        ie, if installed parser must be replaced on upgrade or downgrade
-
     gpr-mode.el
-        Version:
-        package-requires
-
     NEWS
-        if not done above
-
     gpr-mode.texi
-        @title
-
     README
-        first line
-
     build.sh
-        if -d ../wisi-, WISI_DIR
-
     alire.toml
-        version
-        depends-on
-
-    # Windows only
-    d:/Web/savannah/gpr-mode/index.html
-        find-replace gpr-mode i.j.k
-
-        echoed to savannah web page on CVS commit.
-        other files in that dir updated by ~/web/Makefile
-
-dvc-state-multiple above
-
-On Debian
-    (dvc-state-one ".") ;; commit or stash
-    (dvc-push ".")
-    alr publish --tar
-    # at "upload and enter url" prompt; in mys2
-    cd alire/archives
-    gpg -b *.tgz
-    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # wait until http download actually works; even then alr publish may fail; wait some more
-    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/gpr-mode/emacs_gpr_mode-1.0.0.tgz
-
-prep for elpa tests:
-    build/Makefile byte-compile-clean pub
-    # pushes to elpa workspace
-    # commit: (dvc-state-multiple "c:/Projects/elpa/packages")
-    build/Makefile pub-install
-    # builds local elpa archive, installs it
-
-Emacs 25.3, current gnat
-    ~/bin/emacs-25.sh
-    build/Makefile install-elpa
-    (gpr-query-kill-all-sessions)
-    (list-processes)
-    # 'd' = kill; gpr_mode_wisi_parse.exe
-    cd ~/.emacs.d/elpa/gpr-mode-1.0.0*
-    ./build.sh
-    cd .. # allow uninstall-elpa
-
-    restart Emacs to set load-path
-
-    build/Makefile test-clean
-    build/Makefile test TEST_DIR=elpa
-
-    build/Makefile uninstall-elpa
-    (gpr-query-kill-all-sessions)
-    build/Makefile recursive-clean clean # if changing compilers
-
-push for Debian
-    current Emacs for dvc
-    # dvc-state-multiple above
-    (dvc-push "/Projects/elpa/packages/gpr-mode")
-    (dvc-push "/Projects/org.emacs.gpr-mode")
-
-Debian testing
-    build/Makefile uninstall-elpa
-        # before versions change
-
-    (dvc-pull ".")
-    (dvc-sync-review ".")
-
-    upgrade debian (to avoid eventually needing to reinstall from scratch)
-
-    FIXME: test with the latest Debian gnat release
-        bugs to https://gcc.gnu.org/bugzilla/buglist.cgi?quicksearch=comp%3Aada
-
-    build/Makefile
-        docs pub-gpr clean-elpa
-        # build-elpa uses latest commit
-        (dvc-state-multiple "/Projects/elpa/packages")
-        build-elpa uninstall-elpa
-        install-elpa
-            # byte-compile errors, warnings show in *compile-log*
-
-    check for bogus execute permissions in elpa
-        $ cd /Projects/elpa/gpr-mode
-        $ ls -R -l . | grep -- -rwx
-        $ chmod -x *.el *.adb
-        # keep execute on *.sh
-
-    commit elpa:
-    (dvc-state-multiple "/Projects/elpa/packages")
-        add/delete, stage, commit gpr-mode
-
-    (dvc-push "/Projects/elpa/gpr-mode")
-
-    # dvc-state-multiple above
-    (dvc-push ".")
-
-On Windows
-(dvc-pull)
-(dvc-sync-review ".")
-
-delete changes in elpa:
-    $ cd c:/Projects/elpa/
-    $ git checkout .
-
-update windows elpa
-    (dvc-pull "/Projects/elpa/packages/gpr-mode")
-    (dvc-sync-review "/Projects/elpa/packages/gpr-mode")
-
-    # 24 hrs for web repository to update
-
-after Gnu ELPA updated, test install from GNU ELPA
-    first install current version, to be sure upgrade requires new versions
-        gpr-mode 7.1.5 should have required wisi 3.1.5
-
-    (list-packages)
-    5.1.8 crashed emacs for me
-    see 'build.sh; install.sh' above for compiling
-
-(dvc-state-one ".")
-build/Makefile tag zip
-
-in cygwin console for gpg prompts:
-    cd /Projects/org.emacs.gpr-mode/build/
-    ls *.tar*
-    rm <old>.tar*
-    gpg -b *.tar.*
-
-    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/gpr-mode/
-
-~/Web/Makefile
-    # no 'sync' here; all on savannah via cvs, scp
-    gpr-mode
-
-commit savannah
-    if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
-        # see projects.text "conflicting keys for savannah"
-        $ cd /d/Web/savannah/gpr-mode
-        $ cvs status
-        # edit ~/.ssh/known_hosts, delete offending one, repeat 'cvs status'
-    (cvs-examine "d:/Web/savannah/gpr-mode" nil)
-    mark all 'm'
-    commit   'c'
-    edit commit message "release version i.j.k"
-    C-c C-c
-
-    takes ~ 10 min for https://www.nongnu.org/gpr-mode/ to reflect cvs commit
-
-publish Alire crate
-
-create release branch
-
-post on emacs-ada-mode mailing list, c.l.a newsgroup, https://savannah.nongnu.org/news/submit.php?group_id=11631:
 
 -------------------
 Gnu Emacs gpr mode 1.0.0 released.
@@ -297,14 +86,5 @@ cd ~/.emacs.d/elpa/gpr-mode-1.0.0
 ./build.sh
 ./install.sh
 -------------------
-
-mark fixed bugs
-    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-mode
-    https://debbugs.gnu.org/Developer.html
-    email to nnn-close@debbugs.gnu.org
-        subject: copy from bug report
-        body: closed by gpr-mode version 7.2.1
-        don't include Version: header; that's an Emacs version
-    debbugs updates gpr-mode summary page within half an hour; no emails
 
 -- end of file
