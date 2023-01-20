@@ -1617,16 +1617,22 @@ keep status in ~/projects.text
     dependency releases done below, after tests that test all of them.
 
 sync Windows with Debian
+    Windows:
+    (dvc-state-multiple "/Projects" t)
+    (dvc-push "/Projects/elpa")
+    (dvc-push "/Projects/org.emacs.ada-mode")
+
+    Debian:
+    (dvc-sync-run "/Projects/org.emacs.ada-mode")
+    (dvc-sync-review "/Projects/org.emacs.ada-mode")
+    (dvc-sync-run "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
 
 update benchmark_results.text
 
 drop emacs 26 - not tested? at least drop emacs 25
 
 check for ELPA patches by others
-    (dvc-pull "/Projects/elpa/packages/ada")
-    (dvc-sync-review "/Projects/elpa/packages/ada")
-        update
-        clean, quit sync
     cd c:/Projects/elpa/packages/ada-mode
     git log -2
         apply changes to current via ediff
@@ -1669,6 +1675,16 @@ run all tests without elpa:
         libgnatcoll-xrefnn-dev
         gprbuild
 
+Alire.make
+    rm -rf alire config
+    alire-build
+
+build in elpa
+    build/Makefile pub
+
+    /Projects/elpa/packages/ada-mode/ELPA.make all
+    check for unused sources in wisi; no .o => edit Makefile pub-*
+
 do other package releases:
     ../org.stephe_leake.sal/notes.text local, alire
     ../org.wisitoken/build/release_process.text  local, alire
@@ -1679,13 +1695,9 @@ do other package releases:
     recommended:
     ../org.emacs.gpr-mode/notes.text elpa, alire
 
-Alire.make
-    rm -rf alire config
-    alire-build
-
 compare:
     (ediff-directories "/Projects/elpa/packages/ada-mode" "/Projects/org.emacs.ada-mode" nil)
-    (ediff-directories "/Projects/elpa_release/ada-mode" "/Projects/org.emacs.ada-mode" nil)
+    (ediff-directories "/Projects/elpa_release/packages/ada-mode" "/Projects/org.emacs.ada-mode" nil)
         NEWS
             add release date
             add new features
@@ -1695,22 +1707,21 @@ compare:
         /Projects/org.adaic.arm_form/NEWS
             add release date, new features
 
-build in elpa; /Projects/elpa/packages/ada-mode/ELPA.make all
-    build/Makefile pub
-    check for unused sources in wisi; no .o => edit Makefile pub-*
-
 Check copyright on files in elpa
-    (find-file "/Projects/elpa/GNUmakefile")
+    /Projects/elpa/GNUmakefile check/ada-mode
         # _don't_ follow symlink
-    check-all
+
+    check for bogus execute permissions in elpa
+        $ cd /Projects/elpa/
+        $ ls -R -l packages/ada-mode | grep -- -rwx
+        $ chmod -x *.el *.adb
+        # keep execute on *.sh
 
 bump versions
     Gnu ELPA requires single digits between dots in versions; always use three digits
 
     beta test: don't push to release branch
     release: propagated to release below.
-
-    (dvc-push "/Projects/elpa/admin")
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
@@ -1737,10 +1748,10 @@ bump versions
     NEWS
         if not done above
 
-    wisi-ada.ads
+    wisi-ada.ads    Language_Protocol_Version
+    ada-mode.el     ada-wisi-language-protocol-version
         (should have been changed already, but verify;
          should match last mention of language protocol version in NEWS)
-        Language_Protocol_Version if this file changed
         ie, if installed parser must be replaced on upgrade or downgrade
 
     ada-mode.el
@@ -1750,23 +1761,24 @@ bump versions
 
     ada-mode.texi
         @node top
-        FIXME: don't need @titlepage at all; it does not appear in html or info
+        don't include third digit
 
     README
         first line
 
+    alire.toml
+        only change if a file used in Alire build changed
+        version
+        depends-on
+
     build.sh
-        alire get
+        alire get (must match alire.toml)
         if -d ../wisi-, WISI_DIR
 
     # install.sh none
 
     ada-ref-man.el
         Version:
-
-    alire.toml
-        version
-        depends-on
 
     build/Makefile
         run uninstall-elpa with old values before changing!
@@ -1776,17 +1788,8 @@ bump versions
     build/uninstall-elpa.el
         wisi version, uniquify-files version
 
-    # Windows only:
-    d:/Web/savannah/ada-mode/index.html
-        find-replace ada-mode i.j.k
-        wisi version does not appear
-        _not_ WisiToken (done in wisitoken release)
-
-        echoed to savannah web page on CVS commit.
-
-    _not_ d:/Web/stephe-leake/ada/wisitoken.html - done in wisitoken release
-
 Publish Alire crate
+    (dvc-status ".")
     ~/bin/alire_publish-tar.sh
     # at "upload and enter url" prompt, C-c C-k
     ~/bin/alire-to-savannah.sh
@@ -1805,22 +1808,10 @@ Publish Alire crate
     (dvc-push "~/.config/alire/indexes/stephe/repo/")
 
 publish to elpa devel:
-    /Projects/org.emacs.wisi/build/Makefile pub
     build/Makefile pub
 
-    # sometimes this is useful
-    # (ediff-directories "/Projects/org.emacs.ada-mode" "/Projects/elpa/packages/ada-mode" nil)
-    # (ediff-directories "/Projects/org.emacs.wisi" "/Projects/elpa/packages/wisi" nil)
-
-    check for bogus execute permissions in elpa
-        $ cd /Projects/elpa/
-        $ ls -R -l packages/ada-mode | grep -- -rwx
-        $ ls -R -l packages/wisi | grep -- -rwx
-        $ chmod -x *.el *.adb
-        # keep execute on *.sh
-
-    (dvc-state-multiple "/Projects/elpa/packages" t)
-    (dvc-push "/Projects/elpa")
+    (dvc-status "/Projects/elpa/packages/ada-mode")
+    (dvc-push "/Projects/elpa/packages/ada-mode")
 
     If the ELPA processing fails, it logs the error messages in
         https://elpa.gnu.org/devel/<package>-build-failure.txt
@@ -1867,6 +1858,11 @@ install current version from ELPA, to test upgrade to new
     ~/.emacs.d/early-init.el
         ada-mode 7.1.5 should have required wisi 3.1.5
 
+after Gnu ELPA updated, test install from GNU ELPA devel
+    (list-packages)
+    5.1.8 crashed emacs for me
+    see 'build.sh; install.sh' above for compiling
+
 If release:
     (dvc-propagate-multiple
      '(("/Projects/elpa/packages/ada-mode"      . "/Projects/elpa_release/packages/ada-mode")
@@ -1878,32 +1874,25 @@ If release:
     git push
     # 24 hrs for web repository to update
 
-after Gnu ELPA updated, test install from GNU ELPA
-    (list-packages)
-    5.1.8 crashed emacs for me
-    see 'build.sh; install.sh' above for compiling
+    /Projects/web/ada-mode/index.html
+        find-replace ada-mode i.j.k
+        wisi version does not appear
+        _not_ WisiToken (done in wisitoken release)
 
-tag savannah:
-    cd c:/Projects/org.emacs.ada-mode
-    git tag ada-mode-8.0.1
+        echoed to savannah web page on CVS commit via M-x cvs-examine.
 
-~/Web/Makefile
-    # no 'sync' here; all on savannah via cvs, scp
-    ada-mode
+        if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
+            # see projects.text "conflicting keys for savannah"
+            $ cd /d/Web/savannah/ada-mode
+            $ cvs status
+            # edit ~/.ssh/known_hosts, delete offending one, repeat 'cvs status'
+        (cvs-examine "d:/Web/savannah/ada-mode" nil)
+        mark all 'm'
+        commit   'c'
+        edit commit message "release version i.j.k"
+        C-c C-c
 
-commit savannah web
-    if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
-        # see projects.text "conflicting keys for savannah"
-        $ cd /d/Web/savannah/ada-mode
-        $ cvs status
-        # edit ~/.ssh/known_hosts, delete offending one, repeat 'cvs status'
-    (cvs-examine "d:/Web/savannah/ada-mode" nil)
-    mark all 'm'
-    commit   'c'
-    edit commit message "release version i.j.k"
-    C-c C-c
-
-    takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
+        takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
 
 post on:
     https://savannah.nongnu.org/news/submit.php?group_id=11631
