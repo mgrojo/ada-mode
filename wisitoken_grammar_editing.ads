@@ -2,7 +2,7 @@
 --
 --  Utilities for editing wisitoken grammars.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -85,7 +85,8 @@ package WisiToken_Grammar_Editing is
       RHS_Index : in     Natural;
       Content   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access
-   with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | IDENTIFIER_ID | STRING_LITERAL_2_ID and
+   with Pre => To_Token_Enum (Tree.ID (Content)) in
+               rhs_alternative_list_ID | IDENTIFIER_ID | STRING_LITERAL_SINGLE_ID and
                RHS_Index <= 3,
      Post => Tree.ID (Add_RHS_Optional_Item'Result) = +rhs_optional_item_ID;
 
@@ -98,7 +99,7 @@ package WisiToken_Grammar_Editing is
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Item : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access
-   with Pre => To_Token_Enum (Tree.ID (Item)) in IDENTIFIER_ID | STRING_LITERAL_2_ID,
+   with Pre => To_Token_Enum (Tree.ID (Item)) in IDENTIFIER_ID | STRING_LITERAL_SINGLE_ID,
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
@@ -143,9 +144,10 @@ package WisiToken_Grammar_Editing is
    --  Return the node that declares Name, Invalid_Node_Access if none.
 
    function Find_Declaration_By_Value
-     (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Value  : in     String)
+     (Data         : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree         : in out WisiToken.Syntax_Trees.Tree;
+      Value        : in     String;
+      Strip_Quotes : in     Boolean)
      return WisiToken.Syntax_Trees.Node_Access
    with Post => Find_Declaration_By_Value'Result = WisiToken.Syntax_Trees.Invalid_Node_Access or else
                 To_Token_Enum (Tree.ID (Find_Declaration_By_Value'Result)) in declaration_ID;
@@ -157,7 +159,7 @@ package WisiToken_Grammar_Editing is
    procedure Validate_Node
      (Tree                : in     WisiToken.Syntax_Trees.Tree;
       Node                : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      User_Data           : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      User_Data           : in     WisiToken.Syntax_Trees.User_Data_Access;
       Node_Error_Reported : in out Boolean);
    --  Verify that all nodes match wisitoken_grammar.wy. Data must be of
    --  type WisiToken_Grammar_Runtime.User_Data_Type. Uses

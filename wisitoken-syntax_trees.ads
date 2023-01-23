@@ -2909,7 +2909,7 @@ package WisiToken.Syntax_Trees is
    type Validate_Node is access procedure
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
-      Data                : in out User_Data_Type'Class;
+      Data                : in     User_Data_Access;
       Node_Error_Reported : in out Boolean);
    --  Called by Validate_Tree for each node visited; perform checks
    --  other than parent/child, output error messages to
@@ -2923,7 +2923,7 @@ package WisiToken.Syntax_Trees is
    procedure Mark_In_Tree
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
-      Data                : in out User_Data_Type'Class;
+      Data                : in     User_Data_Access;
       Node_Error_Reported : in out Boolean);
    --  Mark Node as being "in tree".
    --
@@ -2936,7 +2936,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Validate_Tree
      (Tree              : in out Syntax_Trees.Tree;
-      User_Data         : in out User_Data_Type'Class;
+      User_Data         : in     User_Data_Access;
       Error_Reported    : in out Node_Sets.Set;
       Node_Index_Order  : in     Boolean;
       Byte_Region_Order : in     Boolean                    := True;

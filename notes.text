@@ -32,20 +32,70 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-t_bnf
-    indent_param_count is a bnf_errors_test
-        not failing; indent param count check broke?
-        passes in main
-
-test alire build
-    need separate crate for tree_sitter, so not required for most wisitoken use?
-    also a separate crate for tree_sitter_ada (ie a binding crate)
-
 review FIXME tree-sitter:
 
 add tree_sitter in character_literal.wy
 
 propagate to o.w.s-1
+
+t_all
+    t_bnf passes
+    t_mck passes
+
+    test_incremental.adb fails
+        Multiple_Errors_On_One_Token_1
+            recover_insert_delete node 1 not in tree
+        inserted node was on a stream that is now deleted.
+
+        before first recover, Parser_State.recover_insert_delete is empty for both parsers
+        after, parser 1 has 4 elements!?
+
+        Parser_State.recover_insert_delete set by:
+            parser_lists.update_error, prepend_copy
+
+        in recover, "apply ops to tree" sets local error_recover_ops
+            but then wrap check in next_recover_op is bogus
+
+        that is copied into parser_state.current_error_ref
+            then calls update_error, which appends ops to parser_state.recover_insert_delete
+
+        parser 1 has (insert renames, identifier, ';')
+        parser 2 has (insert ';') ins_node => 0x97f9b50
+
+        after second error recover:
+            parser 3 should have (insert ';') from first, ((INSERT, END, -1), (INSERT, IDENTIFIER, -1), (INSERT, SEMICOLON, -1), (INSERT, BEGIN, -1), (INSERT, EXIT, -1), (INSERT, SEMICOLON, -1)) from second
+            but it has only (insert ';'), (insert ';'), first corrupted
+                something was trying to update recover_insert_delete, but appended instead
+
+        trace second error recover in detail
+            parser 5: (empty recover_ops)
+                update_error: copies -78:subprogram_body 0x98bb8a0 to -79:subprogram_body 0x98bd1d0
+
+            parser 3: (INSERT, END IDENTIFIER SEMICOLON BEGIN EXIT SEMICOLON)
+                update_error: copies 35:PROCEDURE 0x98bd850 to 36:PROCEDURE 0x98c4db0
+
+
+
+
+
+
+            inserted node was created in parser 2, copied somewhere in parser 3
+                that place needs to update recover_insert_delete
+                first it needs to find the error node, then the insert op
+                mark inserted node with error node?
+                    that might be useful elsewhere? In Adjust_Copy?
+
+                find point in parse where this copy happens
+                    nodes are copied in:
+                    Breakdown
+                    Add_Deleted
+                    Add_Error_To_Input
+                    Add_Error_To_Stack_Top
+                    Add_Errors
+                    Update_Error
+
+                inserted node is -36:SEMICOLON
+                contained in
 
 add right-associativity for tree-sitter lists
     see fixme in o.e.a-m.s-4/ada_annex_p.wy

@@ -6,7 +6,7 @@
 --  written, but as the algorithm evolved, the tests behavior changed.
 --  They all still test something useful.
 --
---  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -897,8 +897,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +COLON_EQUAL_ID, 2) & (Insert, +THEN_ID, 3) & (Insert, +EXIT_ID, 3) &
            (Fast_Forward, 3, 6) & (Push_Back, +END_ID, 5) & (Insert, +BEGIN_ID, 5) & (Insert, +EXIT_ID, 5) &
            (Insert, +SEMICOLON_ID, 5),
-         Enqueue_Count           => (case Test.Alg is when LALR => 174, when LR1 => 446),
-         Check_Count             => (case Test.Alg is when LALR => 27, when LR1 => 54),
+         Enqueue_Count           => (case Test.Alg is when LALR => 174, when LR1 => 387),
+         Check_Count             => (case Test.Alg is when LALR => 27, when LR1 => 49),
          Cost                    => 4);
 
       Check_Recover
@@ -1196,8 +1196,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (127, 126),
          Ops                     => +(Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2) &
            (Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2) & (Fast_Forward, 2, 2),
-         Enqueue_Count           => (case Test.Alg is when LALR => 985, when LR1 => 1010),
-         Check_Count             => (case Test.Alg is when LALR => 172, when LR1 => 177),
+         Enqueue_Count           => (case Test.Alg is when LALR => 985, when LR1 => 1008),
+         Check_Count             => (case Test.Alg is when LALR => 172, when LR1 => 176),
          Cost                    => 10);
    end Missing_Name_6;
 
@@ -2040,7 +2040,7 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
          Error_Token_Byte_Region => (36, 37),
-         Ops                     => +(Insert, +AMPERSAND_ID, 2),
+         Ops                     => +(Insert, +COMMA_ID, 2),
          Enqueue_Count             => 47,
          Check_Count               => 25,
          Cost                    => 4);

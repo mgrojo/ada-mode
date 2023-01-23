@@ -9,7 +9,7 @@ all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc
 
 #export Standard_Common_Build := Debug
 #export Standard_Common_Assertions := Off
-export GENERATE := BNF_EBNF
+#export GENERATE := BNF_EBNF
 
 # test_one_harness.adb
 # test_all_harness.adb
@@ -30,9 +30,18 @@ t_all :: wisitoken_test.gpr
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
+#t_bnf :: RUN_ARGS ?= > test_bnf.log
 t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
+
+t_one_bnf :: VERBOSITY := test=1
+t_one_bnf :: wisitoken-bnf-generate.exe
+t_one_bnf :: $(GRAMMAR)_re2c.c
+#t_one_bnf :: $(GRAMMAR)_tree_sitter.c
+t_one_bnf :: test-executables
+t_one_bnf :: test_bnf_harness.exe
+	./test_bnf_harness "bnf_wy_errors_test.adb $(GRAMMAR).wy" $(VERBOSITY)
 
 t_mck :: wisitoken-bnf-generate.exe
 #t_mck :: GENERATE_ARGS := -v 0 0 4
@@ -41,30 +50,31 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
-GRAMMAR := object_declaration
+GRAMMAR := ada_full
 
 one-clean :
 	rm -rf $(GRAMMAR)*
 
-#one :: one-clean
-one :: wisitoken-bnf-generate.exe
-one :: VERBOSITY := debug=1 parse=2
-one :: $(GRAMMAR)_re2c.c
+one :: one-clean
+one :: VERBOSITY := debug=1 generate=1
+one :: GENERATE_ARGS := --verbosity "$(VERBOSITY)"
+#one :: GENERATE_ARGS := --generate Tree_Sitter Ada tree_sitter --verbosity "$(VERBOSITY)"
+#one :: LOG_ARGS := > debug.log
 #one :: $(GRAMMAR)_lalr_run.exe
-one :: $(GRAMMAR)_packrat_proc_run.exe
+#one :: $(GRAMMAR)_packrat_proc_run.exe
 #one :: $(GRAMMAR)_packrat_gen_run.exe
-	./$^  --verbosity "$(VERBOSITY)" ../test/bnf/$(GRAMMAR).input > $(GRAMMAR).parse
+one :: wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --output_bnf $(GENERATE_ARGS) ../test/bnf/$(GRAMMAR).wy $(LOG_ARGS)
+#	diff -u ada_full.js ../test/bnf/ada_full.js_good > ada_full.js.diff
 
 two-clean :
 	rm -rf $(GRAMMAR)*
 
-two :: VERBOSITY := debug=1
-two :: two-clean
-two :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf --verbosity "$(VERBOSITY)" $(GENERATE_ARGS) ../test/bnf/$(GRAMMAR).wy
+two :: ada_full_tree_sitter.c
+
 
 three : wisitoken-followed_by.exe
-	./wisitoken-followed_by.exe ../test/bnf/optimized_conflict_03.wy subtype_indication PLUS 2
+	./wisitoken-followed_by.exe c:/Projects/org.emacs.ada-mode.stephe-2/ada_annex_p.wy relation BAR
 
 four : wisitoken_grammar-clean
 	cd ../; c:/Projects/org.wisitoken.stephe-2/build/wisitoken-bnf-generate.exe wisitoken_grammar.wy

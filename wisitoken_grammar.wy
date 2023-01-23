@@ -100,8 +100,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;;
 ;; 0x22 = "
 ;; 0x27 = '
-%token <string-double-one-line> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
-%token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
+%token <string-double-one-line> STRING_LITERAL_DOUBLE %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
+%token <string-single-one-line> STRING_LITERAL_SINGLE %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
@@ -128,8 +128,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 regexp_string
   : REGEXP
-  | STRING_LITERAL_1
-  | STRING_LITERAL_2
+  | STRING_LITERAL_DOUBLE
+  | STRING_LITERAL_SINGLE
   ;
 
 conflict_item
@@ -144,7 +144,7 @@ conflict_item_list
   | conflict_item_list BAR conflict_item
   ;
 
-token_name : IDENTIFIER | STRING_LITERAL_2 ;
+token_name : IDENTIFIER | STRING_LITERAL_SINGLE ;
 
 declaration
   : PERCENT TOKEN LESS IDENTIFIER GREATER IDENTIFIER regexp_string regexp_string
@@ -254,7 +254,7 @@ rhs_item_list
 
 rhs_item
   : IDENTIFIER
-  | STRING_LITERAL_2   ;; value of token
+  | STRING_LITERAL_SINGLE   ;; value of token
     %(Check_EBNF (User_Data, Tree, Nonterm, 1);)%
   | rhs_attribute ;; ANTLR attribute
     %(Check_EBNF (User_Data, Tree, Nonterm, 1);)%
@@ -278,7 +278,7 @@ rhs_optional_item
   ;; rhs_optional_item handles it.
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
   | IDENTIFIER QUESTION
-  | STRING_LITERAL_2 QUESTION
+  | STRING_LITERAL_SINGLE QUESTION
     %(Check_EBNF (User_Data, Tree, Nonterm, 1);)%
   ;
 

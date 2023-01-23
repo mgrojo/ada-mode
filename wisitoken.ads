@@ -26,7 +26,7 @@
 --  Efficient and flexible incremental parsing. ACM Transactions on
 --  Programming Languages and Systems,20(5):980-1013, 1998
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -414,11 +414,14 @@ package WisiToken is
    Extreme     : constant := 3; -- add ?
 
    Trace_McKenzie : Integer  := 0;
-   --  If Trace_McKenzie > 0, Parse prints messages helpful for debugging error recovery.
+   --  If Trace_McKenzie > 0, Parse prints messages helpful for debugging
+   --  error recovery.
    --
    --  Outline - error recovery enter/exit
    --  Detail  - add each error recovery configuration
    --  Extra   - add error recovery parse actions
+   --
+   --  See also wisitoken-parse-lr.ads Set_McKenzie_Options.
 
    Trace_Lexer : Integer := 0;
 

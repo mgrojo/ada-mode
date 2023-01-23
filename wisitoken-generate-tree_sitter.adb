@@ -113,7 +113,7 @@ package body WisiToken.Generate.Tree_Sitter is
                Item : constant Valid_Node_Access := Tree.Child (Tree.Find_Descendant (Node, +rhs_item_ID), 1);
             begin
                case To_Token_Enum (Tree.ID (Item)) is
-               when IDENTIFIER_ID | STRING_LITERAL_2_ID =>
+               when IDENTIFIER_ID | STRING_LITERAL_SINGLE_ID =>
                   return Invalid_Node_Access;
 
                when rhs_attribute_ID =>
@@ -436,7 +436,7 @@ package body WisiToken.Generate.Tree_Sitter is
                         New_ID   => (+rhs_item_ID, 0),
                         Children => (1 => Tree.Child (Optional_Item, 1)));
 
-                  when STRING_LITERAL_2_ID =>
+                  when STRING_LITERAL_SINGLE_ID =>
 
                      Tree.Set_Children
                        (Node     => Item_Var,
@@ -593,7 +593,7 @@ package body WisiToken.Generate.Tree_Sitter is
                      end;
                   end if;
 
-               when STRING_LITERAL_2_ID =>
+               when STRING_LITERAL_SINGLE_ID =>
                   null;
 
                when rhs_attribute_ID | rhs_optional_item_ID | rhs_multiple_item_ID | rhs_group_item_ID =>
@@ -674,7 +674,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.Error_Reported.Clear;
 
       Tree.Validate_Tree
-        (Data, Data.Error_Reported,
+        (Data'Unchecked_Access, Data.Error_Reported,
          Root              => Tree.Root,
          Validate_Node     => WisiToken_Grammar_Editing.Validate_Node'Access,
          Node_Index_Order  => True,
@@ -700,7 +700,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Error_Reported,
+        (Data'Unchecked_Access, Data.Error_Reported,
          Root             => Tree.Root,
          Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
          Node_Index_Order => False); --  Implies Line_Number_Order = False
@@ -715,7 +715,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Error_Reported,
+        (Data'Unchecked_Access, Data.Error_Reported,
          Root             => Tree.Root,
          Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
          Node_Index_Order => False);
@@ -758,7 +758,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Error_Reported,
+        (Data'Unchecked_Access, Data.Error_Reported,
          Root             => Tree.Root,
          Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
          Node_Index_Order => False);
@@ -905,16 +905,15 @@ package body WisiToken.Generate.Tree_Sitter is
       is begin
          Put ("optional(");
 
-         case Tree.RHS_Index (Node) is
-         when 0 | 1 =>
+         case To_Token_Enum (Tree.ID (Tree.Child (Node, 1))) is
+         when LEFT_BRACKET_ID | LEFT_PAREN_ID =>
             Put_RHS_Alternative_List (Tree.Child (Node, 2), First => True);
-         when 2 =>
+         when IDENTIFIER_ID =>
             Put ("$." & Get_Text (Tree.Child (Node, 1)));
-         when 3 =>
-            --  STRING_LITERAL_2
+         when STRING_LITERAL_SINGLE_ID =>
             Put (Get_Text (Tree.Child (Node, 1)));
          when others =>
-            Not_Translated ("Put_RHS_Optional_Item", Node);
+            raise SAL.Programmer_Error;
          end case;
 
          Put (")");
@@ -969,10 +968,14 @@ package body WisiToken.Generate.Tree_Sitter is
          when IDENTIFIER_ID =>
             Put ("$." & Get_Text (Node));
 
-         when STRING_LITERAL_1_ID =>
+         when STRING_LITERAL_SINGLE_ID =>
+            --  Case insensitive
             declare
                Text : constant String := Get_Text (Node);
-               Decl : constant Node_Access := WisiToken_Grammar_Editing.Find_Declaration_By_Value (Data, Tree, Text);
+
+               --  Token may be declared with "...", but referenced with '...'.
+               Decl : constant Node_Access := WisiToken_Grammar_Editing.Find_Declaration_By_Value
+                 (Data, Tree, Text (Text'First + 1 .. Text'Last - 1), Strip_Quotes => True);
             begin
                if Decl = Invalid_Node_Access then
                   Put ("caseInsensitive(" & Text & ")");
@@ -980,28 +983,6 @@ package body WisiToken.Generate.Tree_Sitter is
                   case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
                   when Wisitoken_Grammar_Actions.TOKEN_ID =>
                      --  Assume it's punctuation or similar where case doesn't matter.
-                     Put (Text);
-
-                  when KEYWORD_ID =>
-                     Put ("$." & Keyword_Name (Decl));
-
-                  when others =>
-                     raise SAL.Programmer_Error;
-                  end case;
-               end if;
-            end;
-
-         when STRING_LITERAL_2_ID =>
-            declare
-               Text : constant String := Get_Text (Node);
-               Decl : constant Node_Access := WisiToken_Grammar_Editing.Find_Declaration_By_Value (Data, Tree, Text);
-            begin
-               if Decl = Invalid_Node_Access then
-                  Put (Text);
-
-               else
-                  case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
-                  when Wisitoken_Grammar_Actions.TOKEN_ID =>
                      Put (Text);
 
                   when KEYWORD_ID =>
@@ -1160,7 +1141,8 @@ package body WisiToken.Generate.Tree_Sitter is
                begin
 
                   if Kind = "comment-new-line" then
-                     pragma Assert (To_Token_Enum (Tree.ID (Value)) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID);
+                     pragma Assert
+                       (To_Token_Enum (Tree.ID (Value)) in STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID);
 
                      --  WORKAROUND: tree-sitter 0.16.6 treats rule "token(seq('--',
                      --  /.*/))" correctly for an Ada comment, but not extra "/--.*/". See
@@ -1185,7 +1167,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   else
                      --  Value is a string or regular expression.
                      case To_Token_Enum (Tree.ID (Value)) is
-                     when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+                     when STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID =>
                         --  If the source grammar uses the string literals in the nonterminal
                         --  RHSs, we don't need to define this token. However, some code using
                         --  this parser may rely on the token names, so we define them to
@@ -1212,14 +1194,16 @@ package body WisiToken.Generate.Tree_Sitter is
                begin
                   --  Value is a string or regular expression.
                   case To_Token_Enum (Tree.ID (Value)) is
-                  when STRING_LITERAL_1_ID =>
+                  when STRING_LITERAL_DOUBLE_ID =>
+                     --  Case sensitive
+                     --
                      --  Wisitoken follows the re2c convention; single quoted strings are
                      --  case insensitive. See comment at definition of
                      --  'reservedInsenstive' below for 'reserved' use.
-                     Indent_Line (Name & ": $ => reservedInsensitive(" & Get_Text (Value) & "),");
-
-                  when STRING_LITERAL_2_ID =>
                      Indent_Line (Name & ": $ => reserved(" & Get_Text (Value) & "),");
+
+                  when STRING_LITERAL_SINGLE_ID =>
+                     Indent_Line (Name & ": $ => reservedInsensitive(" & Get_Text (Value) & "),");
 
                   when REGEXP_ID =>
                      --  https://mathiasbynens.be/notes/es6-unicode-regex explains /u.
@@ -1335,7 +1319,7 @@ package body WisiToken.Generate.Tree_Sitter is
          --  However, since we support case insensitive keywords, we can't rely
          --  on that mechanism to ignore keywords that are not bounded by word
          --  separators. So we use precedence. The only way we can tell if a
-         --  STRING_LITERAL_1 token in an RHS needs this is to find the
+         --  STRING_LITERAL_SINGLE token in an RHS needs this is to find the
          --  declaration for it, and check if it is %keyword. So all reserved
          --  keywords must be declared.
 

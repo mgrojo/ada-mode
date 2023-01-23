@@ -1,5 +1,5 @@
-;;; Wisi grammar for Ada-Lite; a subset of Ada used for testing syntax
-;;; error recovery.
+;;; WisiToken grammar for Ada-Lite; a subset of Ada used for testing
+;;; syntax error recovery.
 ;;
 ;; This file was produced by copying the full Ada grammar from Emacs
 ;; Ada mode (https://savannah.nongnu.org/projects/ada-mode/), and
@@ -30,47 +30,47 @@
    End_Name_Optional : Boolean := True;
 }%
 
-;; Declare all variants tested by wisi_wy_test.adb
 %generate LALR         Ada re2c
 %generate LR1          Ada re2c text_rep
 %generate Packrat_Proc Ada re2c
 %generate Packrat_Gen  Ada re2c
 %generate Tree_Sitter  Ada tree_sitter
 
-%keyword AND "and"
-%keyword BEGIN "begin"
-%keyword BODY "body"
-%keyword CASE "case"
-%keyword DECLARE "declare"
-%keyword ELSE "else"
-%keyword ELSIF "elsif"
-%keyword END "end"
-%keyword EXIT "exit"
-%keyword EXCEPTION "exception"
-%keyword FOR "for"
-%keyword FUNCTION "function"
-%keyword IF "if"
-%keyword IN "in"
-%keyword IS "is"
-%keyword LEFT_PAREN "("
-%keyword LOOP "loop"
-%keyword NEW "new"
-%keyword NOT "not"
-%keyword OR "or"
-%keyword PACKAGE "package"
-%keyword PROCEDURE "procedure"
-%keyword RANGE "range"
-%keyword RENAMES "renames"
-%keyword RETURN "return"
-%keyword RIGHT_PAREN ")"
-%keyword SEPARATE "separate"
-%keyword THEN "then"
-%keyword TYPE "type"
-%keyword WHEN "when"
-%keyword WITH "with"
-%keyword XOR "xor"
+;; Tree_Sitter requires all keywords declared explicitly; Ada keywords
+;; are case insensitive.
+%keyword AND 'and'
+%keyword BEGIN 'begin'
+%keyword BODY 'body'
+%keyword CASE 'case'
+%keyword DECLARE 'declare'
+%keyword ELSE 'else'
+%keyword ELSIF 'elsif'
+%keyword END 'end'
+%keyword EXIT 'exit'
+%keyword EXCEPTION 'exception'
+%keyword FOR 'for'
+%keyword FUNCTION 'function'
+%keyword IF 'if'
+%keyword IN 'in'
+%keyword IS 'is'
+%keyword LOOP 'loop'
+%keyword NEW 'new'
+%keyword NOT 'not'
+%keyword OR 'or'
+%keyword PACKAGE 'package'
+%keyword PROCEDURE 'procedure'
+%keyword RANGE 'range'
+%keyword RENAMES 'renames'
+%keyword RETURN 'return'
+%keyword SEPARATE 'separate'
+%keyword THEN 'then'
+%keyword TYPE 'type'
+%keyword WHEN 'when'
+%keyword WITH 'with'
+%keyword XOR 'xor'
 
-;; all tokens that consist of characters with punctuation syntax
+;; All tokens that consist of characters with punctuation syntax; we
+;; need an Ada identifier compatible name.
 %token <punctuation> AMPERSAND "&"
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
@@ -81,10 +81,12 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> GREATER ">"
 %token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> LEFT_PAREN "("
 %token <punctuation> LESS "<"
 %token <punctuation> LESS_EQUAL "<="
 %token <punctuation> MINUS "-"
 %token <punctuation> PLUS "+"
+%token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 %token <punctuation> SLASH_EQUAL "/="
@@ -113,6 +115,7 @@ word : IDENTIFIER ;
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
+
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE
 

@@ -25,7 +25,12 @@
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"
 
+%if lexer = re2c
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%elsif lexer = tree_sitter
+;; whitespace handled by default
+%end if
+
 %non_grammar <new-line> NEW_LINE
 
 %non_grammar <comment-new-line> COMMENT "--"

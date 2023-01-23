@@ -1,14 +1,27 @@
-// generated from dragon_4_43.wy -*- buffer-read-only:t -*-
+// generated from dragon_4_43.wy -*- buffer-read-only:t js-indent-level:3 -*-
+
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
 module.exports = grammar({
-  name: 'Dragon_4_43',
-  rules: {
-upper_s: $ => seq($.upper_c, $.upper_c),
-COMMENT: $ => token(seq('--', /.*/)),
-upper_c: $ => choice(seq("c", $.upper_c),"d"),
+   name: 'Dragon_4_43',
+
+   rules: {
+      upper_s: $ => seq($.upper_c, $.upper_c),
+
+      LOWER_C: $ => reserved("c"),
+
+      LOWER_D: $ => reserved("d"),
+
+      COMMENT: $ => token(seq("--", /.*/)),
+
+      upper_c: $ => choice(seq($.LOWER_C, $.upper_c), $.LOWER_D),
+
   },
   extras: $ => [
-    /[ \t]/,
-    /[\x0a]|[\x0d][\x0a]/,
-    $.COMMENT,
+      $.COMMENT,
+      /\s|\\\r?\n/,
   ],
-  });
+}
+);

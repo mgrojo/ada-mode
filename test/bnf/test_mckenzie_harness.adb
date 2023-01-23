@@ -2,7 +2,7 @@
 --
 --  Run Test_McKenzie_Recover
 --
---  Copyright (C) 2019 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -86,7 +86,7 @@ begin
    end if;
 
    if Alg in None | LR1 then
-      Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, McKenzie_Options)));
+      Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, McKenzie_Options)));
    end if;
 
    Run (Suite, Options, Result, Status);

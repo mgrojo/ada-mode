@@ -6625,7 +6625,7 @@ package body WisiToken.Syntax_Trees is
    procedure Mark_In_Tree
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
-      Data                : in out User_Data_Type'Class;
+      Data                : in     User_Data_Access;
       Node_Error_Reported : in out Boolean)
    is
       pragma Unreferenced (Data, Node_Error_Reported);
@@ -9756,7 +9756,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Validate_Tree
      (Tree              : in out Syntax_Trees.Tree;
-      User_Data         : in out User_Data_Type'Class;
+      User_Data         : in     User_Data_Access;
       Error_Reported    : in out Node_Sets.Set;
       Node_Index_Order  : in     Boolean;
       Byte_Region_Order : in     Boolean                    := True;
@@ -9764,7 +9764,6 @@ package body WisiToken.Syntax_Trees is
       Root              : in     Node_Access                := Invalid_Node_Access;
       Validate_Node     : in     Syntax_Trees.Validate_Node := null)
    is
-
       Real_Root : Node_Access;
 
       Last_Source_Terminal_Pos : Base_Buffer_Pos  := Buffer_Pos'First;
@@ -9801,6 +9800,10 @@ package body WisiToken.Syntax_Trees is
          --  Node_Index checked in Nonterm below; no check needed for
          --  Source_Terminal since that is set by lexer. Node_Index on Virtual
          --  terminals not checked.
+
+         if not (for some N of Tree.Nodes => N = Node) then
+            Put_Error ("node " & Tree.Image (Node, Node_Numbers => True) & " not in Tree.Nodes");
+         end if;
 
          if Node = Real_Root then
             if Node.Parent /= null then

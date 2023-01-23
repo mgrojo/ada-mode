@@ -1,124 +1,306 @@
-// generated from ada_lite.wy -*- buffer-read-only:t -*-
+// generated from ada_lite.wy -*- buffer-read-only:t js-indent-level:3 -*-
+
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
 module.exports = grammar({
-  name: 'Ada_Lite',
-  rules: {
-compilation_unit_list: $ => choice(seq($.compilation_unit_list, $.compilation_unit),$.compilation_unit),
-AMPERSAND: $ => "&",
-COLON: $ => ":",
-COLON_EQUAL: $ => ":=",
-COMMA: $ => ",",
-DOT: $ => ".",
-DOT_DOT: $ => "..",
-EQUAL: $ => "=",
-EQUAL_GREATER: $ => "=>",
-GREATER: $ => ">",
-GREATER_EQUAL: $ => ">=",
-LESS: $ => "<",
-LESS_EQUAL: $ => "<=",
-MINUS: $ => "-",
-PLUS: $ => "+",
-SEMICOLON: $ => ";",
-SLASH: $ => "/",
-SLASH_EQUAL: $ => "/=",
-STAR: $ => "*",
-STRING_LITERAL: $ => /("[π\x20-\x21\x23-\x7F]*")+/,
-IDENTIFIER: $ => /[πa-zA-Z][π0-9a-zA-Z_]*/,
-COMMENT: $ => token(seq("--", /.*/)),
-NUMERIC_LITERAL: $ => /[0-9]+/,
-actual_parameter_part: $ => seq("(", $.association_list, ")"),
-aspect_specification_opt: $ => seq("with", $.association_list),
-assignment_statement: $ => seq($.name, ":=", $.expression, ";"),
-association_opt: $ => choice(seq($.IDENTIFIER, "=>", $.expression),$.expression),
-association_list: $ => choice(seq($.association_list, ",", optional($.association_opt)),$.association_opt),
-binary_adding_operator: $ => choice("+","-","&"),
-block_label_opt: $ => seq($.IDENTIFIER, ":"),
-block_statement: $ => choice(seq(optional($.block_label_opt), "declare", optional($.declarative_part), "begin", $.handled_sequence_of_statements, "end", optional($.identifier_opt), ";"),seq(optional($.block_label_opt), "begin", $.handled_sequence_of_statements, "end", optional($.identifier_opt), ";")),
-body_g: $ => choice($.proper_body,$.body_stub),
-body_stub: $ => $.subprogram_body_stub,
-case_statement: $ => seq("case", $.expression, "is", $.case_statement_alternative_list, "end", "case", ";"),
-case_statement_alternative: $ => seq("when", $.NUMERIC_LITERAL, "=>", optional($.sequence_of_statements)),
-case_statement_alternative_list: $ => choice(seq($.case_statement_alternative_list, $.case_statement_alternative),$.case_statement_alternative),
-compilation_unit: $ => choice($.package_specification,$.package_body,$.subprogram_declaration,$.subprogram_body,$.generic_instantiation,$.statement),
-compound_statement: $ => choice($.if_statement,$.case_statement,$.loop_statement,$.block_statement,$.extended_return_statement),
-constraint: $ => choice(seq("range", $.range_g),$.index_constraint),
-declaration: $ => choice($.body_g,$.object_declaration,$.subprogram_declaration,$.type_declaration),
-declarations: $ => choice(seq($.declarations, $.declaration),$.declaration),
-declarative_part: $ => $.declarations,
-discrete_subtype_definition: $ => choice($.subtype_indication,$.range_g),
-elsif_statement_item: $ => seq("elsif", $.expression, "then", optional($.sequence_of_statements)),
-elsif_statement_list: $ => choice(seq($.elsif_statement_list, $.elsif_statement_item),$.elsif_statement_item),
-enumeration_literal_list: $ => choice(seq($.enumeration_literal_list, ",", $.IDENTIFIER),$.IDENTIFIER),
-enumeration_type_definition: $ => seq("(", $.enumeration_literal_list, ")"),
-exception_choice: $ => $.name,
-exception_handler: $ => seq("when", $.exception_choice, "=>", optional($.sequence_of_statements)),
-exception_handler_list: $ => choice(seq($.exception_handler_list, $.exception_handler),$.exception_handler),
-exception_handler_list_opt: $ => $.exception_handler_list,
-exit_statement: $ => choice(seq("exit", optional($.identifier_opt), "when", $.expression, ";"),seq("exit", optional($.identifier_opt), ";")),
-expression: $ => choice($.relation,$.relation_and_list,$.relation_or_list,$.relation_xor_list),
-extended_return_object_declaration: $ => seq($.IDENTIFIER, ":", $.subtype_indication),
-extended_return_statement: $ => seq("return", $.extended_return_object_declaration, ";"),
-factor: $ => choice($.primary,seq("not", $.primary)),
-formal_part: $ => seq("(", $.parameter_specification_list, ")"),
-full_type_declaration: $ => seq("type", $.IDENTIFIER, "is", $.type_definition, ";"),
-function_specification: $ => seq("function", $.name, $.parameter_and_result_profile),
-generic_instantiation: $ => choice(seq("package", $.name, "is", "new", $.name, ";"),seq("procedure", $.name, "is", "new", $.name, ";")),
-handled_sequence_of_statements: $ => choice(seq(optional($.sequence_of_statements), "exception", optional($.exception_handler_list_opt)),$.sequence_of_statements),
-identifier_opt: $ => $.IDENTIFIER,
-if_statement: $ => choice(seq("if", $.expression, "then", optional($.sequence_of_statements), $.elsif_statement_list, "else", optional($.sequence_of_statements), "end", "if", ";"),seq("if", $.expression, "then", optional($.sequence_of_statements), "else", optional($.sequence_of_statements), "end", "if", ";"),seq("if", $.expression, "then", optional($.sequence_of_statements), $.elsif_statement_list, "end", "if", ";"),seq("if", $.expression, "then", optional($.sequence_of_statements), "end", "if", ";")),
-index_constraint: $ => seq("(", $.discrete_subtype_definition, ")"),
-iteration_scheme: $ => seq("for", $.IDENTIFIER, "in", $.discrete_subtype_definition),
-loop_statement: $ => choice(seq($.iteration_scheme, "loop", optional($.sequence_of_statements), "end", "loop", optional($.identifier_opt), ";"),seq("loop", optional($.sequence_of_statements), "end", "loop", optional($.identifier_opt), ";")),
-multiplying_operator: $ => choice("*","/"),
-name: $ => choice(seq($.name, "(", $.range_list, ")"),seq($.name, $.actual_parameter_part),$.IDENTIFIER,$.selected_component),
-name_opt: $ => $.name,
-object_declaration: $ => choice(seq($.IDENTIFIER, ":", $.subtype_indication, ":=", $.expression, ";"),seq($.IDENTIFIER, ":", $.subtype_indication, ";")),
-package_body: $ => choice(seq("package", "body", $.name, optional($.aspect_specification_opt), "is", optional($.declarative_part), "begin", $.handled_sequence_of_statements, "end", optional($.name_opt), ";"),seq("package", "body", $.name, optional($.aspect_specification_opt), "is", optional($.declarative_part), "end", optional($.name_opt), ";")),
-package_specification: $ => seq("package", $.name, optional($.aspect_specification_opt), "is", optional($.declarative_part), "end", optional($.name_opt), ";"),
-parameter_and_result_profile: $ => choice(seq($.formal_part, "return", $.IDENTIFIER),seq("return", $.IDENTIFIER)),
-parameter_profile_opt: $ => $.formal_part,
-parameter_specification: $ => choice(seq($.IDENTIFIER, ":", $.IDENTIFIER, ":=", $.expression),seq($.IDENTIFIER, ":", $.IDENTIFIER)),
-parameter_specification_list: $ => choice(seq($.parameter_specification_list, ";", optional($.parameter_specification)),$.parameter_specification),
-paren_expression: $ => seq("(", $.expression, ")"),
-primary: $ => choice($.NUMERIC_LITERAL,$.STRING_LITERAL,$.name,$.paren_expression),
-procedure_call_statement: $ => seq($.name, ";"),
-procedure_specification: $ => seq("procedure", $.name, optional($.parameter_profile_opt)),
-proper_body: $ => choice($.package_body,$.subprogram_body),
-range_g: $ => seq($.simple_expression, "..", $.simple_expression),
-range_list: $ => choice(seq($.range_list, ",", $.range_g),$.range_g),
-relation_and_list: $ => choice(seq($.relation_and_list, "and", $.relation),seq($.relation, "and", $.relation)),
-relation_or_list: $ => choice(seq($.relation_or_list, "or", $.relation),seq($.relation, "or", $.relation)),
-relation_xor_list: $ => choice(seq($.relation_xor_list, "xor", $.relation),seq($.relation, "xor", $.relation)),
-relation: $ => choice(seq($.simple_expression, $.relational_operator, $.simple_expression),$.simple_expression),
-relational_operator: $ => choice("=","/=","<","<=",">",">="),
-selected_component: $ => seq($.name, ".", $.IDENTIFIER),
-sequence_of_statements_list: $ => choice(seq($.sequence_of_statements_list, $.statement),$.statement),
-sequence_of_statements: $ => $.sequence_of_statements_list,
-simple_expression: $ => choice(seq($.unary_adding_operator, $.term_list),$.term_list),
-simple_return_statement: $ => seq("return", $.expression, ";"),
-simple_statement: $ => choice($.assignment_statement,$.exit_statement,$.procedure_call_statement,$.simple_return_statement),
-statement: $ => choice($.simple_statement,$.compound_statement),
-subprogram_body: $ => seq($.subprogram_specification, optional($.aspect_specification_opt), "is", optional($.declarative_part), "begin", $.handled_sequence_of_statements, "end", optional($.name_opt), ";"),
-subprogram_body_stub: $ => seq($.subprogram_specification, "is", "separate", ";"),
-subprogram_declaration: $ => seq($.subprogram_specification, ";"),
-subprogram_specification: $ => choice($.procedure_specification,$.function_specification),
-subtype_indication: $ => choice(seq($.name, $.constraint),$.name),
-term: $ => choice(seq($.term, $.multiplying_operator, $.factor),$.factor),
-term_list: $ => choice(seq($.term_list, $.binary_adding_operator, $.term),$.term),
-type_declaration: $ => $.full_type_declaration,
-type_definition: $ => $.enumeration_type_definition,
-unary_adding_operator: $ => choice("+","-"),
+   name: 'Ada_Lite',
+
+   rules: {
+      compilation_unit_list: $ => choice(seq($.compilation_unit_list, $.compilation_unit), $.compilation_unit),
+
+      AND: $ => reservedInsensitive('and'),
+
+      BEGIN: $ => reservedInsensitive('begin'),
+
+      BODY: $ => reservedInsensitive('body'),
+
+      CASE: $ => reservedInsensitive('case'),
+
+      DECLARE: $ => reservedInsensitive('declare'),
+
+      ELSE: $ => reservedInsensitive('else'),
+
+      ELSIF: $ => reservedInsensitive('elsif'),
+
+      END: $ => reservedInsensitive('end'),
+
+      EXIT: $ => reservedInsensitive('exit'),
+
+      EXCEPTION: $ => reservedInsensitive('exception'),
+
+      FOR: $ => reservedInsensitive('for'),
+
+      FUNCTION: $ => reservedInsensitive('function'),
+
+      IF: $ => reservedInsensitive('if'),
+
+      IN: $ => reservedInsensitive('in'),
+
+      IS: $ => reservedInsensitive('is'),
+
+      LOOP: $ => reservedInsensitive('loop'),
+
+      NEW: $ => reservedInsensitive('new'),
+
+      NOT: $ => reservedInsensitive('not'),
+
+      OR: $ => reservedInsensitive('or'),
+
+      PACKAGE: $ => reservedInsensitive('package'),
+
+      PROCEDURE: $ => reservedInsensitive('procedure'),
+
+      RANGE: $ => reservedInsensitive('range'),
+
+      RENAMES: $ => reservedInsensitive('renames'),
+
+      RETURN: $ => reservedInsensitive('return'),
+
+      SEPARATE: $ => reservedInsensitive('separate'),
+
+      THEN: $ => reservedInsensitive('then'),
+
+      TYPE: $ => reservedInsensitive('type'),
+
+      WHEN: $ => reservedInsensitive('when'),
+
+      WITH: $ => reservedInsensitive('with'),
+
+      XOR: $ => reservedInsensitive('xor'),
+
+      AMPERSAND: $ => "&",
+
+      COLON: $ => ":",
+
+      COLON_EQUAL: $ => ":=",
+
+      COMMA: $ => ",",
+
+      DOT: $ => ".",
+
+      DOT_DOT: $ => "..",
+
+      EQUAL: $ => "=",
+
+      EQUAL_GREATER: $ => "=>",
+
+      GREATER: $ => ">",
+
+      GREATER_EQUAL: $ => ">=",
+
+      LEFT_PAREN: $ => "(",
+
+      LESS: $ => "<",
+
+      LESS_EQUAL: $ => "<=",
+
+      MINUS: $ => "-",
+
+      PLUS: $ => "+",
+
+      RIGHT_PAREN: $ => ")",
+
+      SEMICOLON: $ => ";",
+
+      SLASH: $ => "/",
+
+      SLASH_EQUAL: $ => "/=",
+
+      STAR: $ => "*",
+
+      COMMENT: $ => token(seq("--", /.*/)),
+
+      STRING_LITERAL: $ => /"(""|[^"])*"/u,
+
+      IDENTIFIER: $ => /([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])*/u,
+
+      word: $ => $.IDENTIFIER,
+
+      NUMERIC_LITERAL: $ => /[0-9]+/u,
+
+      WHITESPACE: $ => /[ \t]/u,
+
+      actual_parameter_part: $ => seq($.LEFT_PAREN, $.association_list, $.RIGHT_PAREN),
+
+      aspect_specification_opt: $ => seq($.WITH, $.association_list),
+
+      assignment_statement: $ => seq($.name, $.COLON_EQUAL, $.expression, $.SEMICOLON),
+
+      association_opt: $ => choice(seq($.IDENTIFIER, $.EQUAL_GREATER, $.expression), $.expression),
+
+      association_list: $ => choice(seq($.association_list, $.COMMA, optional($.association_opt)), $.association_opt),
+
+      binary_adding_operator: $ => choice($.PLUS, $.MINUS, $.AMPERSAND),
+
+      block_label_opt: $ => seq($.IDENTIFIER, $.COLON),
+
+      block_statement: $ => choice(seq(optional($.block_label_opt), $.DECLARE, optional($.declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.identifier_opt), $.SEMICOLON), seq(optional($.block_label_opt), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.identifier_opt), $.SEMICOLON)),
+
+      body_g: $ => choice($.proper_body, $.body_stub),
+
+      body_stub: $ => $.subprogram_body_stub,
+
+      case_statement: $ => seq($.CASE, $.expression, $.IS, $.case_statement_alternative_list, $.END, $.CASE, $.SEMICOLON),
+
+      case_statement_alternative: $ => seq($.WHEN, $.NUMERIC_LITERAL, $.EQUAL_GREATER, $.sequence_of_statements),
+
+      case_statement_alternative_list: $ => choice(seq($.case_statement_alternative_list, $.case_statement_alternative), $.case_statement_alternative),
+
+      compilation_unit: $ => choice($.package_specification, $.package_body, $.subprogram_declaration, $.subprogram_body, $.generic_instantiation, $.statement),
+
+      compound_statement: $ => choice($.if_statement, $.case_statement, $.loop_statement, $.block_statement, $.extended_return_statement),
+
+      constraint: $ => choice(seq($.RANGE, $.range_g), $.index_constraint),
+
+      declaration: $ => choice($.body_g, $.object_declaration, $.object_renaming_declaration, $.subprogram_declaration, $.type_declaration),
+
+      declarations: $ => choice(seq($.declarations, $.declaration), $.declaration),
+
+      declarative_part: $ => $.declarations,
+
+      defining_identifier_list: $ => choice(seq($.defining_identifier_list, $.COMMA, $.IDENTIFIER), $.IDENTIFIER),
+
+      discrete_subtype_definition: $ => choice($.subtype_indication, $.range_g),
+
+      elsif_statement_item: $ => seq($.ELSIF, $.expression, $.THEN, $.sequence_of_statements),
+
+      elsif_statement_list: $ => choice(seq($.elsif_statement_list, $.elsif_statement_item), $.elsif_statement_item),
+
+      enumeration_literal_list: $ => choice(seq($.enumeration_literal_list, $.COMMA, $.IDENTIFIER), $.IDENTIFIER),
+
+      enumeration_type_definition: $ => seq($.LEFT_PAREN, $.enumeration_literal_list, $.RIGHT_PAREN),
+
+      exception_choice: $ => $.name,
+
+      exception_handler: $ => seq($.WHEN, $.exception_choice, $.EQUAL_GREATER, $.sequence_of_statements),
+
+      exception_handler_list: $ => choice(seq($.exception_handler_list, $.exception_handler), $.exception_handler),
+
+      exception_handler_list_opt: $ => $.exception_handler_list,
+
+      exit_statement: $ => choice(seq($.EXIT, optional($.identifier_opt), $.WHEN, $.expression, $.SEMICOLON), seq($.EXIT, optional($.identifier_opt), $.SEMICOLON)),
+
+      expression: $ => choice($.relation, $.relation_and_list, $.relation_or_list, $.relation_xor_list),
+
+      extended_return_object_declaration: $ => seq($.IDENTIFIER, $.COLON, $.subtype_indication),
+
+      extended_return_statement: $ => seq($.RETURN, $.extended_return_object_declaration, $.SEMICOLON),
+
+      factor: $ => choice($.primary, seq($.NOT, $.primary)),
+
+      formal_part: $ => seq($.LEFT_PAREN, $.parameter_specification_list, $.RIGHT_PAREN),
+
+      full_type_declaration: $ => seq($.TYPE, $.IDENTIFIER, $.IS, $.type_definition, $.SEMICOLON),
+
+      function_specification: $ => seq($.FUNCTION, $.name, $.parameter_and_result_profile),
+
+      generic_instantiation: $ => choice(seq($.PACKAGE, $.name, $.IS, $.NEW, $.name, $.SEMICOLON), seq($.PROCEDURE, $.name, $.IS, $.NEW, $.name, $.SEMICOLON)),
+
+      handled_sequence_of_statements: $ => choice(seq($.sequence_of_statements, $.EXCEPTION, optional($.exception_handler_list_opt)), $.sequence_of_statements),
+
+      identifier_opt: $ => $.IDENTIFIER,
+
+      if_statement: $ => choice(seq($.IF, $.expression, $.THEN, $.sequence_of_statements, $.elsif_statement_list, $.ELSE, $.sequence_of_statements, $.END, $.IF, $.SEMICOLON), seq($.IF, $.expression, $.THEN, $.sequence_of_statements, $.ELSE, $.sequence_of_statements, $.END, $.IF, $.SEMICOLON), seq($.IF, $.expression, $.THEN, $.sequence_of_statements, $.elsif_statement_list, $.END, $.IF, $.SEMICOLON), seq($.IF, $.expression, $.THEN, $.sequence_of_statements, $.END, $.IF, $.SEMICOLON)),
+
+      index_constraint: $ => seq($.LEFT_PAREN, $.discrete_subtype_definition, $.RIGHT_PAREN),
+
+      iteration_scheme: $ => seq($.FOR, $.IDENTIFIER, $.IN, $.discrete_subtype_definition),
+
+      loop_statement: $ => choice(seq($.iteration_scheme, $.LOOP, $.sequence_of_statements, $.END, $.LOOP, optional($.identifier_opt), $.SEMICOLON), seq($.LOOP, $.sequence_of_statements, $.END, $.LOOP, optional($.identifier_opt), $.SEMICOLON)),
+
+      multiplying_operator: $ => choice($.STAR, $.SLASH),
+
+      name: $ => choice(seq($.name, $.LEFT_PAREN, $.range_list, $.RIGHT_PAREN), seq($.name, $.DOT, $.selector_name), seq($.name, $.actual_parameter_part), $.IDENTIFIER),
+
+      name_opt: $ => $.name,
+
+      object_declaration: $ => choice(seq($.defining_identifier_list, $.COLON, $.subtype_indication, $.COLON_EQUAL, $.expression, $.SEMICOLON), seq($.defining_identifier_list, $.COLON, $.subtype_indication, $.SEMICOLON)),
+
+      object_renaming_declaration: $ => seq($.IDENTIFIER, $.COLON, $.subtype_indication, $.RENAMES, $.name, $.SEMICOLON),
+
+      package_body: $ => choice(seq($.PACKAGE, $.BODY, $.name, optional($.aspect_specification_opt), $.IS, optional($.declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.name_opt), $.SEMICOLON), seq($.PACKAGE, $.BODY, $.name, optional($.aspect_specification_opt), $.IS, optional($.declarative_part), $.END, optional($.name_opt), $.SEMICOLON)),
+
+      package_specification: $ => seq($.PACKAGE, $.name, optional($.aspect_specification_opt), $.IS, optional($.declarative_part), $.END, optional($.name_opt), $.SEMICOLON),
+
+      parameter_and_result_profile: $ => choice(seq($.formal_part, $.RETURN, $.IDENTIFIER), seq($.RETURN, $.IDENTIFIER)),
+
+      parameter_profile_opt: $ => $.formal_part,
+
+      parameter_specification: $ => choice(seq($.IDENTIFIER, $.COLON, $.IDENTIFIER, $.COLON_EQUAL, $.expression), seq($.IDENTIFIER, $.COLON, $.IDENTIFIER)),
+
+      parameter_specification_list: $ => choice(seq($.parameter_specification_list, $.SEMICOLON, optional($.parameter_specification)), $.parameter_specification),
+
+      paren_expression: $ => seq($.LEFT_PAREN, $.expression, $.RIGHT_PAREN),
+
+      primary: $ => choice($.NUMERIC_LITERAL, $.STRING_LITERAL, $.name, $.paren_expression),
+
+      procedure_call_statement: $ => seq($.name, $.SEMICOLON),
+
+      procedure_specification: $ => seq($.PROCEDURE, $.name, optional($.parameter_profile_opt)),
+
+      proper_body: $ => choice($.package_body, $.subprogram_body),
+
+      range_g: $ => seq($.simple_expression, $.DOT_DOT, $.simple_expression),
+
+      range_list: $ => choice(seq($.range_list, $.COMMA, $.range_g), $.range_g),
+
+      relation_and_list: $ => choice(seq($.relation_and_list, $.AND, $.relation), seq($.relation, $.AND, $.relation)),
+
+      relation_or_list: $ => choice(seq($.relation_or_list, $.OR, $.relation), seq($.relation, $.OR, $.relation)),
+
+      relation_xor_list: $ => choice(seq($.relation_xor_list, $.XOR, $.relation), seq($.relation, $.XOR, $.relation)),
+
+      relation: $ => choice(seq($.simple_expression, $.relational_operator, $.simple_expression), $.simple_expression),
+
+      relational_operator: $ => choice($.EQUAL, $.SLASH_EQUAL, $.LESS, $.LESS_EQUAL, $.GREATER, $.GREATER_EQUAL),
+
+      selector_name: $ => choice($.IDENTIFIER, $.STRING_LITERAL),
+
+      sequence_of_statements: $ => choice(seq($.sequence_of_statements, $.statement), $.statement),
+
+      simple_expression: $ => choice(seq($.unary_adding_operator, $.term_list), $.term_list),
+
+      simple_return_statement: $ => seq($.RETURN, $.expression, $.SEMICOLON),
+
+      simple_statement: $ => choice($.assignment_statement, $.exit_statement, $.procedure_call_statement, $.simple_return_statement),
+
+      statement: $ => choice($.simple_statement, $.compound_statement),
+
+      subprogram_body: $ => seq($.subprogram_specification, optional($.aspect_specification_opt), $.IS, optional($.declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.name_opt), $.SEMICOLON),
+
+      subprogram_body_stub: $ => seq($.subprogram_specification, $.IS, $.SEPARATE, $.SEMICOLON),
+
+      subprogram_declaration: $ => seq($.subprogram_specification, $.SEMICOLON),
+
+      subprogram_specification: $ => choice($.procedure_specification, $.function_specification),
+
+      subtype_indication: $ => choice(seq($.name, $.constraint), $.name),
+
+      term: $ => choice(seq($.term, $.multiplying_operator, $.factor), $.factor),
+
+      term_list: $ => choice(seq($.term_list, $.binary_adding_operator, $.term), $.term),
+
+      type_declaration: $ => $.full_type_declaration,
+
+      type_definition: $ => $.enumeration_type_definition,
+
+      unary_adding_operator: $ => choice($.PLUS, $.MINUS),
+
   },
   conflicts: $ => [
-    [$.generic_instantiation, $.procedure_specification, ],
-    [$.generic_instantiation, $.parameter_profile_opt, ],
-    [$.subprogram_body_stub, $.aspect_specification_opt, ],
-    [$.association_opt, $.parameter_specification, ],
-    [$.discrete_subtype_definition, $.range_list, ],
-    [$.primary, $.subtype_indication, ],
+      [$.generic_instantiation, $.procedure_specification, ],
+      [$.association_opt, $.parameter_specification, ],
+      [$.discrete_subtype_definition, $.range_list, ],
+      [$.primary, $.subtype_indication, ],
+      [$.generic_instantiation, $.parameter_profile_opt, ],
+      [$.object_renaming_declaration, $.defining_identifier_list, ],
+      [$.subprogram_body_stub, $.aspect_specification_opt, ],
   ],
   extras: $ => [
-    $.COMMENT,
-    /[ \t]/,
-    /[\n]/,
+      $.COMMENT,
+      /\s|\\\r?\n/,
   ],
-  });
+}
+);

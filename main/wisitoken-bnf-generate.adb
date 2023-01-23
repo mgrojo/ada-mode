@@ -330,8 +330,6 @@ begin
                BNF_Tree.Print_Tree;
             end if;
 
-            BNF_Tree.Clear_Augmented;
-
             if Output_BNF then
                --  FIXME: if %if is present, it can change the bnf tree; output one for each tuple.
                WisiToken_Grammar_Editing.Print_Source (-Output_File_Name_Root & "_bnf.wy", BNF_Tree, Input_Data);
@@ -389,8 +387,6 @@ begin
             if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
                Translate_To_BNF;
             end if;
-
-            Grammar_Parser.Tree.Clear_Augmented;
 
             if BNF_Tree.Is_Empty then
                if Trace_Generate > Outline then
@@ -463,18 +459,29 @@ begin
 
             declare
                use WisiToken.Generate.Tree_Sitter;
+               TS_Tree : Syntax_Trees.Tree;
             begin
                if Trace_Generate > Outline then
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("output tree_sitter grammar");
                end if;
 
-               Eliminate_Empty_Productions (Input_Data, Grammar_Parser.Tree);
+               Syntax_Trees.Copy_Tree
+                 (Source      => Grammar_Parser.Tree,
+                  Destination => TS_Tree,
+                  User_Data   => Input_Data'Unchecked_Access);
+
+               --  FIXME: something is screwing up augmented; if we don't clear it
+               --  here, finalizing the other two trees crashes on a double free of
+               --  some augmented. It is not needed after this, so this works.
+               TS_Tree.Clear_Augmented;
+
+               Eliminate_Empty_Productions (Input_Data, TS_Tree);
 
                Print_Tree_Sitter
                  (Input_Data,
-                  Grammar_Parser.Tree,
-                  Grammar_Parser.Tree.Lexer,
+                  TS_Tree,
+                  TS_Tree.Lexer,
                   Output_File_Name => -Output_File_Name_Root & ".js",
                   Language_Name    => -Language_Name);
 

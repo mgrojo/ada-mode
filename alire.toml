@@ -16,6 +16,12 @@ project-files = ["build/wisitoken_alire.gpr", "build/wisitoken_alire_mains.gpr"]
 executables = ["wisitoken-bnf-generate.exe"]
 
 [[depends-on]]
+# While wisitoken-bnf-generate can output a Tree-Sitter grammar file,
+# it does not use any tree-sitter code, so we have no dependency on
+# tree-sitter.
+#
+# The development code includes tests that run the tree-sitter parser,
+# so to run those in an Alire build, we will need a tree-sitter crate.
 gnatcoll = "^22.0.0"
 stephes_ada_library = "~3.7.2"
 

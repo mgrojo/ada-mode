@@ -2,7 +2,7 @@
 --
 --  Run one WisiToken AUnit test
 --
---  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -16,6 +16,8 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
+pragma License (GPL);
+
 with AUnit.Options;
 with AUnit.Reporter.Text;
 with AUnit.Test_Cases; use AUnit.Test_Cases;
@@ -23,6 +25,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Environment_Variables;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -59,6 +62,16 @@ is
       return String_Access'(new String'(Item));
    end "+";
 begin
+   begin
+      if Ada.Environment_Variables.Exists ("Standard_Common_Build") and then
+        Ada.Environment_Variables.Value ("Standard_Common_Build") = "Debug"
+      then
+         WisiToken.Debug_Mode := True;
+      end if;
+   exception
+   when others => null;
+   end;
+
    case Argument_Count is
    when 0 =>
       null;

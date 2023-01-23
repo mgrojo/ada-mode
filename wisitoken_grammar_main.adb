@@ -36,8 +36,8 @@ package body Wisitoken_Grammar_Main is
          RAW_CODE_ID |
          REGEXP_ID |
          ACTION_ID |
-         STRING_LITERAL_1_ID |
-         STRING_LITERAL_2_ID => return True;
+         STRING_LITERAL_DOUBLE_ID |
+         STRING_LITERAL_SINGLE_ID => return True;
       when others => return False;
       end case;
    end Is_Block_Delimited;
@@ -49,8 +49,8 @@ package body Wisitoken_Grammar_Main is
       when RAW_CODE_ID => return False;
       when REGEXP_ID => return False;
       when ACTION_ID => return False;
-      when STRING_LITERAL_1_ID => return True;
-      when STRING_LITERAL_2_ID => return True;
+      when STRING_LITERAL_DOUBLE_ID => return True;
+      when STRING_LITERAL_SINGLE_ID => return True;
       when others => return False;
       end case;
    end Same_Block_Delimiters;
@@ -69,8 +69,8 @@ package body Wisitoken_Grammar_Main is
       when RAW_CODE_ID => return 2;
       when REGEXP_ID => return 2;
       when ACTION_ID => return 2;
-      when STRING_LITERAL_1_ID => return 1;
-      when STRING_LITERAL_2_ID => return 1;
+      when STRING_LITERAL_DOUBLE_ID => return 1;
+      when STRING_LITERAL_SINGLE_ID => return 1;
       when others => raise SAL.Programmer_Error; return 0;
       end case;
    end Start_Delimiter_Length;
@@ -80,8 +80,8 @@ package body Wisitoken_Grammar_Main is
       case To_Token_Enum (ID) is
       when
          COMMENT_ID |
-         STRING_LITERAL_1_ID |
-         STRING_LITERAL_2_ID => return 1;
+         STRING_LITERAL_DOUBLE_ID |
+         STRING_LITERAL_SINGLE_ID => return 1;
       when RAW_CODE_ID => return 2;
       when REGEXP_ID => return 2;
       when ACTION_ID => return 2;
@@ -97,8 +97,8 @@ package body Wisitoken_Grammar_Main is
          when RAW_CODE_ID => False,
          when REGEXP_ID => False,
          when ACTION_ID => False,
-         when STRING_LITERAL_1_ID => True,
-         when STRING_LITERAL_2_ID => True,
+         when STRING_LITERAL_DOUBLE_ID => True,
+         when STRING_LITERAL_SINGLE_ID => True,
          when others => raise SAL.Programmer_Error);
    end New_Line_Is_End_Delimiter;
 
@@ -114,8 +114,8 @@ package body Wisitoken_Grammar_Main is
          when RAW_CODE_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "}%"),
          when REGEXP_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "]%"),
          when ACTION_ID => WisiToken.Lexer.Find_String (Source, Token_Start, ")%"),
-         when STRING_LITERAL_1_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"),
-         when STRING_LITERAL_2_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"),
+         when STRING_LITERAL_DOUBLE_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"),
+         when STRING_LITERAL_SINGLE_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"),
          when others => raise SAL.Programmer_Error);
    end Find_End_Delimiter;
 
@@ -147,8 +147,8 @@ package body Wisitoken_Grammar_Main is
          (if Inserted then Region.Last
           elsif Start then Region.Last
           else Lexer.Find_String (Source, Region.First, ")%")),
-         when STRING_LITERAL_1_ID => Lexer.Find_New_Line (Source, Region.Last),
-         when STRING_LITERAL_2_ID => Lexer.Find_New_Line (Source, Region.Last),
+         when STRING_LITERAL_DOUBLE_ID => Lexer.Find_New_Line (Source, Region.Last),
+         when STRING_LITERAL_SINGLE_ID => Lexer.Find_New_Line (Source, Region.Last),
          when others => raise SAL.Programmer_Error);
    end Find_Scan_End;
 
@@ -166,8 +166,8 @@ package body Wisitoken_Grammar_Main is
          when RAW_CODE_ID => Lexer.Find_String_Or_New_Line (Source, Region, "}%"),
          when REGEXP_ID => Lexer.Find_String_Or_New_Line (Source, Region, "]%"),
          when ACTION_ID => Lexer.Find_String_Or_New_Line (Source, Region, ")%"),
-         when STRING_LITERAL_1_ID => Lexer.Find_String_Or_New_Line (Source, Region, """"),
-         when STRING_LITERAL_2_ID => Lexer.Find_String_Or_New_Line (Source, Region, "'"),
+         when STRING_LITERAL_DOUBLE_ID => Lexer.Find_String_Or_New_Line (Source, Region, """"),
+         when STRING_LITERAL_SINGLE_ID => Lexer.Find_String_Or_New_Line (Source, Region, "'"),
          when others => raise SAL.Programmer_Error);
    end Contains_End_Delimiter;
 
@@ -206,8 +206,8 @@ package body Wisitoken_Grammar_Main is
       case To_Token_Enum (ID) is
       when NEW_LINE_ID => return True;
       when COMMENT_ID => return True;
-      when STRING_LITERAL_1_ID => return True;
-      when STRING_LITERAL_2_ID => return True;
+      when STRING_LITERAL_DOUBLE_ID => return True;
+      when STRING_LITERAL_SINGLE_ID => return True;
       when others => return False;
       end case;
    end Terminated_By_New_Line;

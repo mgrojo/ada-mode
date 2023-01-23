@@ -266,9 +266,10 @@ package body WisiToken_Grammar_Editing is
    end Find_Declaration;
 
    function Find_Declaration_By_Value
-     (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree  : in out Syntax_Trees.Tree;
-      Value : in     String)
+     (Data         : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree         : in out Syntax_Trees.Tree;
+      Value        : in     String;
+      Strip_Quotes : in     Boolean)
      return Node_Access
    is
       use LR_Utils;
@@ -289,7 +290,7 @@ package body WisiToken_Grammar_Editing is
          if Value = Invalid_Node_Access then
             return "";
          else
-            return Get_Text (Data, Tree, Value);
+            return Get_Text (Data, Tree, Value, Strip_Quotes);
          end if;
       end Decl_Value;
 
@@ -312,12 +313,13 @@ package body WisiToken_Grammar_Editing is
    procedure Validate_Node
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
-      User_Data           : in out Syntax_Trees.User_Data_Type'Class;
+      User_Data           : in     WisiToken.Syntax_Trees.User_Data_Access;
       Node_Error_Reported : in out Boolean)
    is
       use Ada.Text_IO;
 
-      Data : WisiToken_Grammar_Runtime.User_Data_Type renames WisiToken_Grammar_Runtime.User_Data_Type (User_Data);
+      Data : WisiToken_Grammar_Runtime.User_Data_Type renames
+        WisiToken_Grammar_Runtime.User_Data_Access (User_Data).all;
 
       procedure Put_Error (Msg : in String)
       is begin
@@ -487,8 +489,8 @@ package body WisiToken_Grammar_Editing is
                end if;
 
             when 1 =>
-               if Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID then
-                  Put_Error ("expecting STRING_LITERAL_2");
+               if Tree.ID (Children (1)) /= +STRING_LITERAL_SINGLE_ID then
+                  Put_Error ("expecting STRING_LITERAL_SINGLE");
                end if;
 
             when 2 =>
@@ -558,10 +560,10 @@ package body WisiToken_Grammar_Editing is
 
             when 3 =>
                if Children'Length /= 2 or else
-                 (Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID or
+                 (Tree.ID (Children (1)) /= +STRING_LITERAL_SINGLE_ID or
                     Tree.ID (Children (2)) /= +QUESTION_ID)
                then
-                  Put_Error ("expecting STRING_LITERAL_2 QUESTION");
+                  Put_Error ("expecting STRING_LITERAL_SINGLE QUESTION");
                end if;
 
             when others =>
@@ -1037,7 +1039,7 @@ package body WisiToken_Grammar_Editing is
               rhs_multiple_item_ID |
               rhs_group_item_ID |
               rhs_attribute_ID |
-              STRING_LITERAL_2_ID
+              STRING_LITERAL_SINGLE_ID
             then
                if Trace_Generate_EBNF > Outline then
                   Ada.Text_IO.Put_Line ("new EBNF node " & Tree.Image (Node, Node_Numbers => True));
@@ -1060,7 +1062,7 @@ package body WisiToken_Grammar_Editing is
               rhs_multiple_item_ID |
               rhs_group_item_ID |
               rhs_attribute_ID |
-              STRING_LITERAL_2_ID
+              STRING_LITERAL_SINGLE_ID
             then
                if EBNF_Nodes.Contains (Node) then
                   --  Node is original, not copied
@@ -2716,7 +2718,7 @@ package body WisiToken_Grammar_Editing is
             end;
 
          when 3 =>
-            --  | STRING_LITERAL_2 QUESTION
+            --  | STRING_LITERAL_SINGLE QUESTION
             declare
                Parent_Var : Node_Access := Tree.Parent (B);
             begin
@@ -2775,7 +2777,7 @@ package body WisiToken_Grammar_Editing is
                      return False;
 
                   elsif To_Token_Enum (Tree.ID (Value_Node)) in
-                    IDENTIFIER_ID | REGEXP_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and then
+                    IDENTIFIER_ID | REGEXP_ID | STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID and then
                     Target = Get_Text (Data, Tree, Value_Node, Strip_Quotes => True)
                   then
                      case Tree.Label (Name_Node) is
@@ -2847,7 +2849,7 @@ package body WisiToken_Grammar_Editing is
          declare
             Keyword       : constant Valid_Node_Access := Tree.Add_Identifier (+KEYWORD_ID, Keyword_Ident);
             Value_Literal : constant Valid_Node_Access := Tree.Add_Identifier
-              (+STRING_LITERAL_1_ID, New_Identifier ('"' & Value & '"'));
+              (+STRING_LITERAL_DOUBLE_ID, New_Identifier ('"' & Value & '"'));
             Regexp_String : constant Valid_Node_Access := Tree.Add_Nonterm
               ((+regexp_string_ID, 1),
                (1            => Value_Literal),
@@ -2907,7 +2909,7 @@ package body WisiToken_Grammar_Editing is
          when rhs_optional_item_ID =>
             Translate_RHS_Optional_Item (Node);
 
-         when STRING_LITERAL_2_ID =>
+         when STRING_LITERAL_SINGLE_ID =>
             Translate_Token_Literal (Node);
 
          when others =>
@@ -2968,7 +2970,7 @@ package body WisiToken_Grammar_Editing is
 
       if Debug_Mode then
          Tree.Validate_Tree
-           (Data, Data.Error_Reported,
+           (Data'Unchecked_Access, Data.Error_Reported,
             Root              => Tree.Root,
             Validate_Node     => Validate_Node'Access,
             Node_Index_Order  => True,
@@ -3031,7 +3033,7 @@ package body WisiToken_Grammar_Editing is
          --  no longer valid. We've reused name tokens, so byte_region_order is
          --  not valid.
          Tree.Validate_Tree
-           (Data, Data.Error_Reported,
+           (Data'Unchecked_Access, Data.Error_Reported,
             Root              => Tree.Root,
             Validate_Node     => Validate_Node'Access,
             Node_Index_Order  => False,
@@ -3077,7 +3079,7 @@ package body WisiToken_Grammar_Editing is
 
                if Debug_Mode then
                   Tree.Validate_Tree
-                    (Data, Data.Error_Reported,
+                    (Data'Unchecked_Access, Data.Error_Reported,
                      Root              => Tree.Root,
                      Validate_Node     => Validate_Node'Access,
                      Node_Index_Order  => False,
@@ -3139,7 +3141,7 @@ package body WisiToken_Grammar_Editing is
 
                   if Debug_Mode then
                      Tree.Validate_Tree
-                       (Data, Data.Error_Reported,
+                       (Data'Unchecked_Access, Data.Error_Reported,
                         Root              => Tree.Root,
                         Validate_Node     => Validate_Node'Access,
                         Node_Index_Order  => False,
@@ -3176,7 +3178,7 @@ package body WisiToken_Grammar_Editing is
       EBNF_Allowed := False;
       if Debug_Mode then
          Tree.Validate_Tree
-           (Data, Data.Error_Reported,
+           (Data'Unchecked_Access, Data.Error_Reported,
             Root              => Tree.Root,
             Validate_Node     => Validate_Node'Access,
             Node_Index_Order  => False,
@@ -3257,7 +3259,7 @@ package body WisiToken_Grammar_Editing is
       begin
          pragma Assert (Children'Length = 1);
          case To_Token_Enum (Tree.ID (Children (1))) is
-         when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+         when STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID =>
             Put (File, ' ' & Get_Text (Data, Tree, Children (1)));
          when REGEXP_ID =>
             Put (File, " %[" & Get_Text (Data, Tree, Children (1)) & "]%");

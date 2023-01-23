@@ -1,0 +1,138 @@
+new_parse
+process version:0, version_count:1, state:1, row:0, col:0
+lex_internal state:99, row:0, column:0
+lexed_lookahead sym:COMMENT, size:66
+shift_extra
+process version:0, version_count:1, state:1, row:0, col:66
+lex_internal state:99, row:0, column:66
+lexed_lookahead sym:COMMENT, size:58
+shift_extra
+process version:0, version_count:1, state:1, row:1, col:57
+lex_internal state:99, row:1, column:57
+lexed_lookahead sym:procedure, size:10
+shift state:912
+process version:0, version_count:1, state:912, row:2, col:9
+lex_internal state:30, row:2, column:9
+lexed_lookahead sym:IDENTIFIER, size:2
+reduce sym:PROCEDURE, child_count:1
+shift state:105
+process version:0, version_count:1, state:105, row:2, col:11
+lex_internal state:32, row:2, column:11
+lexed_lookahead sym:;, size:1
+reduce sym:name, child_count:1
+reduce sym:procedure_specification, child_count:2
+reduce sym:subprogram_specification, child_count:1
+shift state:187
+process version:0, version_count:1, state:187, row:2, col:12
+lex_internal state:99, row:2, column:12
+lexed_lookahead sym:IDENTIFIER, size:2
+reduce sym:subprogram_declaration, child_count:2
+reduce sym:declaration, child_count:1
+reduce sym:compilation_unit, child_count:1
+reduce sym:compilation_unit_list, child_count:1
+shift state:437
+process version:0, version_count:1, state:437, row:3, col:1
+lex_internal state:0, row:3, column:1
+lexed_lookahead sym::, size:2
+shift state:428
+process version:0, version_count:1, state:428, row:3, col:3
+lex_internal state:43, row:3, column:3
+lexed_lookahead sym:IDENTIFIER, size:8
+shift state:105
+process version:0, version_count:1, state:105, row:3, col:11
+lex_internal state:32, row:3, column:11
+lexed_lookahead sym:;, size:1
+reduce sym:name, child_count:1
+reduce sym:subtype_indication, child_count:1
+shift state:217
+process version:0, version_count:1, state:217, row:3, col:12
+lex_internal state:99, row:3, column:12
+lexed_lookahead sym:IDENTIFIER, size:7
+reduce sym:object_declaration, child_count:4
+reduce sym:declaration, child_count:1
+reduce sym:compilation_unit, child_count:1
+reduce sym:compilation_unit_list, child_count:2
+shift state:437
+process version:0, version_count:1, state:437, row:4, col:6
+lex_internal state:0, row:4, column:6
+lexed_lookahead sym:IDENTIFIER, size:13
+detect_error
+resume version:0
+recover_with_missing symbol:;, state:2
+skip_token symbol:IDENTIFIER
+process version:0, version_count:2, state:0, row:4, col:19
+lex_internal state:0, row:4, column:19
+lexed_lookahead sym:(, size:2
+recover_to_previous state:437, depth:2
+skip_token symbol:(
+process version:1, version_count:3, state:2, row:4, col:6
+lex_internal state:99, row:4, column:6
+lexed_lookahead sym:IDENTIFIER, size:13
+shift state:437
+process version:1, version_count:3, state:437, row:4, col:19
+lex_internal state:0, row:4, column:19
+lexed_lookahead sym:(, size:2
+reduce sym:name, child_count:1
+shift state:120
+process version:2, version_count:3, state:437, row:4, col:19
+reduce sym:name, child_count:1
+shift state:120
+condense
+process version:0, version_count:2, state:120, row:4, col:21
+lex_internal state:29, row:4, column:21
+lexed_lookahead sym:IDENTIFIER, size:1
+shift state:118
+process version:1, version_count:2, state:120, row:4, col:21
+shift state:118
+process version:0, version_count:2, state:118, row:4, col:22
+lex_internal state:32, row:4, column:22
+lexed_lookahead sym:), size:1
+reduce sym:name, child_count:1
+reduce sym:primary, child_count:1
+reduce sym:factor, child_count:1
+reduce sym:term, child_count:1
+reduce sym:simple_expression, child_count:1
+reduce sym:relation, child_count:1
+reduce sym:expression, child_count:1
+reduce sym:association, child_count:1
+reduce sym:association_list, child_count:1
+shift state:103
+process version:1, version_count:2, state:118, row:4, col:22
+reduce sym:name, child_count:1
+reduce sym:primary, child_count:1
+reduce sym:factor, child_count:1
+reduce sym:term, child_count:1
+reduce sym:simple_expression, child_count:1
+reduce sym:relation, child_count:1
+reduce sym:expression, child_count:1
+reduce sym:association, child_count:1
+reduce sym:association_list, child_count:1
+shift state:103
+process version:0, version_count:2, state:103, row:4, col:23
+lex_internal state:32, row:4, column:23
+lexed_lookahead sym:;, size:1
+reduce sym:actual_parameter_part, child_count:3
+reduce sym:name, child_count:2
+shift state:185
+process version:1, version_count:2, state:103, row:4, col:23
+reduce sym:actual_parameter_part, child_count:3
+reduce sym:name, child_count:2
+shift state:185
+process version:0, version_count:2, state:185, row:4, col:24
+lex_internal state:99, row:4, column:24
+lexed_lookahead sym:end, size:1
+reduce sym:procedure_call_statement, child_count:2
+reduce sym:simple_statement, child_count:1
+reduce sym:statement, child_count:1
+reduce sym:compilation_unit, child_count:1
+reduce sym:compilation_unit_list, child_count:2
+accept
+process version:1, version_count:2, state:185, row:4, col:24
+reduce sym:procedure_call_statement, child_count:2
+reduce sym:simple_statement, child_count:1
+reduce sym:statement, child_count:1
+reduce sym:compilation_unit, child_count:1
+reduce sym:compilation_unit_list, child_count:2
+accept
+select_smaller_error symbol:compilation_unit_list, over_symbol:compilation_unit_list
+done

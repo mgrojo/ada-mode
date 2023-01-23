@@ -1,14 +1,14 @@
  14 tokens lexed
- 0: 0: (-1, 1:(PROCEDURE, (126 . 134))) : shift and goto state 5
- 0: 5: (-1, 2:(IDENTIFIER, (136 . 136))) : shift and goto state 58
- 0: 58: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 1 tokens to name
+ 0: 0: (-1, 1:(PROCEDURE, (126 . 134))) : shift and goto state 9
+ 0: 9: (-1, 2:(IDENTIFIER, (136 . 136))) : shift and goto state 53
+ 0: 53: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 1 tokens to name
 (name_2, (136 . 136) <= (2:(IDENTIFIER, (136 . 136))))
 in_parse_action OK
- ... goto state 70
- 0: 70: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 0 tokens to parameter_profile
+ ... goto state 77
+ 0: 77: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 0 tokens to parameter_profile
 (parameter_profile_1 <= ())
- ... goto state 130
- 0: 130: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 3 tokens to procedure_specification
+ ... goto state 139
+ 0: 139: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 3 tokens to procedure_specification
 (procedure_specification_0, (126 . 136) <= (1:(PROCEDURE, (126 . 134)), (name_2, (136 . 136)), (parameter_profile_1)))
 in_parse_action OK
  ... goto state 36
@@ -32,8 +32,8 @@ in_parse_action OK
  ... goto state 20
  0: 20: (-1, 4:(IDENTIFIER, (139 . 139))) : shift and goto state 12
  0: 12: (-1, 5:(COLON, (141 . 141))) : shift and goto state 82
- 0: 82: (-1, 6:(IDENTIFIER, (143 . 149))) : shift and goto state 58
- 0: 58: (-1, 7:(SEMICOLON, (150 . 150))) : reduce 1 tokens to name
+ 0: 82: (-1, 6:(IDENTIFIER, (143 . 149))) : shift and goto state 53
+ 0: 53: (-1, 7:(SEMICOLON, (150 . 150))) : reduce 1 tokens to name
 (name_2, (143 . 149) <= (6:(IDENTIFIER, (143 . 149))))
 in_parse_action OK
  ... goto state 144
@@ -60,26 +60,26 @@ in_parse_action OK
  0: 156: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to name
 (name_2, (173 . 173) <= (11:(IDENTIFIER, (173 . 173))))
 in_parse_action OK
- ... goto state 62
- 0: 62: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to primary
+ ... goto state 57
+ 0: 57: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to primary
 (primary_2, (173 . 173) <= ((name_2, (173 . 173))))
- ... goto state 64
- 0: 64: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to factor
+ ... goto state 59
+ 0: 59: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to factor
 (factor_0, (173 . 173) <= ((primary_2, (173 . 173))))
- ... goto state 61
- 0: 61: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to term
+ ... goto state 56
+ 0: 56: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to term
 (term_0, (173 . 173) <= ((factor_0, (173 . 173))))
- ... goto state 67
- 0: 67: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to term_binary_adding_operator_list
+ ... goto state 62
+ 0: 62: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to term_binary_adding_operator_list
 (term_binary_adding_operator_list_0, (173 . 173) <= ((term_0, (173 . 173))))
- ... goto state 69
- 0: 69: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to simple_expression
+ ... goto state 64
+ 0: 64: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to simple_expression
 (simple_expression_1, (173 . 173) <= ((term_binary_adding_operator_list_0, (173 . 173))))
- ... goto state 66
- 0: 66: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to relation
+ ... goto state 61
+ 0: 61: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to relation
 (relation_1, (173 . 173) <= ((simple_expression_1, (173 . 173))))
- ... goto state 65
- 0: 65: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to expression
+ ... goto state 60
+ 0: 60: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to expression
 (expression_0, (173 . 173) <= ((relation_1, (173 . 173))))
  ... goto state 159
  0: 159: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to association

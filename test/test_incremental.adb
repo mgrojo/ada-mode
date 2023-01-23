@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -42,18 +42,17 @@ with WisiToken.UTF_8;
 package body Test_Incremental is
    Trace     : aliased WisiToken.Text_IO_Trace.Trace;
    Log_File  : Ada.Text_IO.File_Type;
-   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    package Ada_Lite is
       Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LR1_Main.Create_Parser
-        (Trace'Access, User_Data'Access,
+        (Trace'Access, null,
          WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
          WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
          Text_Rep_File_Name => "ada_lite_lr1_re2c_parse_table.txt");
 
       Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_LR1_Main.Create_Parser
-        (Trace'Access, User_Data'Access,
+        (Trace'Access, null,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
@@ -73,7 +72,7 @@ package body Test_Incremental is
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
+         User_Data                      => null);
 
       Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser := Ada_Lite_Ebnf_LALR_Main.Create_Parser
         (Trace'Access,
@@ -81,7 +80,7 @@ package body Test_Incremental is
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
+         User_Data                      => null);
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
         (Ada_Lite_Ebnf_Actions.Descriptor.First_Terminal,
@@ -98,7 +97,7 @@ package body Test_Incremental is
            WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         =>
            WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
+         User_Data                      => null);
 
       Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser := Grammar_Grammar_01_LR1_Main.Create_Parser
         (Trace'Access,
@@ -107,7 +106,7 @@ package body Test_Incremental is
            WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         =>
            WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
+         User_Data                      => null);
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
         (Grammar_Grammar_01_Actions.Descriptor.First_Terminal,
@@ -294,7 +293,7 @@ package body Test_Incremental is
          return;
       end;
 
-      Full_Parser.Tree.Copy_Tree (Edited_Source_Full_Parse_Tree, User_Data'Access);
+      Full_Parser.Tree.Copy_Tree (Edited_Source_Full_Parse_Tree, null);
 
       if Initial /= "" then
          if WisiToken.Trace_Tests > WisiToken.Detail or
@@ -366,7 +365,7 @@ package body Test_Incremental is
          Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
       begin
          Incremental_Parser.Tree.Validate_Tree
-           (User_Data, Error_Reported,
+           (null, Error_Reported,
             Node_Index_Order => False,
             Validate_Node    => WisiToken.Syntax_Trees.Mark_In_Tree'Access);
          Incremental_Parser.Tree.Free_Augmented;
@@ -2642,7 +2641,7 @@ package body Test_Incremental is
       --   |29        |40       |50       |60       |70       |80       |90       |100      |110
 
       --  There are two errors; missing ';' after 'Integer',
-      --  missing_name_error on 'procedure C'. The solution to the
+      --  match_names_error on 'procedure C .., end A'. The solution to the
       --  match_names_error requires unreducing subprogram_body C, so both
       --  errors store an error on 'procedure', which are cleared by Edit_Tree.
    end Multiple_Errors_On_One_Token_1;

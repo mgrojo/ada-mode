@@ -1055,7 +1055,7 @@ package body WisiToken_Grammar_Runtime is
             --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
             return Tree.Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
-         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and Strip_Quotes then
+         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID and Strip_Quotes then
             return Tree.Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
          else
             return Tree.Lexer.Buffer_Text (Region);
