@@ -1,12 +1,12 @@
 ;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2023  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.2.0
-;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
+;; Version: 1.3.0
+;; package-requires: ((wisi "4.2.2") (emacs "25.3") (mmm-mode "0.5.7"))
 ;; url: https://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
@@ -43,8 +43,7 @@
 (defcustom wisitoken-grammar-process-parse-exec "wisitoken_grammar_mode_parse.exe"
   ;; wisitoken_grammar.gpr uses .exe even on non-windows.
   "Name of executable to use for external process wisitoken-grammar parser,"
-  :type 'string
-  :group 'wisitoken-grammar)
+  :type 'string)
 
 (defvar wisitoken-grammar-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -64,22 +63,24 @@
 
     table))
 
+(declare-function gnat-show-secondary-error "gnat-compiler.el" ())
+
 (defvar wisitoken-grammar-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
     ;; comment-dwim is in global map on M-;
-    (define-key map "\C-c\C-f" 'wisi-show-parse-error)
-    (define-key map "\C-c\C-i" 'wisi-indent-statement)
-    (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
-    (define-key map [S-return] 'wisitoken-grammar-new-line)
-    (define-key map "\C-c`"    'ada-show-secondary-error)
-    (define-key map "\C-c."    'wisitoken-parse_table-conflict-goto)
+    (define-key map "\C-c\C-f" #'wisi-show-parse-error)
+    (define-key map "\C-c\C-i" #'wisi-indent-statement)
+    (define-key map "\C-c\C-m" #'wisitoken-grammar-mmm-parse)
+    (define-key map [S-return] #'wisitoken-grammar-new-line)
+    (define-key map "\C-c`"    #'gnat-show-secondary-error)
+    (define-key map "\C-c."    #'wisitoken-parse_table-conflict-goto)
     map
   )
   "Local keymap used for wisitoken-grammar mode.")
 
-(define-key emacs-lisp-mode-map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
+(define-key emacs-lisp-mode-map "\C-c\C-m" #'wisitoken-grammar-mmm-parse)
 
 (defvar wisitoken-grammar-mode-menu (make-sparse-keymap "Wisi-Grammar"))
 (easy-menu-define wisitoken-grammar-mode-menu wisitoken-grammar-mode-map "Menu keymap for Wisitoken Grammar mode"
@@ -88,6 +89,7 @@
     ["mmm-ify action or code"   wisitoken-grammar-mmm-parse t]
     ["insert mmm action or code"   mmm-insert-region t]
     ["goto conflict in .parse_table" wisitoken-parse_table-conflict-goto]
+    ["convert tree-sitter conflict" wisitoken-grammar-tree-sitter-conflict]
     ["clean conflict states" wisitoken-grammar-clean-conflicts]))
 
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
@@ -302,6 +304,10 @@ For `add-log-current-defun-function'."
 	    end t)
       (cond
        ((match-beginning 1)
+	;; FIXME: If `search-forward' matches on another line, then the
+        ;; `syntax-table' text property we apply on the next lines
+        ;; may be removed by subsequent calls to `syntax-propertize'
+        ;; starting after %[ but before ]%
 	(let ((begin (match-beginning 1))
 	      (end (search-forward "]%")))
 	  ;; allow single quotes in regexp to not mess up the rest
@@ -432,7 +438,8 @@ For `add-log-current-defun-function'."
 ;;;###autoload
 (define-derived-mode wisitoken-grammar-mode prog-mode "Wisi"
   "A major mode for Wisi grammar files."
-  (set (make-local-variable 'syntax-propertize-function) 'wisitoken-grammar-syntax-propertize)
+  (set (make-local-variable 'syntax-propertize-function)
+       #'wisitoken-grammar-syntax-propertize)
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)

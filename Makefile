@@ -4,16 +4,16 @@
 # variable, that is set in wisitoken_grammar.prj loaded in the file local
 # variables below.
 
-export Standard_Common_Build := Debug
+#export Standard_Common_Build := Debug
 export MMM_MODE ?= c:/Projects/mmm-mode
 
-export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
+export WISITOKEN_GRAMMAR_MODE_VERSION := 1.3.0
 
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
-elisp : update test
+all : update test
 
-pub : pub-wisitoken-grammar build-elpa uninstall-elpa
+pub : pub-wisitoken-grammar
 
 update :: build_executables
 update :: autoloads
@@ -55,7 +55,7 @@ two :: build_executables
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l exclude-elpa.el -L $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l $(WISI)/autoloads.el -l exclude-elpa.el -L $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -127,13 +127,12 @@ ELPA_ROOT ?= $(shell cd ../elpa; pwd)
 ELPA_WGM := $(ELPA_ROOT)/packages/wisitoken-grammar-mode
 
 pub-wisitoken-grammar : wisitoken_grammar.gpr force
-	mkdir -p $(ELPA_WGM)
 	rm -f $(ELPA_WGM)/*
 	cp wisitoken-grammar-mode.el $(ELPA_WGM)
 	cp wisitoken_grammar_1-process.el $(ELPA_WGM)
 	cp *wisitoken_grammar*.ad? $(ELPA_WGM)
 	cp wisitoken_grammar.gpr.gp wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_WGM)
-	cp build.sh $(ELPA_WGM)
+	cp build.sh install.sh $(ELPA_WGM)
 
 # assume wisi built, installed (from ada-mode Makefile)
 build-elpa : force

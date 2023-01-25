@@ -7,6 +7,26 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisitoken-grammar-mode 1.3.0
+16 Jan 2023
+
+** Use simple-indent-mode, not ada-mode, for indenting Ada code in
+   actions and code declarations. ada-mode uses wisi incremental
+   parse, which does not work in mmm-mode buffers.
+
+** New keybindings;
+    C-c C-i bound to wisi-indent-statement
+    C-c .   bound to wisitoken-parse_table-conflict-goto
+
+** New menu entries: "insert mmm action or code", "goto conflict in
+   .parse_table", "clean conflict states", "convert tree-sitter conflict".
+
+** Parser updated to match current wisitoken grammar file meta-grammar.
+
+** Builds with Alire.
+
+** Fix bugs.
+
 * wisitoken-grammar-mode 1.2.0
 6 Jun 2020
 

@@ -3,13 +3,14 @@ branches:
     org.wisitoken.grammar_mode.stephe-1 : misc devel for o.w.gm
 
 Makefile
+Alire.make
 
 (dvc-state-multiple
-'((xgit . "c:/Projects/org.stephe_leake.makerules")
-  (xgit . "c:/Projects/org.stephe_leake.sal")
-  (xgit . "c:/Projects/org.wisitoken")
-  (xgit . "c:/Projects/org.emacs.wisi")
-  (xgit . "c:/Projects/org.wisitoken.grammar_mode")
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.sal")
+  (xgit . "/Projects/org.wisitoken")
+  (xgit . "/Projects/org.emacs.wisi")
+  (xgit . "/Projects/org.wisitoken.grammar_mode")
   ))
 
 (dvc-propagate-multiple
@@ -59,11 +60,11 @@ editing ada_lite.wy
         syntax errors, rest of file has comment face
 
  release process
-(dvc-pull "/Projects/elpa")
-(dvc-sync-review "/Projects/elpa")
+See ada-mode/notes.text for full details; only wisitoken-grammar specifics here.
 
 update NEWS.text
-    $ git log --since "dd mmm yyyy" > release.log
+    ;; no release branch
+    (ediff-directories "/Projects/elpa/packages/wisitoken-grammar-mode" "." nil)
 
 bump version
     wisitoken-grammar-mode.el
@@ -82,7 +83,7 @@ bump version
         wisi version to install; latest in elpa
 
 update, test ELPA
-    Makefile pub install-elpa
+    Makefile pub build-elpa install-elpa
 
     cd ~/.emacs.d/elpa/wisitoken-grammar-mode-1.2.0; ./build.sh
 

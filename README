@@ -1,4 +1,4 @@
-WisiToken grammar mode version 1.2.0
+WisiToken grammar mode version 1.3.0
 
 WisiToken grammar mode provides fontification, navigation, and
 indentation for WisiToken grammar source code files, using a parser.
@@ -8,7 +8,14 @@ installed:
 
 cd ~/.emacs.d/elpa/wisitoken-grammar-mode-i.j.k
 ./build.sh
+./install.sh
 
-This requires AdaCore gnat compiler that you may not have installed.
-It is available in many packaging systems, or as a binary download
-from https://www.adacore.com/download.
+install.sh can take an option "--prefix=<dir>" to set the installation
+directory.
+
+Both shell scripts use Alire if the 'alr' executable is found in PATH;
+otherwise they use gprbuild.
+
+wisitoken-grammar mode will be automatically loaded when you open a file
+with a *.wy extension.
+
