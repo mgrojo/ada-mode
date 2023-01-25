@@ -1,7 +1,7 @@
 name = "emacs_wisitoken_grammar_mode"
 description = "parser for Emacs wisitoken-grammar mode"
 tags = ["indent", "highlight", "parser", "emacs"]
-version = "1.0.0"
+version = "1.3.0"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
