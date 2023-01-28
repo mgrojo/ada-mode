@@ -2,7 +2,7 @@
 --
 --  Runtime utils for wisitoken_grammar.wy actions.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -23,6 +23,7 @@ with WisiToken.BNF;
 with WisiToken.Syntax_Trees;
 with Wisitoken_Grammar_Actions;
 package WisiToken_Grammar_Runtime is
+   use all type WisiToken.Token_ID;
    use all type WisiToken.Syntax_Trees.Node_Access;
    use all type Wisitoken_Grammar_Actions.Token_Enum_ID;
 
@@ -180,5 +181,13 @@ package WisiToken_Grammar_Runtime is
    with Pre => Tree.Is_Nonterm (Node);
    --  Find first descendant of Node that has rhs_item_ID, return source
    --  text for it.
+
+   function Get_Code_Location_List
+     (Tree    : in WisiToken.Syntax_Trees.Tree;
+      Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access)
+     return WisiToken.Syntax_Trees.Valid_Node_Access_Array
+   with Pre => Tree.ID (Tree.Child (Nonterm, 3)) = +identifier_list_ID;
+   --  Return location from a %code declaration.
+
 
 end WisiToken_Grammar_Runtime;

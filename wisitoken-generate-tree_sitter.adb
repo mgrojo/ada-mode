@@ -249,8 +249,11 @@ package body WisiToken.Generate.Tree_Sitter is
                   end case;
                end;
 
+            when rhs_list_ID =>
+               Generate.Put_Error
+                 (Tree.Error_Message (Node, "%if in rhs_list not supported with tree_sitter."));
+
             when others =>
-               --  FIXME tree-sitter: handle rhs_list %if, %end if
                null;
             end case;
             return;
@@ -331,7 +334,7 @@ package body WisiToken.Generate.Tree_Sitter is
             Find_Empty_Nodes (Tree.Child (Node, 2));
 
          when others =>
-            raise SAL.Not_Implemented with Image (Tree.ID (Node), Wisitoken_Grammar_Actions.Descriptor);
+            raise SAL.Not_Implemented with Tree.Image (Node, Node_Numbers => True);
          end case;
       end Find_Empty_Nodes;
 
@@ -360,7 +363,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when rhs_list_ID =>
             --  %if in an rhs_list is not a canonical list element, so we can't
-            --  use LR_Utils.Delete.
+            --  use LR_Utils.Delete. Which is why it's not supported.
             raise SAL.Not_Implemented;
 
          when rhs_ID =>
@@ -670,6 +673,7 @@ package body WisiToken.Generate.Tree_Sitter is
       for Node of Nodes_To_Delete loop
          Delete_Node (Node);
       end loop;
+      Nodes_To_Delete.Clear;
 
       Data.Error_Reported.Clear;
 
@@ -809,6 +813,13 @@ package body WisiToken.Generate.Tree_Sitter is
       with Pre => Tree.ID (Node) = +rhs_item_list_ID;
 
       --  Local bodies
+
+      procedure Put_Commented (Text : in WisiToken.BNF.String_Lists.List)
+      is begin
+         for Line of Text loop
+            Put_Line ("// " & Line);
+         end loop;
+      end Put_Commented;
 
       function Get_Text (Tree_Index : in Valid_Node_Access) return String
       is
@@ -1095,10 +1106,10 @@ package body WisiToken.Generate.Tree_Sitter is
                Put (")");
             end if;
 
-         when 2 .. 4 =>
-            --  Should have been eliminated by Eliminate_Empty_Productions
-            raise SAL.Programmer_Error with "Print_Tree_Sitter rhs_list %if " &
-              Tree.Image (Node, Node_Numbers => True);
+         when 2 .. 6 =>
+            --  Could have been eliminated by Eliminate_Empty_Productions, but that's hard.
+            Generate.Put_Error
+              (Tree.Error_Message (Node, "%if in rhs_list not supported with tree_sitter."));
 
          when others =>
                raise SAL.Programmer_Error;
@@ -1141,16 +1152,23 @@ package body WisiToken.Generate.Tree_Sitter is
                begin
 
                   if Kind = "comment-new-line" then
-                     pragma Assert
-                       (To_Token_Enum (Tree.ID (Value)) in STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID);
+                     if not (To_Token_Enum (Tree.ID (Value)) in
+                               STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID)
+                     then
+                        Generate.Put_Error
+                          (Tree.Error_Message
+                             (Node, "string literal required for comment-new-line; found " &
+                                Image (Tree.ID (Value), Tree.Lexer.Descriptor.all)));
+                     else
 
-                     --  WORKAROUND: tree-sitter 0.16.6 treats rule "token(seq('--',
-                     --  /.*/))" correctly for an Ada comment, but not extra "/--.*/". See
-                     --  github tree-sitter issue 651 - closed without resolving this
-                     --  question, but it does provide a workaround.
-                     Indent_Line (Name & ": $ => token(seq(" & Get_Text (Value) & ", /.*/)),");
-                     New_Line;
-                     Extras.Append ("$." & Name);
+                        --  WORKAROUND: tree-sitter 0.16.6 treats rule "token(seq('--',
+                        --  /.*/))" correctly for an Ada comment, but not extra "/--.*/". See
+                        --  github tree-sitter issue 651 - closed without resolving this
+                        --  question, but it does provide a workaround.
+                        Indent_Line (Name & ": $ => token(seq(" & Get_Text (Value) & ", /.*/)),");
+                        New_Line;
+                        Extras.Append ("$." & Name);
+                     end if;
 
                   elsif Kind = "comment-one-line" then
                      --  FIXME: We need to provide an external scanner for this.
@@ -1216,8 +1234,17 @@ package body WisiToken.Generate.Tree_Sitter is
                end;
 
             when CODE_ID =>
-               --  FIXME tree-sitter: CODE copyright_license
-               null;
+               declare
+                  Loc_List : constant Syntax_Trees.Valid_Node_Access_Array :=
+                    WisiToken_Grammar_Runtime.Get_Code_Location_List (Tree, Node);
+               begin
+                  if Get_Text (Loc_List (Loc_List'First)) = "copyright_license" then
+                     Put_Commented (WisiToken.BNF.Split_Lines (Get_Text (Tree.Child (Node, 4))));
+                  else
+                     Generate.Put_Error (Tree.Error_Message (Node, "%code with tree-sitter not supported."));
+                  end if;
+               end;
+
 
             when CONFLICT_ID =>
                --  .wy LR format:

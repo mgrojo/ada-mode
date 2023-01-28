@@ -32,9 +32,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-review FIXME tree-sitter:
-
 add tree_sitter in character_literal.wy
+    make -r t_one_bnf GRAMMAR=character_literal
+    character_literal_tree_sitter.parse shows an error.
+
 
 propagate to o.w.s-1
 

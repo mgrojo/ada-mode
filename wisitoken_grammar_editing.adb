@@ -389,7 +389,7 @@ package body WisiToken_Grammar_Editing is
 
             when others =>
                --  The reset are for %if .. %endif, which are supposed to be translated before now.
-               Put_Error ("unexpected RHS_Index");
+               Put_Error ("unexpected RHS_Index" & RHS_Index'Image);
             end case;
 
          when rhs_ID =>

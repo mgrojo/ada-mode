@@ -26,9 +26,11 @@
 ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%if parser in LALR | LR1 | Packrat_Proc | Packrat_Gen
 %code actions spec post %{
    End_Name_Optional : Boolean := True;
 }%
+ %end if
 
 %generate LALR         Ada re2c
 %generate LR1          Ada re2c text_rep

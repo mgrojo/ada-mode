@@ -532,41 +532,7 @@ package body WisiToken_Grammar_Runtime is
             --  identifier_list children = identifier_list IDENTIFIER_ID
             --  children = identifier_list IDENTIFIER_ID
             --  children = IDENTIFIER_ID
-            function Get_Loc_List return Syntax_Trees.Valid_Node_Access_Array
-            with Pre => Tree.ID (Tree.Child (Nonterm, 3)) = +identifier_list_ID
-            is
-               use WisiToken.Syntax_Trees;
-               Node   : Valid_Node_Access := Tree.Child (Nonterm, 3);
-               Result : Valid_Node_Access_Array (1 .. 3) := (others => Dummy_Node);
-               First  : SAL.Peek_Type    := Result'Last + 1;
-            begin
-               loop
-                  pragma Assert (Tree.ID (Node) = +identifier_list_ID);
-                  exit when not Tree.Has_Children (Node);
-                  declare
-                     Children : constant Node_Access_Array := Tree.Children (Node);
-                  begin
-                     if Children'Length = 1 then
-                        --  identifier_list : IDENTIFIER
-                        First := First - 1;
-                        Result (First) := Children (1);
-                        exit;
-
-                     elsif Children'Length = 2 then
-                        --  identifier_list : identifier_list IDENTIFIER
-                        First := First - 1;
-                        Result (First) := Children (2);
-
-                        Node := Children (1);
-                     else
-                        raise SAL.Programmer_Error;
-                     end if;
-                  end;
-               end loop;
-               return Result (First .. Result'Last);
-            end Get_Loc_List;
-
-            Loc_List : constant Syntax_Trees.Valid_Node_Access_Array := Get_Loc_List;
+            Loc_List : constant Syntax_Trees.Valid_Node_Access_Array := Get_Code_Location_List (Tree, Nonterm);
 
             function Get_Loc (Index : in SAL.Peek_Type) return String
             is (Tree.Lexer.Buffer_Text (Tree.Byte_Region (Loc_List (Index), Trailing_Non_Grammar => False)));
@@ -1103,6 +1069,43 @@ package body WisiToken_Grammar_Runtime is
          end;
       end case;
    end Get_Text;
+
+   function Get_Code_Location_List
+     (Tree    : in WisiToken.Syntax_Trees.Tree;
+      Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Valid_Node_Access_Array
+   is
+      use all type SAL.Base_Peek_Type;
+      use WisiToken.Syntax_Trees;
+      Node   : Valid_Node_Access := Tree.Child (Nonterm, 3);
+      Result : Valid_Node_Access_Array (1 .. 3) := (others => Dummy_Node);
+      First  : SAL.Peek_Type    := Result'Last + 1;
+   begin
+      loop
+         pragma Assert (Tree.ID (Node) = +identifier_list_ID);
+         exit when not Tree.Has_Children (Node);
+         declare
+            Children : constant Node_Access_Array := Tree.Children (Node);
+         begin
+            if Children'Length = 1 then
+               --  identifier_list : IDENTIFIER
+               First := First - 1;
+               Result (First) := Children (1);
+               exit;
+
+            elsif Children'Length = 2 then
+               --  identifier_list : identifier_list IDENTIFIER
+               First := First - 1;
+               Result (First) := Children (2);
+
+               Node := Children (1);
+            else
+               raise SAL.Programmer_Error;
+            end if;
+         end;
+      end loop;
+      return Result (First .. Result'Last);
+   end Get_Code_Location_List;
 
 end WisiToken_Grammar_Runtime;
 --  Local Variables:

@@ -5,13 +5,13 @@ Tokens:
  3 => FOO
  4 => COMMA
  5 => SEMICOLON
- 6 => TICK_1
- 7 => TICK_2
- 8 => LEFT_PAREN
- 9 => RIGHT_PAREN
+ 6 => LEFT_PAREN
+ 7 => RIGHT_PAREN
+ 8 => TICK_1
+ 9 => TICK_2
  10 => CHARACTER_LITERAL
- 11 => IDENTIFIER
- 12 => STRING_LITERAL
+ 11 => STRING_LITERAL
+ 12 => IDENTIFIER
  13 => Wisi_EOI
  14 => wisitoken_accept
  15 => compilation_unit
@@ -40,8 +40,8 @@ State 0:
      14.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI
 
    FOO               => shift and goto state 1 17.4
-   IDENTIFIER        => shift and goto state 2 17.0
-   STRING_LITERAL    => shift and goto state 3 17.3
+   STRING_LITERAL    => shift and goto state 2 17.3
+   IDENTIFIER        => shift and goto state 3 17.0
    default           => ERROR
 
    compilation_unit  goto state 4
@@ -59,25 +59,25 @@ State 1:
    Minimal_Complete_Actions => (SEMICOLON 17.4)
 
 State 2:
+     17.3:statement <= STRING_LITERAL ^ SEMICOLON
+
+   SEMICOLON         => shift and goto state 8 17.3
+   default           => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON 17.3)
+
+State 3:
      17.0:statement <= IDENTIFIER ^ tick LEFT_PAREN CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
      17.1:statement <= IDENTIFIER ^ tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
      17.2:statement <= IDENTIFIER ^ tick IDENTIFIER SEMICOLON
 
-   TICK_1            => shift and goto state 8 18.0
-   TICK_2            => shift and goto state 9 18.1
+   TICK_1            => shift and goto state 9 18.0
+   TICK_2            => shift and goto state 10 18.1
    default           => ERROR
 
-   tick              goto state 10
+   tick              goto state 11
 
    Minimal_Complete_Actions => (TICK_1 18.0)
-
-State 3:
-     17.3:statement <= STRING_LITERAL ^ SEMICOLON
-
-   SEMICOLON         => shift and goto state 11 17.3
-   default           => ERROR
-
-   Minimal_Complete_Actions => (SEMICOLON 17.3)
 
 State 4:
      14.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
@@ -92,8 +92,8 @@ State 5:
      16.0:statement_list <= statement_list ^ statement
 
    FOO               => shift and goto state 1 17.4
-   IDENTIFIER        => shift and goto state 2 17.0
-   STRING_LITERAL    => shift and goto state 3 17.3
+   STRING_LITERAL    => shift and goto state 2 17.3
+   IDENTIFIER        => shift and goto state 3 17.0
    Wisi_EOI          => reduce 1 tokens to compilation_unit 15.0
    default           => ERROR
 
@@ -105,8 +105,8 @@ State 6:
      16.1:statement_list <= statement ^
 
    FOO               => reduce 1 tokens to statement_list 16.1
-   IDENTIFIER        => reduce 1 tokens to statement_list 16.1
    STRING_LITERAL    => reduce 1 tokens to statement_list 16.1
+   IDENTIFIER        => reduce 1 tokens to statement_list 16.1
    Wisi_EOI          => reduce 1 tokens to statement_list 16.1
    default           => ERROR
 
@@ -116,14 +116,25 @@ State 7:
      17.4:statement <= FOO SEMICOLON ^
 
    FOO               => reduce 2 tokens to statement 17.4
-   IDENTIFIER        => reduce 2 tokens to statement 17.4
    STRING_LITERAL    => reduce 2 tokens to statement 17.4
+   IDENTIFIER        => reduce 2 tokens to statement 17.4
    Wisi_EOI          => reduce 2 tokens to statement 17.4
    default           => ERROR
 
    Minimal_Complete_Actions => (2 statement 17.4)
 
 State 8:
+     17.3:statement <= STRING_LITERAL SEMICOLON ^
+
+   FOO               => reduce 2 tokens to statement 17.3
+   STRING_LITERAL    => reduce 2 tokens to statement 17.3
+   IDENTIFIER        => reduce 2 tokens to statement 17.3
+   Wisi_EOI          => reduce 2 tokens to statement 17.3
+   default           => ERROR
+
+   Minimal_Complete_Actions => (2 statement 17.3)
+
+State 9:
      18.0:tick <= TICK_1 ^
 
    LEFT_PAREN        => reduce 1 tokens to tick 18.0
@@ -132,7 +143,7 @@ State 8:
 
    Minimal_Complete_Actions => (1 tick 18.0)
 
-State 9:
+State 10:
      18.1:tick <= TICK_2 ^
 
    LEFT_PAREN        => reduce 1 tokens to tick 18.1
@@ -141,7 +152,7 @@ State 9:
 
    Minimal_Complete_Actions => (1 tick 18.1)
 
-State 10:
+State 11:
      17.0:statement <= IDENTIFIER tick ^ LEFT_PAREN CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
      17.1:statement <= IDENTIFIER tick ^ LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
      17.2:statement <= IDENTIFIER tick ^ IDENTIFIER SEMICOLON
@@ -152,23 +163,12 @@ State 10:
 
    Minimal_Complete_Actions => (IDENTIFIER 17.2)
 
-State 11:
-     17.3:statement <= STRING_LITERAL SEMICOLON ^
-
-   FOO               => reduce 2 tokens to statement 17.3
-   IDENTIFIER        => reduce 2 tokens to statement 17.3
-   STRING_LITERAL    => reduce 2 tokens to statement 17.3
-   Wisi_EOI          => reduce 2 tokens to statement 17.3
-   default           => ERROR
-
-   Minimal_Complete_Actions => (2 statement 17.3)
-
 State 12:
      16.0:statement_list <= statement_list statement ^
 
    FOO               => reduce 2 tokens to statement_list 16.0
-   IDENTIFIER        => reduce 2 tokens to statement_list 16.0
    STRING_LITERAL    => reduce 2 tokens to statement_list 16.0
+   IDENTIFIER        => reduce 2 tokens to statement_list 16.0
    Wisi_EOI          => reduce 2 tokens to statement_list 16.0
    default           => ERROR
 
@@ -205,8 +205,8 @@ State 16:
      17.2:statement <= IDENTIFIER tick IDENTIFIER SEMICOLON ^
 
    FOO               => reduce 4 tokens to statement 17.2
-   IDENTIFIER        => reduce 4 tokens to statement 17.2
    STRING_LITERAL    => reduce 4 tokens to statement 17.2
+   IDENTIFIER        => reduce 4 tokens to statement 17.2
    Wisi_EOI          => reduce 4 tokens to statement 17.2
    default           => ERROR
 
@@ -240,8 +240,8 @@ State 20:
      17.1:statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ^
 
    FOO               => reduce 6 tokens to statement 17.1
-   IDENTIFIER        => reduce 6 tokens to statement 17.1
    STRING_LITERAL    => reduce 6 tokens to statement 17.1
+   IDENTIFIER        => reduce 6 tokens to statement 17.1
    Wisi_EOI          => reduce 6 tokens to statement 17.1
    default           => ERROR
 
@@ -259,8 +259,8 @@ State 22:
      17.0:statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ^
 
    FOO               => reduce 8 tokens to statement 17.0
-   IDENTIFIER        => reduce 8 tokens to statement 17.0
    STRING_LITERAL    => reduce 8 tokens to statement 17.0
+   IDENTIFIER        => reduce 8 tokens to statement 17.0
    Wisi_EOI          => reduce 8 tokens to statement 17.0
    default           => ERROR
 

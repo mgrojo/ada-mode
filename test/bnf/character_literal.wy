@@ -3,7 +3,7 @@
 ;; re2c lookahead.
 
 %code copyright_license %{
---  Copyright (C) 2013, 2015, 2017 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -23,6 +23,7 @@
 %generate LR1 Ada re2c
 %generate Packrat_Gen Ada re2c
 %generate Packrat_Proc Ada re2c
+%generate Tree_Sitter Ada tree_sitter
 
 ;; wisi-generate requires some keywords; test case insensitive
 %case_insensitive
@@ -44,27 +45,36 @@
 ;; the ambiguous cases for full Ada are given in
 ;; character_literal.input; this set of regexps sorts them out.
 
-%token <punctuation> TICK_1 "'"
-
-;; Holdover from elisp, now just testing %if
-%if lexer = re2c
-%token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
-%end if
-
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> RIGHT_PAREN ")"
 
+%token <punctuation> TICK_1 "'"
+
+%if lexer = re2c
+%token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+
 %token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+%token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 
 ;; full Unicode range, starting with non-control, non-digit; also GNAT char coding syntax
 %token <symbol> IDENTIFIER
    %[ ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
 
+%elsif lexer = tree_sitter
+
+%token <string> CHARACTER_LITERAL %[ '.' ]%
+%token <string> STRING_LITERAL %[ ("|[^"])* ]%
+
+%token <symbol> IDENTIFIER
+    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
+
+word : IDENTIFIER ;
+
+%end if
+
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment-new-line> COMMENT %[ "--" ]%
-
-%token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%non_grammar <comment-new-line> COMMENT "--"
 
 %start compilation_unit
 
@@ -94,10 +104,11 @@ statement
   | FOO SEMICOLON
   ;
 
-tick
-  : TICK_1
 %if lexer = re2c
-  | TICK_2
+tick : TICK_1 | TICK_2 ;
+
+%elsif lexer = tree_sitter
+tick : TICK_1 ;
+
 %end if
-  ;
 ;;; end of file
