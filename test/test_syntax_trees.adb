@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2021 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2021 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -452,7 +452,7 @@ package body Test_Syntax_Trees is
                Error_Reported : Node_Sets.Set;
             begin
                Tree.Validate_Tree
-                 (User_Data, Error_Reported,
+                 (User_Data'Access, Error_Reported,
                   Node_Index_Order => True,
                   Validate_Node    => null);
                --  Mark_In_Tree doesn't work when the tree isn't fully parsed.
@@ -540,7 +540,7 @@ package body Test_Syntax_Trees is
                Error_Reported : Node_Sets.Set;
             begin
                Tree.Validate_Tree
-                 (User_Data, Error_Reported,
+                 (User_Data'Access, Error_Reported,
                   Node_Index_Order => True,
                   Validate_Node    => Mark_In_Tree'Access);
                if Error_Reported.Count > 0 then
@@ -1064,7 +1064,7 @@ package body Test_Syntax_Trees is
                Error_Reported : Node_Sets.Set;
             begin
                Tree.Validate_Tree
-                 (User_Data, Error_Reported,
+                 (User_Data'Access, Error_Reported,
                   Node_Index_Order => False,
                   Validate_Node    => null);
                --  Mark_In_Tree doesn't work when the tree isn't fully parsed.
@@ -1118,7 +1118,7 @@ package body Test_Syntax_Trees is
                Error_Reported : Node_Sets.Set;
             begin
                Tree.Validate_Tree
-                 (User_Data, Error_Reported,
+                 (User_Data'Access, Error_Reported,
                   Node_Index_Order => False,
                   Validate_Node    => Mark_In_Tree'Access);
                if Error_Reported.Count > 0 then

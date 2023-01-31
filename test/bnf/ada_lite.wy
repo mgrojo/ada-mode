@@ -102,29 +102,31 @@
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
-%elsif lexer = tree_sitter
-;; The tree-sitter grammar file requires JavaScript regular expressions; see
-;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
-%token <string-double> STRING_LITERAL %[ "(""|[^"])*" ]%
-
-%token <symbol> IDENTIFIER
-    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
-
-;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
-;; wisitoken-generate-tree_sitter.adb should be in user guide.)
-word : IDENTIFIER ;
-
-%end if
-
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE
 
+%elsif lexer = tree_sitter
+;; The tree-sitter grammar file requires JavaScript regular expressions; see
+;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
+%token <string-double> STRING_LITERAL %[ /"(""|[^"])*"/u ]%
+
+%token <symbol> IDENTIFIER %[ /[$a-zA-Z\u{80}-\u{10FFFF}][0-9a-zA-Z_\u{80}-\u{10FFFF}]*/u ]%
+
+;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+word : IDENTIFIER ;
+
+%token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
+
+%end if
+
 %start compilation_unit_list
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 
+%if parser in LALR | LR1
 %mckenzie_enqueue_limit 1000
 %mckenzie_check_limit 3
 %mckenzie_zombie_limit 3
@@ -167,6 +169,7 @@ word : IDENTIFIER ;
 ;; We don't allow empty sequence_of_statements, so make one short
 ;; statement cheaper to insert.
 %mckenzie_cost_insert EXIT 2
+%end if
 
 %if parser in LALR | LR1
 %conflict SHIFT generic_instantiation | REDUCE aspect_specification_opt on token IS

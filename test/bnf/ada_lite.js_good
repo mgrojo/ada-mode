@@ -133,13 +133,11 @@ module.exports = grammar({
 
       STRING_LITERAL: $ => /"(""|[^"])*"/u,
 
-      IDENTIFIER: $ => /([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])*/u,
+      IDENTIFIER: $ => /[$a-zA-Z\u{80}-\u{10FFFF}][0-9a-zA-Z_\u{80}-\u{10FFFF}]*/u,
 
       word: $ => $.IDENTIFIER,
 
-      NUMERIC_LITERAL: $ => /[0-9]+/u,
-
-      WHITESPACE: $ => /[ \t]/u,
+      NUMERIC_LITERAL: $ => /[0-9]+/,
 
       actual_parameter_part: $ => seq($.LEFT_PAREN, $.association_list, $.RIGHT_PAREN),
 

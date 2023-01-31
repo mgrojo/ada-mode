@@ -451,4 +451,4 @@ recover: succeed, parser count 3
  5: terminate (1 active): recover cost/min length (-1, 27:(Wisi_EOI, (160 . 159)))
  1: succeed
 three_action_conflict.input:9:9: syntax_error: expecting LBRACE, found 'foo'
-   recovered: ((INSERT, (LBRACE, (150 . 149)), 3))
+   recovered: ((INSERT, -66:(LBRACE, (150 . 149)), 3))

@@ -10,6 +10,25 @@ module.exports = grammar({
    rules: {
       compilation_unit_list: $ => choice($.compilation_unit, seq($.compilation_unit_list, $.compilation_unit)),
 
+// 
+// ;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
+// ;;
+// ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
+// ;;
+// ;;  This file is part of WisiToken.
+// ;;
+// ;;  WisiToken is free software: you can redistribute it and/or modify
+// ;;  it under the terms of the GNU General Public License as published by
+// ;;  the Free Software Foundation, either version 3 of the License, or
+// ;;  (at your option) any later version.
+// ;;
+// ;;  WisiToken is distributed in the hope that it will be useful,
+// ;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+// ;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// ;;  GNU General Public License for more details.
+// ;;
+// ;;  You should have received a copy of the GNU General Public License
+// ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
       AND: $ => reservedInsensitive('and'),
 
       BEGIN: $ => reservedInsensitive('begin'),
@@ -110,15 +129,13 @@ module.exports = grammar({
 
       COMMENT: $ => token(seq("--", /.*/)),
 
-      STRING_LITERAL: $ => /"(""|[^"])*"/u,
+      STRING_LITERAL: $ => /"(.|"")*"/u,
 
-      IDENTIFIER: $ => /([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])*/u,
+      IDENTIFIER: $ => /[$a-zA-Z\u{80}-\u{10FFFF}][0-9a-zA-Z_\u{80}-\u{10FFFF}]*/u,
 
       word: $ => $.IDENTIFIER,
 
-      NUMERIC_LITERAL: $ => /[0-9]+/u,
-
-      WHITESPACE: $ => /[ \t]/u,
+      NUMERIC_LITERAL: $ => /[0-9]+/,
 
       actual_parameter_part: $ => seq('(', $.association_list, ')'),
 

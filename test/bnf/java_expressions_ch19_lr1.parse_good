@@ -637,8 +637,8 @@ recover: succeed, parser count 1
 (wisitoken_accept_0, (105 . 417) <= ((CompilationUnit_1, (105 . 417))))
  2: succeed
 java_expressions_ch19.input:2:21: syntax_error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
-   recovered: ((INSERT, (RIGHT_PAREN, (125 . 124)), 2))
+   recovered: ((INSERT, -27:(RIGHT_PAREN, (125 . 124)), 2))
 java_expressions_ch19.input:6:18: syntax_error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
-   recovered: ((INSERT, (MINUS_MINUS, (281 . 280)), 2), (INSERT, (SEMICOLON, (281 . 280)), 2))
+   recovered: ((INSERT, -71:(MINUS_MINUS, (281 . 280)), 2), (INSERT, -79:(SEMICOLON, (281 . 280)), 2))
 java_expressions_ch19.input:12:7: syntax_error: expecting Identifier, found '}'
-   recovered: ((INSERT, (Identifier, (417 . 416)), 2))
+   recovered: ((INSERT, -103:(Identifier, (417 . 416)), 2))

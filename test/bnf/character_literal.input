@@ -9,6 +9,7 @@ Character'( 'b' );
 Character '('c');
 Character ' ( 'd' );
 Character ' ( 'π' );
+Character'('(');
 
 --  This is a character array
 Char_Array'('e', 'f');

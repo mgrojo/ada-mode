@@ -211,6 +211,9 @@ example:
 ``Keywords'' are reserved words or symbols in the target language; the
 lexers recognize them by the given string.
 
+The keyword is Case insensisitive if the string delimiters are single
+quotes or the @code{case_insensitive} declaration is present.
+
 @node Tokens
 @subsection Tokens
 @verbatim
@@ -224,7 +227,9 @@ example:
 @end verbatim
 
 The syntax of the regular expression is determined by the lexer
-generator.
+generator. For @code{tree_sitter}, it is a Javascript expression that
+evaluates to a regexp object; @code{/foo/u} or @code{new RegExp
+("foo", "u")}.
 
 @code{repair_image} is used in error repair information; it should be
 inserted by an editor at the place of the expected but missing token.
@@ -573,8 +578,8 @@ end loop Get_Inputs;
 @end verbatim
 
 These names are optional in the Ada standard. Making them required
-improves error recovery; the recovery algorithm can use matching names
-to isolate the error.
+improves error recovery; the McKenzie recovery algorithm can use
+matching names to isolate the error.
 
 @item %escape_delimiter_doubled <token_name>
 The named token escapes embedded delimiters by doubling them, as for

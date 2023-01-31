@@ -1,4 +1,4 @@
- 67 tokens lexed
+ 73 tokens lexed
  0: 0: 1:(FOO, (29 . 31)) : shift and goto state 1
  0: 1: 2:(SEMICOLON, (32 . 32)) : shift and goto state 7
  0: 7: 3:(FOO, (34 . 36)) : reduce 2 tokens to statement
@@ -84,104 +84,119 @@
  0: 13: 32:(CHARACTER_LITERAL, (173 . 176)) : shift and goto state 15
  0: 15: 33:(RIGHT_PAREN, (178 . 178)) : shift and goto state 18
  0: 18: 34:(SEMICOLON, (179 . 179)) : shift and goto state 20
- 0: 20: 35:(IDENTIFIER, (212 . 221)) : reduce 6 tokens to statement
+ 0: 20: 35:(IDENTIFIER, (181 . 189)) : reduce 6 tokens to statement
 (statement, (159 . 179) <= (29:(IDENTIFIER, (159 . 167)), (tick, (169 . 169)), 31:(LEFT_PAREN, (171 . 171)), 32:(CHARACTER_LITERAL, (173 . 176)), 33:(RIGHT_PAREN, (178 . 178)), 34:(SEMICOLON, (179 . 179))))
  ... goto state 12
- 0: 12: 35:(IDENTIFIER, (212 . 221)) : reduce 2 tokens to statement_list
+ 0: 12: 35:(IDENTIFIER, (181 . 189)) : reduce 2 tokens to statement_list
 (statement_list, (29 . 179) <= ((statement_list, (29 . 157)), (statement, (159 . 179))))
  ... goto state 5
- 0: 5: 35:(IDENTIFIER, (212 . 221)) : shift and goto state 3
- 0: 3: 36:(TICK_2, (222 . 222)) : shift and goto state 10
- 0: 10: 37:(LEFT_PAREN, (223 . 223)) : reduce 1 tokens to tick
-(tick, (222 . 222) <= (36:(TICK_2, (222 . 222))))
+ 0: 5: 35:(IDENTIFIER, (181 . 189)) : shift and goto state 3
+ 0: 3: 36:(TICK_2, (190 . 190)) : shift and goto state 10
+ 0: 10: 37:(LEFT_PAREN, (191 . 191)) : reduce 1 tokens to tick
+(tick, (190 . 190) <= (36:(TICK_2, (190 . 190))))
  ... goto state 11
- 0: 11: 37:(LEFT_PAREN, (223 . 223)) : shift and goto state 13
- 0: 13: 38:(CHARACTER_LITERAL, (224 . 226)) : shift and goto state 15
- 0: 15: 39:(COMMA, (227 . 227)) : shift and goto state 17
- 0: 17: 40:(CHARACTER_LITERAL, (229 . 231)) : shift and goto state 19
- 0: 19: 41:(RIGHT_PAREN, (232 . 232)) : shift and goto state 21
- 0: 21: 42:(SEMICOLON, (233 . 233)) : shift and goto state 22
- 0: 22: 43:(IDENTIFIER, (261 . 269)) : reduce 8 tokens to statement
-(statement, (212 . 233) <= (35:(IDENTIFIER, (212 . 221)), (tick, (222 . 222)), 37:(LEFT_PAREN, (223 . 223)), 38:(CHARACTER_LITERAL, (224 . 226)), 39:(COMMA, (227 . 227)), 40:(CHARACTER_LITERAL, (229 . 231)), 41:(RIGHT_PAREN, (232 . 232)), 42:(SEMICOLON, (233 . 233))))
+ 0: 11: 37:(LEFT_PAREN, (191 . 191)) : shift and goto state 13
+ 0: 13: 38:(CHARACTER_LITERAL, (192 . 194)) : shift and goto state 15
+ 0: 15: 39:(RIGHT_PAREN, (195 . 195)) : shift and goto state 18
+ 0: 18: 40:(SEMICOLON, (196 . 196)) : shift and goto state 20
+ 0: 20: 41:(IDENTIFIER, (229 . 238)) : reduce 6 tokens to statement
+(statement, (181 . 196) <= (35:(IDENTIFIER, (181 . 189)), (tick, (190 . 190)), 37:(LEFT_PAREN, (191 . 191)), 38:(CHARACTER_LITERAL, (192 . 194)), 39:(RIGHT_PAREN, (195 . 195)), 40:(SEMICOLON, (196 . 196))))
  ... goto state 12
- 0: 12: 43:(IDENTIFIER, (261 . 269)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 233) <= ((statement_list, (29 . 179)), (statement, (212 . 233))))
+ 0: 12: 41:(IDENTIFIER, (229 . 238)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 196) <= ((statement_list, (29 . 179)), (statement, (181 . 196))))
  ... goto state 5
- 0: 5: 43:(IDENTIFIER, (261 . 269)) : shift and goto state 3
- 0: 3: 44:(TICK_2, (270 . 270)) : shift and goto state 10
- 0: 10: 45:(LEFT_PAREN, (271 . 271)) : reduce 1 tokens to tick
-(tick, (270 . 270) <= (44:(TICK_2, (270 . 270))))
+ 0: 5: 41:(IDENTIFIER, (229 . 238)) : shift and goto state 3
+ 0: 3: 42:(TICK_2, (239 . 239)) : shift and goto state 10
+ 0: 10: 43:(LEFT_PAREN, (240 . 240)) : reduce 1 tokens to tick
+(tick, (239 . 239) <= (42:(TICK_2, (239 . 239))))
  ... goto state 11
- 0: 11: 45:(LEFT_PAREN, (271 . 271)) : shift and goto state 13
- 0: 13: 46:(CHARACTER_LITERAL, (272 . 274)) : shift and goto state 15
- 0: 15: 47:(RIGHT_PAREN, (275 . 275)) : shift and goto state 18
- 0: 18: 48:(SEMICOLON, (276 . 276)) : shift and goto state 20
- 0: 20: 49:(IDENTIFIER, (302 . 309)) : reduce 6 tokens to statement
-(statement, (261 . 276) <= (43:(IDENTIFIER, (261 . 269)), (tick, (270 . 270)), 45:(LEFT_PAREN, (271 . 271)), 46:(CHARACTER_LITERAL, (272 . 274)), 47:(RIGHT_PAREN, (275 . 275)), 48:(SEMICOLON, (276 . 276))))
+ 0: 11: 43:(LEFT_PAREN, (240 . 240)) : shift and goto state 13
+ 0: 13: 44:(CHARACTER_LITERAL, (241 . 243)) : shift and goto state 15
+ 0: 15: 45:(COMMA, (244 . 244)) : shift and goto state 17
+ 0: 17: 46:(CHARACTER_LITERAL, (246 . 248)) : shift and goto state 19
+ 0: 19: 47:(RIGHT_PAREN, (249 . 249)) : shift and goto state 21
+ 0: 21: 48:(SEMICOLON, (250 . 250)) : shift and goto state 22
+ 0: 22: 49:(IDENTIFIER, (278 . 286)) : reduce 8 tokens to statement
+(statement, (229 . 250) <= (41:(IDENTIFIER, (229 . 238)), (tick, (239 . 239)), 43:(LEFT_PAREN, (240 . 240)), 44:(CHARACTER_LITERAL, (241 . 243)), 45:(COMMA, (244 . 244)), 46:(CHARACTER_LITERAL, (246 . 248)), 47:(RIGHT_PAREN, (249 . 249)), 48:(SEMICOLON, (250 . 250))))
  ... goto state 12
- 0: 12: 49:(IDENTIFIER, (302 . 309)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 276) <= ((statement_list, (29 . 233)), (statement, (261 . 276))))
+ 0: 12: 49:(IDENTIFIER, (278 . 286)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 250) <= ((statement_list, (29 . 196)), (statement, (229 . 250))))
  ... goto state 5
- 0: 5: 49:(IDENTIFIER, (302 . 309)) : shift and goto state 3
- 0: 3: 50:(TICK_1, (310 . 310)) : shift and goto state 9
- 0: 9: 51:(IDENTIFIER, (311 . 319)) : reduce 1 tokens to tick
-(tick, (310 . 310) <= (50:(TICK_1, (310 . 310))))
+ 0: 5: 49:(IDENTIFIER, (278 . 286)) : shift and goto state 3
+ 0: 3: 50:(TICK_2, (287 . 287)) : shift and goto state 10
+ 0: 10: 51:(LEFT_PAREN, (288 . 288)) : reduce 1 tokens to tick
+(tick, (287 . 287) <= (50:(TICK_2, (287 . 287))))
  ... goto state 11
- 0: 11: 51:(IDENTIFIER, (311 . 319)) : shift and goto state 14
- 0: 14: 52:(SEMICOLON, (320 . 320)) : shift and goto state 16
- 0: 16: 53:(IDENTIFIER, (351 . 356)) : reduce 4 tokens to statement
-(statement, (302 . 320) <= (49:(IDENTIFIER, (302 . 309)), (tick, (310 . 310)), 51:(IDENTIFIER, (311 . 319)), 52:(SEMICOLON, (320 . 320))))
+ 0: 11: 51:(LEFT_PAREN, (288 . 288)) : shift and goto state 13
+ 0: 13: 52:(CHARACTER_LITERAL, (289 . 291)) : shift and goto state 15
+ 0: 15: 53:(RIGHT_PAREN, (292 . 292)) : shift and goto state 18
+ 0: 18: 54:(SEMICOLON, (293 . 293)) : shift and goto state 20
+ 0: 20: 55:(IDENTIFIER, (319 . 326)) : reduce 6 tokens to statement
+(statement, (278 . 293) <= (49:(IDENTIFIER, (278 . 286)), (tick, (287 . 287)), 51:(LEFT_PAREN, (288 . 288)), 52:(CHARACTER_LITERAL, (289 . 291)), 53:(RIGHT_PAREN, (292 . 292)), 54:(SEMICOLON, (293 . 293))))
  ... goto state 12
- 0: 12: 53:(IDENTIFIER, (351 . 356)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 320) <= ((statement_list, (29 . 276)), (statement, (302 . 320))))
+ 0: 12: 55:(IDENTIFIER, (319 . 326)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 293) <= ((statement_list, (29 . 250)), (statement, (278 . 293))))
  ... goto state 5
- 0: 5: 53:(IDENTIFIER, (351 . 356)) : shift and goto state 3
- 0: 3: 54:(TICK_1, (360 . 360)) : shift and goto state 9
- 0: 9: 55:(IDENTIFIER, (361 . 369)) : reduce 1 tokens to tick
-(tick, (360 . 360) <= (54:(TICK_1, (360 . 360))))
+ 0: 5: 55:(IDENTIFIER, (319 . 326)) : shift and goto state 3
+ 0: 3: 56:(TICK_1, (327 . 327)) : shift and goto state 9
+ 0: 9: 57:(IDENTIFIER, (328 . 336)) : reduce 1 tokens to tick
+(tick, (327 . 327) <= (56:(TICK_1, (327 . 327))))
  ... goto state 11
- 0: 11: 55:(IDENTIFIER, (361 . 369)) : shift and goto state 14
- 0: 14: 56:(SEMICOLON, (370 . 370)) : shift and goto state 16
- 0: 16: 57:(STRING_LITERAL, (373 . 412)) : reduce 4 tokens to statement
-(statement, (351 . 370) <= (53:(IDENTIFIER, (351 . 356)), (tick, (360 . 360)), 55:(IDENTIFIER, (361 . 369)), 56:(SEMICOLON, (370 . 370))))
+ 0: 11: 57:(IDENTIFIER, (328 . 336)) : shift and goto state 14
+ 0: 14: 58:(SEMICOLON, (337 . 337)) : shift and goto state 16
+ 0: 16: 59:(IDENTIFIER, (368 . 373)) : reduce 4 tokens to statement
+(statement, (319 . 337) <= (55:(IDENTIFIER, (319 . 326)), (tick, (327 . 327)), 57:(IDENTIFIER, (328 . 336)), 58:(SEMICOLON, (337 . 337))))
  ... goto state 12
- 0: 12: 57:(STRING_LITERAL, (373 . 412)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 370) <= ((statement_list, (29 . 320)), (statement, (351 . 370))))
+ 0: 12: 59:(IDENTIFIER, (368 . 373)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 337) <= ((statement_list, (29 . 293)), (statement, (319 . 337))))
  ... goto state 5
- 0: 5: 57:(STRING_LITERAL, (373 . 412)) : shift and goto state 2
- 0: 2: 58:(SEMICOLON, (413 . 413)) : shift and goto state 8
- 0: 8: 59:(STRING_LITERAL, (501 . 522)) : reduce 2 tokens to statement
-(statement, (373 . 413) <= (57:(STRING_LITERAL, (373 . 412)), 58:(SEMICOLON, (413 . 413))))
- ... goto state 12
- 0: 12: 59:(STRING_LITERAL, (501 . 522)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 413) <= ((statement_list, (29 . 370)), (statement, (373 . 413))))
- ... goto state 5
- 0: 5: 59:(STRING_LITERAL, (501 . 522)) : shift and goto state 2
- 0: 2: 60:(SEMICOLON, (523 . 523)) : shift and goto state 8
- 0: 8: 61:(IDENTIFIER, (585 . 607)) : reduce 2 tokens to statement
-(statement, (501 . 523) <= (59:(STRING_LITERAL, (501 . 522)), 60:(SEMICOLON, (523 . 523))))
- ... goto state 12
- 0: 12: 61:(IDENTIFIER, (585 . 607)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 523) <= ((statement_list, (29 . 413)), (statement, (501 . 523))))
- ... goto state 5
- 0: 5: 61:(IDENTIFIER, (585 . 607)) : shift and goto state 3
- 0: 3: 62:(TICK_2, (608 . 608)) : shift and goto state 10
- 0: 10: 63:(LEFT_PAREN, (609 . 609)) : reduce 1 tokens to tick
-(tick, (608 . 608) <= (62:(TICK_2, (608 . 608))))
+ 0: 5: 59:(IDENTIFIER, (368 . 373)) : shift and goto state 3
+ 0: 3: 60:(TICK_1, (377 . 377)) : shift and goto state 9
+ 0: 9: 61:(IDENTIFIER, (378 . 386)) : reduce 1 tokens to tick
+(tick, (377 . 377) <= (60:(TICK_1, (377 . 377))))
  ... goto state 11
- 0: 11: 63:(LEFT_PAREN, (609 . 609)) : shift and goto state 13
- 0: 13: 64:(CHARACTER_LITERAL, (610 . 619)) : shift and goto state 15
- 0: 15: 65:(RIGHT_PAREN, (620 . 620)) : shift and goto state 18
- 0: 18: 66:(SEMICOLON, (621 . 621)) : shift and goto state 20
- 0: 20: 67:(Wisi_EOI, (647 . 646)) : reduce 6 tokens to statement
-(statement, (585 . 621) <= (61:(IDENTIFIER, (585 . 607)), (tick, (608 . 608)), 63:(LEFT_PAREN, (609 . 609)), 64:(CHARACTER_LITERAL, (610 . 619)), 65:(RIGHT_PAREN, (620 . 620)), 66:(SEMICOLON, (621 . 621))))
+ 0: 11: 61:(IDENTIFIER, (378 . 386)) : shift and goto state 14
+ 0: 14: 62:(SEMICOLON, (387 . 387)) : shift and goto state 16
+ 0: 16: 63:(STRING_LITERAL, (390 . 429)) : reduce 4 tokens to statement
+(statement, (368 . 387) <= (59:(IDENTIFIER, (368 . 373)), (tick, (377 . 377)), 61:(IDENTIFIER, (378 . 386)), 62:(SEMICOLON, (387 . 387))))
  ... goto state 12
- 0: 12: 67:(Wisi_EOI, (647 . 646)) : reduce 2 tokens to statement_list
-(statement_list, (29 . 621) <= ((statement_list, (29 . 523)), (statement, (585 . 621))))
+ 0: 12: 63:(STRING_LITERAL, (390 . 429)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 387) <= ((statement_list, (29 . 337)), (statement, (368 . 387))))
  ... goto state 5
- 0: 5: 67:(Wisi_EOI, (647 . 646)) : reduce 1 tokens to compilation_unit
-(compilation_unit, (29 . 621) <= ((statement_list, (29 . 621))))
+ 0: 5: 63:(STRING_LITERAL, (390 . 429)) : shift and goto state 2
+ 0: 2: 64:(SEMICOLON, (430 . 430)) : shift and goto state 8
+ 0: 8: 65:(STRING_LITERAL, (518 . 539)) : reduce 2 tokens to statement
+(statement, (390 . 430) <= (63:(STRING_LITERAL, (390 . 429)), 64:(SEMICOLON, (430 . 430))))
+ ... goto state 12
+ 0: 12: 65:(STRING_LITERAL, (518 . 539)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 430) <= ((statement_list, (29 . 387)), (statement, (390 . 430))))
+ ... goto state 5
+ 0: 5: 65:(STRING_LITERAL, (518 . 539)) : shift and goto state 2
+ 0: 2: 66:(SEMICOLON, (540 . 540)) : shift and goto state 8
+ 0: 8: 67:(IDENTIFIER, (602 . 624)) : reduce 2 tokens to statement
+(statement, (518 . 540) <= (65:(STRING_LITERAL, (518 . 539)), 66:(SEMICOLON, (540 . 540))))
+ ... goto state 12
+ 0: 12: 67:(IDENTIFIER, (602 . 624)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 540) <= ((statement_list, (29 . 430)), (statement, (518 . 540))))
+ ... goto state 5
+ 0: 5: 67:(IDENTIFIER, (602 . 624)) : shift and goto state 3
+ 0: 3: 68:(TICK_2, (625 . 625)) : shift and goto state 10
+ 0: 10: 69:(LEFT_PAREN, (626 . 626)) : reduce 1 tokens to tick
+(tick, (625 . 625) <= (68:(TICK_2, (625 . 625))))
+ ... goto state 11
+ 0: 11: 69:(LEFT_PAREN, (626 . 626)) : shift and goto state 13
+ 0: 13: 70:(CHARACTER_LITERAL, (627 . 636)) : shift and goto state 15
+ 0: 15: 71:(RIGHT_PAREN, (637 . 637)) : shift and goto state 18
+ 0: 18: 72:(SEMICOLON, (638 . 638)) : shift and goto state 20
+ 0: 20: 73:(Wisi_EOI, (664 . 663)) : reduce 6 tokens to statement
+(statement, (602 . 638) <= (67:(IDENTIFIER, (602 . 624)), (tick, (625 . 625)), 69:(LEFT_PAREN, (626 . 626)), 70:(CHARACTER_LITERAL, (627 . 636)), 71:(RIGHT_PAREN, (637 . 637)), 72:(SEMICOLON, (638 . 638))))
+ ... goto state 12
+ 0: 12: 73:(Wisi_EOI, (664 . 663)) : reduce 2 tokens to statement_list
+(statement_list, (29 . 638) <= ((statement_list, (29 . 540)), (statement, (602 . 638))))
+ ... goto state 5
+ 0: 5: 73:(Wisi_EOI, (664 . 663)) : reduce 1 tokens to compilation_unit
+(compilation_unit, (29 . 638) <= ((statement_list, (29 . 638))))
  ... goto state 4
- 0: 4: 67:(Wisi_EOI, (647 . 646)) : accept it
-(wisitoken_accept, (29 . 621) <= ((compilation_unit, (29 . 621))))
+ 0: 4: 73:(Wisi_EOI, (664 . 663)) : accept it
+(wisitoken_accept, (29 . 638) <= ((compilation_unit, (29 . 638))))
  0: succeed

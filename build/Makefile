@@ -35,13 +35,14 @@ t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
 
+#t_one_bnf :: grammar-clean
 t_one_bnf :: VERBOSITY := test=1
-t_one_bnf :: wisitoken-bnf-generate.exe
 t_one_bnf :: $(GRAMMAR)_re2c.c
-#t_one_bnf :: $(GRAMMAR)_tree_sitter.c
+t_one_bnf :: $(GRAMMAR)_tree_sitter.c
+t_one_bnf :: wisitoken-bnf-generate.exe
 t_one_bnf :: test-executables
 t_one_bnf :: test_bnf_harness.exe
-	./test_bnf_harness "bnf_wy_errors_test.adb $(GRAMMAR).wy" $(VERBOSITY)
+	./test_bnf_harness $(GRAMMAR) $(VERBOSITY)
 
 t_mck :: wisitoken-bnf-generate.exe
 #t_mck :: GENERATE_ARGS := -v 0 0 4
@@ -50,21 +51,25 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
-GRAMMAR := ada_full
+GRAMMAR := debug
 
-one-clean :
+grammar-clean :
 	rm -rf $(GRAMMAR)*
 
-one :: one-clean
-one :: VERBOSITY := debug=1 generate=1
+#one :: grammar-clean
+one :: VERBOSITY := debug=1 generate=1 EBNF=2
 one :: GENERATE_ARGS := --verbosity "$(VERBOSITY)"
 #one :: GENERATE_ARGS := --generate Tree_Sitter Ada tree_sitter --verbosity "$(VERBOSITY)"
 #one :: LOG_ARGS := > debug.log
 #one :: $(GRAMMAR)_lalr_run.exe
 #one :: $(GRAMMAR)_packrat_proc_run.exe
 #one :: $(GRAMMAR)_packrat_gen_run.exe
-one :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf $(GENERATE_ARGS) ../test/bnf/$(GRAMMAR).wy $(LOG_ARGS)
+one :: $(GRAMMAR)_tree_sitter.c
+one :: $(GRAMMAR)_tree_sitter_run.exe
+	./$(GRAMMAR)_tree_sitter_run.exe --verbosity "parse=2" ../test/bnf/debug.input
+
+#one :: wisitoken-bnf-generate.exe
+#	./wisitoken-bnf-generate.exe --output_bnf $(GENERATE_ARGS) ../test/bnf/$(GRAMMAR).wy $(LOG_ARGS)
 #	diff -u ada_full.js ../test/bnf/ada_full.js_good > ada_full.js.diff
 
 two-clean :

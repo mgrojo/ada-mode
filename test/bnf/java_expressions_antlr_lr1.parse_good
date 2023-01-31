@@ -81,4 +81,4 @@ recover: succeed, parser count 2
  0: terminate (1 active): recover cost/min length (0, 8:(Wisi_EOI, (59 . 58), parser ERROR))
  1: succeed
 java_expressions_antlr.input:3:1: syntax_error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
-   recovered: ((INSERT, (RPAREN, (59 . 58)), 2))
+   recovered: ((INSERT, -6:(RPAREN, (59 . 58)), 2))

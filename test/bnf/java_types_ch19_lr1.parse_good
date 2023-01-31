@@ -49,4 +49,4 @@ recover: succeed, parser count 1
 (wisitoken_accept_0, (42 . 48) <= ((CompilationUnit_0, (42 . 48))))
  0: succeed
 java_types_ch19.input:5:1: syntax_error: expecting AT, LESS, Identifier, found ''
-   recovered: ((INSERT, (Identifier, (67 . 66)), 2))
+   recovered: ((INSERT, -6:(Identifier, (67 . 66)), 2))

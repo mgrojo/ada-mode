@@ -25,15 +25,12 @@
 %generate Packrat_Proc Ada re2c
 %generate Tree_Sitter Ada tree_sitter
 
-;; wisi-generate requires some keywords; test case insensitive
+;; wisi-generate requires some keywords; test %case_insensitive
 %case_insensitive
 %keyword FOO "foo"
 
 %token <punctuation> COMMA ","
 %token <punctuation> SEMICOLON ";"
-
-;; GNAT-specific syntax for non-ASCII characters
-%lexer_regexp GNAT_Char_Coding %[("[\""[0-9A-Fa-f]+"\"]")]%
 
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
@@ -51,7 +48,10 @@
 %token <punctuation> TICK_1 "'"
 
 %if lexer = re2c
-%token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+;; GNAT-specific syntax for non-ASCII characters
+%lexer_regexp GNAT_Char_Coding %[("[\""[0-9A-Fa-f]+"\"]")]%
+
+%token <misc> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 
 %token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
@@ -60,20 +60,23 @@
 %token <symbol> IDENTIFIER
    %[ ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
 
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+
 %elsif lexer = tree_sitter
 
-%token <string> CHARACTER_LITERAL %[ '.' ]%
-%token <string> STRING_LITERAL %[ ("|[^"])* ]%
+%lexer_regexp GNAT_Char_Coding %[ '\\["[0-9A-Fa-f]+"\\]' ]%
+
+%token <string> CHARACTER_LITERAL %[ new RegExp("'(.|" + GNAT_Char_Coding + ")'", "u") ]%
+%token <string> STRING_LITERAL %[ new RegExp('"(.|""|"' + GNAT_Char_Coding + ')*"', "u") ]%
 
 %token <symbol> IDENTIFIER
-    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
+    %[ new RegExp('([0-9a-zA-Z_\u{80}-\u{10FFFF}]|' + GNAT_Char_Coding + ')([0-9a-zA-Z_\u{80}-\u{10FFFF}]|' + GNAT_Char_Coding + ')*', 'u') ]%
 
 word : IDENTIFIER ;
 
 %end if
 
-%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
-%non_grammar <new-line> NEW_LINE %[ [\n] ]%
 %non_grammar <comment-new-line> COMMENT "--"
 
 %start compilation_unit

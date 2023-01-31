@@ -1116,6 +1116,20 @@ package body WisiToken.Generate.Tree_Sitter is
          end case;
       end Put_RHS_List;
 
+      function String_Regexp (Value : in Valid_Node_Access) return String
+      --  Value is a string or regular expression.
+      is
+         use Ada.Strings, Ada.Strings.Fixed;
+      begin
+         return
+         (case To_Token_Enum (Tree.ID (Value)) is
+            when STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID => Get_Text (Value),
+
+            when REGEXP_ID => Trim (Get_Text (Value), Both),
+
+            when others => raise SAL.Programmer_Error);
+      end String_Regexp;
+
       procedure Process_Node (Node : in Valid_Node_Access)
       is begin
          if Node = Start_Node then
@@ -1138,8 +1152,6 @@ package body WisiToken.Generate.Tree_Sitter is
             case To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) is
             when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID =>
                declare
-                  use Ada.Strings;
-                  use Ada.Strings.Fixed;
                   Kind  : constant String      := Get_Text (Tree.Child (Node, 4));
                   Name  : constant String      := Get_Text (Tree.Child (Node, 6));
                   Regexp_String : constant Node_Access := Tree.Child (Node, 7);
@@ -1183,49 +1195,40 @@ package body WisiToken.Generate.Tree_Sitter is
                      null;
 
                   else
-                     --  Value is a string or regular expression.
-                     case To_Token_Enum (Tree.ID (Value)) is
-                     when STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID =>
-                        --  If the source grammar uses the string literals in the nonterminal
-                        --  RHSs, we don't need to define this token. However, some code using
-                        --  this parser may rely on the token names, so we define them to
-                        --  ensure they are the save for wisi and tree-sitter parsers.
-                        Indent_Line (Name & ": $ => " & Get_Text (Value) & ",");
-
-                     when REGEXP_ID =>
-                        --  https://mathiasbynens.be/notes/es6-unicode-regex explains /u.
-                        Indent_Line (Name & ": $ => /" & Trim (Get_Text (Value), Both) & "/u,");
-
-                     when others =>
-                        raise SAL.Programmer_Error with "node: " & Trimmed_Image (Node);
-                     end case;
+                     --  If the source grammar uses string literals in the nonterminal
+                     --  RHSs, we don't need to define this token. However, some code using
+                     --  this parser may rely on the token names, so we define them to
+                     --  ensure they are the same for wisi and tree-sitter parsers.
+                     Indent_Line (Name & ": $ => " & String_Regexp (Value) & ",");
                      New_Line;
                   end if;
                end;
 
             when KEYWORD_ID =>
                declare
-                  use Ada.Strings;
-                  use Ada.Strings.Fixed;
                   Name  : constant String      := Get_Text (Tree.Child (Node, 3));
                   Value : constant Node_Access := Tree.Child (Tree.Child (Node, 4), 1);
                begin
                   --  Value is a string or regular expression.
                   case To_Token_Enum (Tree.ID (Value)) is
-                  when STRING_LITERAL_DOUBLE_ID =>
-                     --  Case sensitive
-                     --
-                     --  Wisitoken follows the re2c convention; single quoted strings are
-                     --  case insensitive. See comment at definition of
-                     --  'reservedInsenstive' below for 'reserved' use.
-                     Indent_Line (Name & ": $ => reserved(" & Get_Text (Value) & "),");
+                  when STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID =>
 
-                  when STRING_LITERAL_SINGLE_ID =>
-                     Indent_Line (Name & ": $ => reservedInsensitive(" & Get_Text (Value) & "),");
+                     if To_Token_Enum (Tree.ID (Value)) = STRING_LITERAL_SINGLE_ID or
+                       Data.Language_Params.Case_Insensitive
+                     then
+                        Indent_Line (Name & ": $ => reservedInsensitive(" & Get_Text (Value) & "),");
+
+                     else
+                        --  Case sensitive
+                        --
+                        --  Wisitoken follows the re2c convention; single quoted strings are
+                        --  case insensitive. See comment at definition of
+                        --  'reservedInsenstive' below for 'reserved' use.
+                        Indent_Line (Name & ": $ => reserved(" & Get_Text (Value) & "),");
+                     end if;
 
                   when REGEXP_ID =>
-                     --  https://mathiasbynens.be/notes/es6-unicode-regex explains /u.
-                     Indent_Line (Name & ": $ => /" & Trim (Get_Text (Value), Both) & "/u,");
+                     Indent_Line (Name & ": $ => " & String_Regexp (Value) & ",");
 
                   when others =>
                      raise SAL.Programmer_Error with "node: " & Trimmed_Image (Node)'Image;
@@ -1290,8 +1293,35 @@ package body WisiToken.Generate.Tree_Sitter is
                null;
 
             when IDENTIFIER_ID =>
-               --  %case_insensitive, %start, %mckenzie*, etc
-               null;
+               declare
+                  Kind : constant String := Get_Text (Tree.Child (Node, 2));
+               begin
+                  if Kind = "case_insensitive" then
+                     --  The meta phase grammar file parse sets
+                     --  Data.Language_Params.Case_Insensitive.
+                     null;
+
+                  elsif Kind = "generate" then
+                     --  Handled in meta phase grammar parser.
+                     null;
+
+                  elsif Kind = "lexer_regexp" then
+                     --  Handled in Put_Tree_Sitter top level
+                     null;
+
+                  elsif Kind = "meta_syntax" then
+                     --  Handled in meta phase grammar parser.
+                     null;
+
+                  elsif Kind = "start" then
+                     --  Handled in Print_Tree_Sitter top level.
+                     null;
+
+                  else
+                     Generate.Put_Error
+                       (Tree.Error_Message (Node, "declaration not supported with tree_sitter."));
+                  end if;
+               end;
 
             when IF_ID | ELSIF_ID | END_ID =>
                --  Should have been eliminated by Eliminate_Empty_Productions
@@ -1356,6 +1386,34 @@ package body WisiToken.Generate.Tree_Sitter is
               " .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');");
          Indent_Line ("const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;");
          New_Line;
+
+         --  Now any lexer_regexp
+         declare
+            use Syntax_Trees.LR_Utils;
+            Compilation_Unit_List : constant Constant_List := Creators.Create_List
+              (Tree, Tree.Find_Descendant (Tree.Root, +compilation_unit_list_ID),
+               +compilation_unit_list_ID, +compilation_unit_ID);
+         begin
+            for Unit of Compilation_Unit_List loop
+               declare
+                  Node : constant Valid_Node_Access := Tree.Child (Unit, 1);
+               begin
+                  if To_Token_Enum (Tree.ID (Node)) = declaration_ID and then
+                    To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) = IDENTIFIER_ID and then
+                    Get_Text (Tree.Child (Node, 2)) = "lexer_regexp"
+                  then
+                     declare
+                        Terminals : constant Valid_Node_Access_Array := Tree.Get_Terminals (Tree.Child (Node, 3));
+
+                        Name  : constant String      := Get_Text (Terminals (1));
+                        Value : constant Node_Access := Terminals (2);
+                     begin
+                        Put_Line ("const " & Name & " = " & String_Regexp (Value) & ";");
+                     end;
+                  end if;
+               end;
+            end loop;
+         end;
 
          Indent_Line ("module.exports = grammar({");
          Indent := @ + 3;

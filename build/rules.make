@@ -154,7 +154,7 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-%.re2c %.js : %.wy wisitoken-bnf-generate.exe
+%.re2c : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**_actions.adb $**_actions.ads $*.js $*_bnf.wy $**_main.adb $**.parse_table
 

@@ -37,7 +37,9 @@
 
 ;; no mckenzie
 
+%if parser in LALR | Packrat_Gen | Packrat_Proc
 %no_language_runtime
+%end if
 
 %start upper_s
 

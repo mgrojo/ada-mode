@@ -27,6 +27,7 @@
 ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%if parser in lalr
 %code actions spec post %{
    End_Name_Optional : Boolean := True;
 }%
@@ -42,6 +43,7 @@
       null;
    end Handle_Aspect;
 }%
+%end if
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
@@ -112,27 +114,29 @@
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
-%elsif lexer = tree_sitter
-;; The tree-sitter grammar file requires JavaScript regular expressions; see
-;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
-%token <string-double> STRING_LITERAL %[ "(""|[^"])*" ]%
-
-%token <symbol> IDENTIFIER
-    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
-
-;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
-;; wisitoken-generate-tree_sitter.adb should be in user guide.)
-word : IDENTIFIER ;
-
-%end if
-
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE
 
+%elsif lexer = tree_sitter
+;; The tree-sitter grammar file requires JavaScript regular expressions; see
+;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
+%token <string> STRING_LITERAL %[ /"(.|"")*"/u ]%
+
+%token <symbol> IDENTIFIER %[ /[$a-zA-Z\u{80}-\u{10FFFF}][0-9a-zA-Z_\u{80}-\u{10FFFF}]*/u ]%
+
+;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+word : IDENTIFIER ;
+
+%token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
+
+%end if
+
 %start compilation_unit_list
 
+%if parser = lalr
 ;; Set costs to take advantage of syntax to get to solution faster.
 ;;
 ;; McKenzie costs differ between ada_lite and ada_lite_ebnf; they test
@@ -200,6 +204,7 @@ word : IDENTIFIER ;
 %mckenzie_cost_insert EXIT 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
+%end if
 
 %conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
 %conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
