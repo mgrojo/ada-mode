@@ -4,7 +4,7 @@
 # variable, that is set in the project files loaded in the file local
 # variables below.
 
-export ADA_MODE_VERSION       := 8.0.4
+export ADA_MODE_VERSION       := 8.0.5
 export ADA_REF_MAN_VERSION    := 2012.5
 
 TEST_DIR ?= source

@@ -58,6 +58,14 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+Add output_dir option to w-b-gen
+
+test re2c 2.0.3, for Rolf Ebert on Debian bullseye
+    https://github.com/alire-project/alire/issues/1312
+
+https://github.com/AdaCore/ada_language_server/releases
+    binary ada_language_server
+
 Add ALIRE_BUILD_ARGS ?= --release to Alire.make
 
 c:/Projects/org.emacs.ada-mode/test/ada_mode-recover_02.adb:5 tests passed 0
@@ -229,7 +237,7 @@ Add to elpa makefile and or elpa-admin:
 
  after full release
 
-test ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
+test eglot ada-which-function; documentSymbol hierarchicalDocumentSymbolSupport
     need another ada-*-backend?
 
 alire.toml post-fetch action to patch als for indent etc?
@@ -1655,6 +1663,9 @@ update to current emacs master
         cd /c/Projects/emacs/master
         make
 
+run codespell
+    not an elpa package
+
 run all tests without elpa:
     build/Makefile byte-compile test byte-compile-clean
 
@@ -1807,6 +1818,10 @@ Publish Alire crate
     (dvc-status "~/.config/alire/indexes/stephe/repo")
     (dvc-push "~/.config/alire/indexes/stephe/repo/")
 
+    post ada_annex_p_lr1_parse_table.txt to https://download.savannah.nongnu.org/releases/ada-mode/
+        with version
+        for people whose machines are too small to regenerate it
+
 publish to elpa devel:
     build/Makefile pub
 
@@ -1893,6 +1908,8 @@ If release:
         C-c C-c
 
         takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
+
+    scp /home/stephe/.local/bin/ada_annex_p_lr1_parse_table.txt stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/ada_annex_p_lr1_parse_table.txt-8.0.4
 
 post on:
     https://savannah.nongnu.org/news/submit.php?group_id=11631
