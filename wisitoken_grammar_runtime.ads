@@ -61,14 +61,16 @@ package WisiToken_Grammar_Runtime is
       Suppress : WisiToken.BNF.String_Pair_Lists.List;
       --  Declaration name, warning label; suppress warnings.
 
-      Conflicts            : WisiToken.BNF.Conflict_Lists.List;
-      McKenzie_Recover     : WisiToken.BNF.McKenzie_Recover_Param_Type;
-      Max_Parallel         : SAL.Base_Peek_Type                    := 15;
+      Precedence_Map   : WisiToken.Precedence_Maps.Map;
+      Precedence_Lists : WisiToken.Precedence_Lists_Arrays.Vector;
+      Conflicts        : WisiToken.BNF.Conflict_Lists.List;
+      McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Max_Parallel     : SAL.Base_Peek_Type := 15;
 
-      Rule_Count   : Integer                   := 0;
-      Action_Count : Integer                   := 0;
-      Check_Count  : Integer                   := 0;
-      Label_Count  : Ada.Containers.Count_Type := 0;
+      Rule_Count              : Integer                   := 0;
+      Post_Parse_Action_Count : Integer                   := 0;
+      In_Parse_Action_Count   : Integer                   := 0;
+      Label_Count             : Ada.Containers.Count_Type := 0;
 
       If_Lexer_Present  : Boolean := False;
       If_Parser_Present : Boolean := False;
@@ -144,7 +146,10 @@ package WisiToken_Grammar_Runtime is
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   with Pre => Tree.ID (Nonterm) = +nonterminal_ID;
+   --  Nonterm is a nonterminal definition in the parsed grammar tree;
+   --  add it to User_Data.Rules.
 
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -154,6 +159,24 @@ package WisiToken_Grammar_Runtime is
 
    ----------
    --  Visible for WisiToken_Grammar_Editing
+
+   function Get_Associativity
+     (Data      : in     User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Attr_List : in     WisiToken.Syntax_Trees.Node_Access)
+     return WisiToken.Associativity
+   with Pre => Attr_List = WisiToken.Syntax_Trees.Invalid_Node_Access or else Tree.ID (Attr_List) = +attribute_list_ID;
+   --  If Attr_List is an attr_list, return the associativity it specifies;
+   --  otherwise No_Precedence.
+
+   function Get_Precedence
+     (Data      : in     User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Attr_List : in     WisiToken.Syntax_Trees.Node_Access)
+     return WisiToken.Base_Precedence_ID
+   with Pre => Attr_List = WisiToken.Syntax_Trees.Invalid_Node_Access or else Tree.ID (Attr_List) = +attribute_list_ID;
+   --  If Attr_List is an attr_list, return the precedence it specifies;
+   --  otherwise No_Precedence.
 
    function Get_Text
      (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;

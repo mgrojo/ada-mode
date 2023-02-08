@@ -51,7 +51,11 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Hashed_Maps;
+with Ada.Containers.Vectors;
 with Ada.Streams;
+with Ada.Strings.Equal_Case_Insensitive;
+with Ada.Strings.Hash_Case_Insensitive;
 with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -501,6 +505,27 @@ package WisiToken is
 
    ----------
    --  Misc
+
+   type Associativity is (Left, Right, None);
+
+   type Base_Precedence_ID is range 0 .. 255;
+   subtype Precedence_ID is Base_Precedence_ID range 1 .. 255;
+   No_Precedence : constant Base_Precedence_ID := 0;
+
+   type Precedence_List_ID is range 1 .. 255;
+
+   package Precedence_Maps is new Ada.Containers.Indefinite_Hashed_Maps
+     (Key_Type        => String,
+      Element_Type    => Precedence_ID,
+      Hash            => Ada.Strings.Hash_Case_Insensitive,
+      Equivalent_Keys => Ada.Strings.Equal_Case_Insensitive);
+
+   package Precedence_Lists is new Ada.Containers.Doubly_Linked_Lists (Precedence_ID);
+
+   package Precedence_Lists_Arrays is new Ada.Containers.Vectors
+     (Precedence_List_ID, Precedence_Lists.List, Precedence_Lists."=");
+   --  Actual precedence relation is given by order of two Precedence_IDs
+   --  in a Precedence_List; earlier ID has higher precedence.
 
    type Cache_Version is mod 2**16;
 

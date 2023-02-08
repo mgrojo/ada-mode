@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 - 2022 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2023 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -86,7 +86,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                      Result := Child;
                      exit;
                   else
-                     raise SAL.Programmer_Error with "node" & Result'Image & " is not an element of the list";
+                     raise SAL.Programmer_Error with "node " & Tree.Image (Result, Node_Numbers => True) &
+                       " is not an element of the list at " & Tree.Image (Root, Node_Numbers => True);
                   end if;
                end;
             end loop;

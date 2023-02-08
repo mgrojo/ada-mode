@@ -12,7 +12,7 @@
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp actions directly.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2023 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -159,16 +159,16 @@ is
    end Split_Sexp;
 
    procedure Create_Ada_Action
-     (Name          : in     String;
-      RHS           : in     RHS_Type;
-      Prod_ID       : in     WisiToken.Production_ID;
-      Unsplit_Lines : in     Ada.Strings.Unbounded.Unbounded_String;
-      Labels        : in     String_Arrays.Vector;
-      Empty         :    out Boolean;
-      Check         : in     Boolean)
+     (Name            : in     String;
+      RHS             : in     RHS_Type;
+      Prod_ID         : in     WisiToken.Production_ID;
+      Unsplit_Lines   : in     Ada.Strings.Unbounded.Unbounded_String;
+      Labels          : in     String_Arrays.Vector;
+      Empty           :    out Boolean;
+      In_Parse_Action : in     Boolean)
    is
-      --  Create Action (if Check = False; Lines must be RHS.Action) or
-      --  Check (if Check = True; Lines must be RHS.Check) subprogram named
+      --  Create Post_Parse_Action (if In_Parse_Action = False; Lines must be RHS.Action) or
+      --  In_Parse_Action (if In_Parse_Action = True; Lines must be RHS.In_Parse_Action) subprogram named
       --  Name for RHS.
 
       use Ada.Strings;
@@ -187,7 +187,7 @@ is
       Navigate_Lines     : String_Lists.List;
       Face_Line          : Unbounded_String;
       Indent_Action_Line : Unbounded_String;
-      Check_Line         : Unbounded_String;
+      In_Parse_Action_Line         : Unbounded_String;
 
       Label_Needed   : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
       Nonterm_Needed : Boolean := False;
@@ -1185,18 +1185,18 @@ is
             end if;
          end Assert_Indent_Empty;
 
-         procedure Assert_Check_Empty
+         procedure Assert_In_Parse_Action_Empty
          is begin
-            if Length (Check_Line) > 0 then
+            if Length (In_Parse_Action_Line) > 0 then
                Put_Error
                  (Error_Message
-                    (Grammar_File_Name, RHS.Source_Line, "multiple check actions"));
+                    (Grammar_File_Name, RHS.Source_Line, "multiple in_parse actions"));
             end if;
-         end Assert_Check_Empty;
+         end Assert_In_Parse_Action_Empty;
 
       begin
          --  wisi action/check functions, in same order as typically used in
-         --  .wy files; Navigate, Face, Indent, Check.
+         --  .wy files; Navigate, Face, Indent, actions.
          if Elisp_Name = "wisi-statement-action" then
             declare
                Params : constant String := Statement_Params (Line (Last + 1 .. Line'Last));
@@ -1286,16 +1286,16 @@ is
                Label : constant String := Get_Label (Line (Last + 1 .. Line'Last - 1));
             begin
                if Label_Used (Label) then
-                  Assert_Check_Empty;
+                  Assert_In_Parse_Action_Empty;
                   Nonterm_Needed := True;
-                  Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                  In_Parse_Action_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                     " (Tree, Nonterm, Tokens, " & Label & ");";
                end if;
             end;
 
          elsif Elisp_Name = "wisi-merge-names" then
-            Assert_Check_Empty;
-            Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+            Assert_In_Parse_Action_Empty;
+            In_Parse_Action_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
               Merge_Names_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-match-names" then
@@ -1303,16 +1303,17 @@ is
                Params : constant String := Match_Names_Params (Line (Last + 1 .. Line'Last));
             begin
                if Params'Length > 0 then
-                  Assert_Check_Empty;
-                  Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                  Assert_In_Parse_Action_Empty;
+                  In_Parse_Action_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                     Params & ";";
                end if;
             end;
 
          elsif Elisp_Name = "wisi-terminate-partial-parse" then
-            Assert_Check_Empty;
+            Assert_In_Parse_Action_Empty;
             Nonterm_Needed := True;
-            Check_Line := +"return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
+            In_Parse_Action_Line :=
+              +"return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
               "Recover_Active, Nonterm);";
 
          elsif Input_Data.Tokens.Actions.Contains (+Elisp_Name) then
@@ -1373,9 +1374,8 @@ is
          end;
       end loop;
 
-      if Check then
-         --  In an in-parse check action
-         if Length (Check_Line) = 0 then
+      if In_Parse_Action then
+         if Length (In_Parse_Action_Line) = 0 then
             Empty := True; -- don't output a spec for this.
 
          else
@@ -1388,10 +1388,10 @@ is
             Indent_Line ("  Recover_Active : in     Boolean)");
             Indent_Line (" return WisiToken.Syntax_Trees.In_Parse_Actions.Status");
             declare
-               Unref_Tree    : constant Boolean := 0 = Index (Check_Line, "Tree");
-               Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
-               Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
-               Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
+               Unref_Tree    : constant Boolean := 0 = Index (In_Parse_Action_Line, "Tree");
+               Unref_Nonterm : constant Boolean := 0 = Index (In_Parse_Action_Line, "Nonterm");
+               Unref_Tokens  : constant Boolean := 0 = Index (In_Parse_Action_Line, "Tokens");
+               Unref_Recover : constant Boolean := 0 = Index (In_Parse_Action_Line, "Recover_Active");
                Need_Comma    : Boolean          := False;
             begin
                if Unref_Tree or Unref_Nonterm or Unref_Tokens or Unref_Recover or
@@ -1437,7 +1437,7 @@ is
                end if;
             end;
             Indent := Indent + 3;
-            Indent_Line (-Check_Line);
+            Indent_Line (-In_Parse_Action_Line);
          end if;
       else
          --  In an action
@@ -1513,7 +1513,7 @@ is
    is begin
       for Rule of Input_Data.Tokens.Rules loop
          for RHS of Rule.Right_Hand_Sides loop
-            for Sexp of Split_Sexp (-RHS.Action, Grammar_File_Name, RHS.Source_Line) loop
+            for Sexp of Split_Sexp (-RHS.Post_Parse_Action, Grammar_File_Name, RHS.Source_Line) loop
                declare
                   Last       : constant Integer := Ada.Strings.Fixed.Index (Sexp, Blank_Set);
                   Elisp_Name : constant String  := Sexp (Sexp'First + 1 .. Last - 1);
@@ -1529,8 +1529,8 @@ is
    end Any_Motion_Actions;
 
    procedure Create_Ada_Actions_Body
-     (Action_Names : not null access WisiToken.Names_Array_Array;
-      Check_Names  : not null access WisiToken.Names_Array_Array;
+     (Post_Parse_Action_Names : not null access WisiToken.Names_Array_Array;
+      In_Parse_Action_Names  : not null access WisiToken.Names_Array_Array;
       Label_Count  : in              Ada.Containers.Count_Type;
       Package_Name : in              String)
    is
@@ -1573,7 +1573,7 @@ is
          end;
       end if;
 
-      if Input_Data.Check_Count > 0 then
+      if Input_Data.In_Parse_Action_Count > 0 then
          Indent_Line ("with WisiToken.In_Parse_Actions; use WisiToken.In_Parse_Actions;"); -- Match_Names etc.
       end if;
       case Common_Data.Interface_Kind is
@@ -1590,7 +1590,7 @@ is
       Indent := Indent + 3;
       New_Line;
 
-      if Input_Data.Check_Count > 0 then
+      if Input_Data.In_Parse_Action_Count > 0 then
          Indent_Line ("use WisiToken.Syntax_Trees.In_Parse_Actions;");
       end if;
       if Motion_Actions then
@@ -1598,7 +1598,7 @@ is
       end if;
       New_Line;
 
-      --  generate Action and Check subprograms.
+      --  generate Post_Parse_Action and In_Parse_Action subprograms.
 
       for Rule of Input_Data.Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
@@ -1609,24 +1609,28 @@ is
             Empty     : Boolean;
          begin
             for RHS of Rule.Right_Hand_Sides loop
-               if Length (RHS.Action) > 0 then
+               if Length (RHS.Post_Parse_Action) > 0 then
                   declare
-                     Name : constant String := Action_Names (LHS_ID)(RHS_Index).all;
+                     Name : constant String := Post_Parse_Action_Names (LHS_ID)(RHS_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Action, Rule.Labels, Empty, Check => False);
+                     Create_Ada_Action
+                       (Name, RHS, (LHS_ID, RHS_Index), RHS.Post_Parse_Action, Rule.Labels, Empty,
+                        In_Parse_Action => False);
                      if Empty then
-                        Action_Names (LHS_ID)(RHS_Index) := null;
+                        Post_Parse_Action_Names (LHS_ID)(RHS_Index) := null;
                      end if;
                   end;
                end if;
 
-               if Length (RHS.Check) > 0 then
+               if Length (RHS.In_Parse_Action) > 0 then
                   declare
-                     Name  : constant String := Check_Names (LHS_ID)(RHS_Index).all;
+                     Name  : constant String := In_Parse_Action_Names (LHS_ID)(RHS_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Check, Rule.Labels, Empty, Check => True);
+                     Create_Ada_Action
+                       (Name, RHS, (LHS_ID, RHS_Index), RHS.In_Parse_Action, Rule.Labels, Empty,
+                        In_Parse_Action => True);
                      if Empty then
-                        Check_Names (LHS_ID)(RHS_Index) := null;
+                        In_Parse_Action_Names (LHS_ID)(RHS_Index) := null;
                      end if;
                   end;
                end if;
@@ -2062,10 +2066,11 @@ begin
          when Module  => "_Module") &
         Gen_Alg_Name & "_Main";
    begin
-      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
+      if Input_Data.Post_Parse_Action_Count > 0 or Input_Data.In_Parse_Action_Count > 0 then
          --  We typically have no actions when just getting started with a new language.
          Create_Ada_Actions_Body
-           (Generate_Data.Action_Names, Generate_Data.Check_Names, Input_Data.Label_Count, Actions_Package_Name);
+           (Generate_Data.Post_Parse_Action_Names, Generate_Data.In_Parse_Action_Names, Input_Data.Label_Count,
+            Actions_Package_Name);
       end if;
 
       Create_Ada_Actions_Spec

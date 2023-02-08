@@ -2,7 +2,7 @@
 --
 --  Type and operations for building grammar productions.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -39,6 +39,8 @@ package WisiToken.Productions is
 
       Post_Parse_Action : Syntax_Trees.Post_Parse_Action := null;
       In_Parse_Action   : Syntax_Trees.In_Parse_Actions.In_Parse_Action := null;
+
+      Precedence : WisiToken.Base_Precedence_ID := WisiToken.No_Precedence;
    end record
    with Dynamic_Predicate =>
      (Tokens.Length = 0 or Tokens.First_Index = 1) and
@@ -52,6 +54,7 @@ package WisiToken.Productions is
       LHS            : Token_ID := Invalid_Token_ID;
       Optimized_List : Boolean  := False;
       RHSs           : RHS_Arrays.Vector;
+      Precedence     : WisiToken.Base_Precedence_ID := WisiToken.No_Precedence;
    end record;
 
    package Prod_Arrays is new SAL.Gen_Unbounded_Definite_Vectors

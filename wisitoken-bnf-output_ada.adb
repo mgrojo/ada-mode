@@ -4,7 +4,7 @@
 --  parameters, and a parser for that grammar. The grammar parser
 --  actions must be Ada.
 --
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -57,8 +57,8 @@ is
    end Symbol_Regexp;
 
    procedure Create_Ada_Actions_Body
-     (Action_Names : not null access WisiToken.Names_Array_Array;
-      Check_Names  : not null access WisiToken.Names_Array_Array;
+     (Post_Parse_Action_Names : not null access WisiToken.Names_Array_Array;
+      In_Parse_Action_Names  : not null access WisiToken.Names_Array_Array;
       Label_Count  : in              Ada.Containers.Count_Type;
       Package_Name : in              String)
    is
@@ -88,7 +88,7 @@ is
       --  because some declared labels are not actually used in actions. The
       --  user will have to add 'with SAL;' in a code declaration.
 
-      if Input_Data.Check_Count > 0 then
+      if Input_Data.In_Parse_Action_Count > 0 then
          --  For Match_Names etc
          Indent_Line ("with  WisiToken.In_Parse_Actions; use WisiToken.In_Parse_Actions;");
          New_Line;
@@ -100,7 +100,7 @@ is
 
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Body_Pre));
 
-      --  generate Action and Check subprograms.
+      --  generate Post_Parse_Action and In_Parse_Action subprograms.
 
       for Rule of Input_Data.Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
@@ -149,12 +149,12 @@ is
 
          begin
             for RHS of Rule.Right_Hand_Sides loop
-               if Length (RHS.Action) > 0 then
+               if Length (RHS.Post_Parse_Action) > 0 then
                   declare
-                     Line : constant String := -RHS.Action;
+                     Line : constant String := -RHS.Post_Parse_Action;
                      --  Actually multiple lines; we assume the formatting is adequate.
 
-                     Name : constant String := Action_Names (LHS_ID)(RHS_Index).all;
+                     Name : constant String := Post_Parse_Action_Names (LHS_ID)(RHS_Index).all;
 
                      Unref_User_Data : Boolean := True;
                      Unref_Tree      : Boolean := True;
@@ -212,11 +212,11 @@ is
                   end;
                end if;
 
-               if Length (RHS.Check) > 0 then
+               if Length (RHS.In_Parse_Action) > 0 then
                   declare
                      use Ada.Strings.Fixed;
-                     Line          : constant String  := -RHS.Check;
-                     Name          : constant String  := Check_Names (LHS_ID)(RHS_Index).all;
+                     Line          : constant String  := -RHS.In_Parse_Action;
+                     Name          : constant String  := In_Parse_Action_Names (LHS_ID)(RHS_Index).all;
                      Unref_Tree    : constant Boolean := 0 = Index (Line, "Tree");
                      Unref_Nonterm : constant Boolean := 0 = Index (Line, "Nonterm");
                      Unref_Tokens  : constant Boolean := 0 = Index (Line, "Tokens");
@@ -466,10 +466,11 @@ begin
       Main_Package_Name    : constant String := File_Name_To_Ada (Output_File_Name_Root & Gen_Alg_Name) & "_Main";
       Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) & "_Actions";
    begin
-      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
-         --  Some WisiToken tests have no actions or checks.
+      if Input_Data.Post_Parse_Action_Count > 0 or Input_Data.In_Parse_Action_Count > 0 then
+         --  Some WisiToken tests have no post_parse or in_parse actions.
          Create_Ada_Actions_Body
-           (Generate_Data.Action_Names, Generate_Data.Check_Names, Input_Data.Label_Count, Actions_Package_Name);
+           (Generate_Data.Post_Parse_Action_Names, Generate_Data.In_Parse_Action_Names, Input_Data.Label_Count,
+            Actions_Package_Name);
       end if;
 
       Create_Ada_Actions_Spec

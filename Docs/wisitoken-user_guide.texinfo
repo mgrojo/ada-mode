@@ -229,7 +229,8 @@ example:
 The syntax of the regular expression is determined by the lexer
 generator. For @code{tree_sitter}, it is a Javascript expression that
 evaluates to a regexp object; @code{/foo/u} or @code{new RegExp
-("foo", "u")}.
+("foo", "u")}. See @url{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
+}
 
 @code{repair_image} is used in error repair information; it should be
 inserted by an editor at the place of the expected but missing token.
@@ -684,6 +685,11 @@ the generated code to not include the runtime. Some grammars may need
 no runtime, particularly if they are small grammars intendend to test
 some generator feature.
 
+@item %precedence <name> ...
+Specifies a list of precedence names, and the order relation between
+them. All precedence names must be declared in a @code{%precedence}
+declaration before being used in a nonterminal.
+
 @item %partial_recursion
 The error recovery algorithm requires computing the recursion present
 in the language grammar. For some grammars (such as Java), this is too
@@ -755,11 +761,12 @@ rhs_item
   | '(' rhs {| rhs} ')'
   ;
 @end verbatim
-Here @code{token} is either defined by a token
+Here @code{token} is either an identifier defined by a token
 declaration, or the token value contained in single quotes.
 
-The second option is an attribute, as defined by ANTLR; these are
-ignored in wisitoken.
+The second option is an attribute; these are used in wisitoken to
+express precedence and associativity, which are used in grammar
+conflict resolution.
 
 Parentheses are used to group items.
 
@@ -786,6 +793,66 @@ rhs_multiple_item
 ''@{@}'', ''()*'', and ''token*'' mean the content is present zero or more
 times. ''@{@}-'', ''()+'', and ''token+'' mean the content is present one or
 more times.
+
+@node Precedence attributes
+Some ambiguous LR grammars can be made non-ambiguous by adding precedence
+and/or associativity attributes (these attributes have no meaning for
+packrat parsers). Consider an expression grammar that
+includes binary add and multiply, and unary negate:
+
+@example
+%precedence unary binary
+%precedence multiply add
+
+expression
+  : primary
+  | <prec=unary> unary_operator expression
+  | <prec=binary><assoc=left> expression (binary_operator expression)+
+
+unary_operator : '-' ;
+
+binary_operator
+  : (<prec=multiply> '*')
+  | (<prec=add> '+')
+  ;
+@end example
+
+Without the attributes, this is ambiguous: the statement @code{1 + 2 *
+3} can be parsed as @code{(1 + 2) * 3} or @code{(1 + (2 *
+3)}. Similarly @code{1 + -2 + 3} can be parsed as @code{(1 + (-2)) + 3)} or
+@code{1 + -(2 + 3)}, etc.
+
+The @code{%precedence} declarations each give an order for the list of
+precedence labels; here unary operations are done before binary, and
+multiply before add. There is no order between separate
+@code{%precedence} declarations.
+
+The @code{prec} attribute applies a precedence label to a group of
+tokens in the right-hand side of a production. If the LR parser
+generation algorithm encounters a conflict involving productions with
+precedence labels, the labels are compared, and the higher precedence
+production is used. If there is no higher precedence, either because
+both productions have the same label, or the labels are from different
+precedence declarations, the conflict is kept, and resolved at runtime
+via the generalized parser algorithm.
+
+This resolves the first example conflict; @code{1 + 2 * 3} is parsed
+as @code{(1 + (2 * 3)} because multiply has higher precedence than
+add.
+
+It also resolves the unary minus in the second conflict example;
+@code{-2} is always parsed as @code{(-2)} because unary has higher
+precendence than the other operators.
+
+The @code{assoc} attribute is similar; it specifies how to choose
+between two productions. It must be applied to a token sequence that
+generates a list. @code{assoc=left} says to build the list as
+@code{list operator element} (the list is on the left);
+@code{assoc=right} says to build the list as @code{element operator
+list} (the list is on the right);
+
+This resolves the second conflict example; @code{1 + -2 + 3} is parsed
+as @code{(1 + (-2)) + 3)}.
 
 @node Conditional code
 @section Conditional code

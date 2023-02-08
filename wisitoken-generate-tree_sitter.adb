@@ -116,7 +116,7 @@ package body WisiToken.Generate.Tree_Sitter is
                when IDENTIFIER_ID | STRING_LITERAL_SINGLE_ID =>
                   return Invalid_Node_Access;
 
-               when rhs_attribute_ID =>
+               when attribute_ID =>
                   --  If the only elements in an rhs_item_list are attributes, the list
                   --  is empty for LR generation purposes.
                   return Item;
@@ -599,7 +599,7 @@ package body WisiToken.Generate.Tree_Sitter is
                when STRING_LITERAL_SINGLE_ID =>
                   null;
 
-               when rhs_attribute_ID | rhs_optional_item_ID | rhs_multiple_item_ID | rhs_group_item_ID =>
+               when attribute_ID | rhs_optional_item_ID | rhs_multiple_item_ID | rhs_group_item_ID =>
                   Find_Nodes (Tree.Child (Node, 1));
 
                when others =>
@@ -1005,7 +1005,7 @@ package body WisiToken.Generate.Tree_Sitter is
                end if;
             end;
 
-         when rhs_attribute_ID =>
+         when attribute_ID =>
             null;
 
          when rhs_optional_item_ID =>

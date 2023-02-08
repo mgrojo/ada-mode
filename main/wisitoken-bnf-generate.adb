@@ -577,6 +577,15 @@ begin
                   else
                      if Trace_Generate > Outline then
                         Trace.Put_Line ("generate LALR parse table");
+
+                        if Trace_Generate > Detail then
+                           Ada.Text_IO.New_Line;
+                           Ada.Text_IO.Put_Line ("Tokens:");
+                           WisiToken.Put_Tokens (Generate_Data.Descriptor.all);
+                           Ada.Text_IO.Put_Line ("grammar:");
+                           WisiToken.Productions.Put (Generate_Data.Grammar, Generate_Data.Descriptor.all);
+                           Ada.Text_IO.New_Line;
+                        end if;
                      end if;
 
                      Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LALR_Generate.Generate

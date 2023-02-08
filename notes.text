@@ -29,11 +29,9 @@ incremental_parse-pre-config.input_stream o.w.s-2
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-3"        . "../org.wisitoken")))
 
  current work
-propagate to o.w.s-1
-
 test_incremental.adb fails
     Multiple_Errors_On_One_Token_1
         recover_insert_delete node 1 not in tree
@@ -89,11 +87,39 @@ test_incremental.adb fails
             inserted node is -36:SEMICOLON
             contained in
 
-add right-associativity for tree-sitter lists
-    see fixme in o.e.a-m.s-4/ada_annex_p.wy
+ tree-sitter
+;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+
+handle precedence in conflict resolution
+    test/prec_assoc_bnf.wy
+precedence.wy:1:1: error: terminal sequences not resolved:
+precedence.wy:1:1: error: expression, expression_list
+    from minimimal_terminal_sequence
+        not needed; no error recover, so don't compute
+
+
+ada_lite.wy broken
+
+handle prec, assoc in ebnf translation
+    test/bnf/prec_assoc_ebnf.wy
+        make one
+            several invalid tree errors
+            split out into debug.wy
+                translate group item wrong
+
+    test/bnf/test_prec_assoc.adb
+        insert parens, compare to expected.
 
 translate %conflict_resolution to precedences?
-    https://github.com/tree-sitter/tree-sitter/pull/939
+    https://github.com/tree-sitter/tree-sitter/pull/939 documents named precedences.
+
+handle prec, assoc for tree-sitter
+    need assoc=right?
+    see fixme on %conflict component_list in c:/Projects/org.emacs.ada-mode.stephe-4/ada_annex_p.wy
+    not needed if use canonical list pattern?
+        does that sacrifice list optimization?
+            need to print tree-sitter trees
 
 consider https://github.com/briot/tree-sitter-ada
     some good conflict reduction

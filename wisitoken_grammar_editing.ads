@@ -121,17 +121,20 @@ package WisiToken_Grammar_Editing is
 
    function Add_RHS
      (Tree              : in out WisiToken.Syntax_Trees.Tree;
-      Item              : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Attr_List         : in     WisiToken.Syntax_Trees.Node_Access;
+      Item_List         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Auto_Token_Labels : in     Boolean;
       Edited_Token_List : in     Boolean;
       Post_Parse_Action : in     WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access;
       In_Parse_Action   : in     WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access
-   with Pre => Tree.ID (Item) = +rhs_item_list_ID and
+   with Pre => (Attr_List = WisiToken.Syntax_Trees.Invalid_Node_Access or else
+                  Tree.ID (Attr_List) = +attribute_list_ID) and
+               Tree.ID (Item_List) = +rhs_item_list_ID and
                (Post_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Access or else
-                Tree.ID (Post_Parse_Action) = +ACTION_ID) and
+                  Tree.ID (Post_Parse_Action) = +ACTION_ID) and
                (In_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Access or else
-                Tree.ID (In_Parse_Action) = +ACTION_ID),
+                  Tree.ID (In_Parse_Action) = +ACTION_ID),
      Post => Tree.ID (Add_RHS'Result) = +rhs_ID;
 
    function Find_Declaration

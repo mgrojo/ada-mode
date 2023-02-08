@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1113,7 +1113,7 @@ package body WisiToken.Generate.LR is
                   Error_Message
                     (File_Name => Grammar_File_Name,
                      File_Line => Line_Number_Type'First,
-                     Message   => "terminal sequences not resolved:"));
+                     Message   => "Compute_Minimal_Terminal_Sequences: terminal sequences not resolved:"));
 
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Current_Error,

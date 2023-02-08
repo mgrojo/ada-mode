@@ -113,7 +113,7 @@ package body WisiToken_Grammar_Runtime is
 
    function Get_RHS
      (Data   : in out User_Data_Type;
-      Tree   : in     Syntax_Trees.Tree;
+      Tree   : in out Syntax_Trees.Tree;
       Labels : in out WisiToken.BNF.String_Arrays.Vector;
       Token  : in     Syntax_Trees.Valid_Node_Access)
      return WisiToken.BNF.RHS_Type
@@ -136,50 +136,82 @@ package body WisiToken_Grammar_Runtime is
          end if;
 
          if Children'Length > 0 then
-            for  I of Tree.Get_IDs (Children (1), +rhs_element_ID) loop
-               case Tree.RHS_Index (I) is
-               when 0 =>
-                  --  rhs_item
-                  RHS.Tokens.Append
-                    (WisiToken.BNF.Labeled_Token'
-                       (Label      => +"",
-                        Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
+            declare
+               use WisiToken.Syntax_Trees;
 
-               when 1 =>
-                  --  IDENTIFIER = rhs_item
-                  declare
-                     Label : constant String := Get_Text (Data, Tree, Tree.Child (I, 1));
-                  begin
+               Attr_List     : Node_Access := Invalid_Node_Access;
+               RHS_Item_List : Node_Access;
+               Action_1      : Node_Access := Invalid_Node_Access;
+               Action_2      : Node_Access := Invalid_Node_Access;
+            begin
+               if Tree.ID (Children (1)) = +rhs_item_list_ID then
+                  RHS_Item_List := Children (1);
+                  if Children'Last > 1 then
+                     Action_1 := Children (2);
+                  end if;
+                  if Children'Last > 2 then
+                     Action_2 := Children (3);
+                  end if;
+
+               else
+                  Attr_List := Children (1);
+                  RHS_Item_List := Children (2);
+                  if Children'Last > 2 then
+                     Action_1 := Children (3);
+                  end if;
+                  if Children'Last > 3 then
+                     Action_2 := Children (4);
+                  end if;
+               end if;
+
+               RHS.Associativity := Get_Associativity (Data, Tree, Attr_List);
+               RHS.Precedence    := Get_Precedence (Data, Tree, Attr_List);
+
+               for I of Tree.Get_IDs (RHS_Item_List, +rhs_element_ID) loop
+                  case Tree.RHS_Index (I) is
+                  when 0 =>
+                     --  rhs_item
                      RHS.Tokens.Append
                        (WisiToken.BNF.Labeled_Token'
-                          (Label      => +Label,
-                           Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
+                          (Label      => +"",
+                           Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
 
-                     if (for all L of Labels => -L /= Label) then
-                        Labels.Append (+Label);
+                  when 1 =>
+                     --  IDENTIFIER = rhs_item
+                     declare
+                        Label : constant String := Get_Text (Data, Tree, Tree.Child (I, 1));
+                     begin
+                        RHS.Tokens.Append
+                          (WisiToken.BNF.Labeled_Token'
+                             (Label      => +Label,
+                              Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
+
+                        if (for all L of Labels => -L /= Label) then
+                           Labels.Append (+Label);
+                        end if;
+                     end;
+
+                  when others =>
+                     WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("Get_RHS; unimplemented token", Tree, I);
+                  end case;
+               end loop;
+
+               if Action_1 /= Invalid_Node_Access then
+                  declare
+                     Text : constant String := Get_Text (Data, Tree, Action_1);
+                  begin
+                     if Text'Length > 0 and (for some C of Text => C /= ' ') then
+                        RHS.Post_Parse_Action := +Text;
+                        Data.Post_Parse_Action_Count := Data.Post_Parse_Action_Count + 1;
                      end if;
                   end;
+               end if;
 
-               when others =>
-                  WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("Get_RHS; unimplemented token", Tree, I);
-               end case;
-            end loop;
-
-            if Children'Last >= 2 then
-               declare
-                  Text : constant String := Get_Text (Data, Tree, Children (2));
-               begin
-                  if Text'Length > 0 and (for some C of Text => C /= ' ') then
-                     RHS.Action := +Text;
-                     Data.Action_Count := Data.Action_Count + 1;
-                  end if;
-               end;
-            end if;
-
-            if Children'Last >= 3 then
-               RHS.Check := +Get_Text (Data, Tree, Children (3));
-               Data.Check_Count := Data.Check_Count + 1;
-            end if;
+               if Action_2 /= Invalid_Node_Access then
+                  RHS.In_Parse_Action := +Get_Text (Data, Tree, Action_2);
+                  Data.In_Parse_Action_Count := Data.In_Parse_Action_Count + 1;
+               end if;
+            end;
          end if;
       end return;
    exception
@@ -273,24 +305,26 @@ package body WisiToken_Grammar_Runtime is
       --  Preserve Phase
       --  Preserve Terminals
       --  Preserve Non_Grammar
-      Data.Raw_Code          := (others => <>);
-      Data.Language_Params   :=
-        (Case_Insensitive => Data.Language_Params.Case_Insensitive,
-         Error_Recover    => Data.Language_Params.Error_Recover,
-         others           => <>);
-      Data.Tokens            :=
+      Data.Raw_Code := (others => <>);
+
+      Data.Language_Params :=
+        (Case_Insensitive    => Data.Language_Params.Case_Insensitive,
+         Error_Recover       => Data.Language_Params.Error_Recover,
+         others              => <>);
+      Data.Tokens          :=
         (Virtual_Identifiers => Data.Tokens.Virtual_Identifiers,
-         others => <>);
+         others              => <>);
+
       Data.Suppress.Clear;
       Data.Conflicts.Clear;
-      Data.McKenzie_Recover  := (others => <>);
-      Data.Rule_Count        := 0;
-      Data.Action_Count      := 0;
-      Data.Check_Count       := 0;
-      Data.Label_Count       := 0;
-      Data.If_Lexer_Present  := False;
-      Data.If_Parser_Present := False;
-      Data.Ignore_Lines      := False;
+      Data.McKenzie_Recover        := (others => <>);
+      Data.Rule_Count              := 0;
+      Data.Post_Parse_Action_Count := 0;
+      Data.In_Parse_Action_Count   := 0;
+      Data.Label_Count             := 0;
+      Data.If_Lexer_Present        := False;
+      Data.If_Parser_Present       := False;
+      Data.Ignore_Lines            := False;
    end Reset;
 
    overriding procedure Initialize_Actions
@@ -782,6 +816,31 @@ package body WisiToken_Grammar_Runtime is
             elsif Kind = "partial_recursion" then
                Data.Language_Params.Recursion_Strategy := Partial;
 
+            elsif Kind = "precedence" then
+               declare
+                  use WisiToken.Syntax_Trees.LR_Utils;
+                  Name_List : constant Constant_List := Creators.Create_List
+                    (Tree, Tree.Child (Nonterm, 3), +declaration_item_list_ID, +declaration_item_ID);
+                  P_List : WisiToken.Precedence_Lists.List;
+               begin
+                  for Item of Name_List loop
+                     declare
+                        Name  : constant String                 := Get_Text (Data, Tree, Item);
+                        Found : constant Precedence_Maps.Cursor := Data.Precedence_Map.Find (Name);
+                        P_ID  : WisiToken.Precedence_ID;
+                     begin
+                        if not Precedence_Maps.Has_Element (Found)  then
+                           P_ID := 1 + WisiToken.Base_Precedence_ID (Data.Precedence_Map.Length);
+                           Data.Precedence_Map.Insert (Name, P_ID);
+                        else
+                           P_ID := Data.Precedence_Map (Found);
+                        end if;
+                        P_List.Append (P_ID);
+                     end;
+                  end loop;
+                  Data.Precedence_Lists.Append (P_List);
+               end;
+
             elsif Kind = "start" then
                Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
 
@@ -818,6 +877,11 @@ package body WisiToken_Grammar_Runtime is
 
       LHS_Node   : constant Valid_Node_Access := Tree.Child (Nonterm, 1);
       LHS_String : constant String            := Get_Text (Data, Tree, LHS_Node);
+
+      Attr_List : constant Node_Access :=
+        (if Tree.ID (Tree.Child (Nonterm, 2)) = +attribute_list_ID
+         then Tree.Child (Nonterm, 2)
+         else Invalid_Node_Access);
 
       Right_Hand_Sides : WisiToken.BNF.RHS_Lists.List;
       Labels           : WisiToken.BNF.String_Arrays.Vector;
@@ -950,7 +1014,9 @@ package body WisiToken_Grammar_Runtime is
 
       Data.Rule_Count := Data.Rule_Count + 1;
 
-      Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tree.Child (Nonterm, 3));
+      Get_Right_Hand_Sides
+        (Data, Tree, Right_Hand_Sides, Labels, Tree.Child
+           (Nonterm, (if Attr_List = Invalid_Node_Access then 3 else 4)));
 
       if WisiToken.BNF.Is_Present (Data.Tokens.Rules, LHS_String) then
          case Tree.Label (LHS_Node) is
@@ -966,14 +1032,22 @@ package body WisiToken_Grammar_Runtime is
       else
          Data.Label_Count := Data.Label_Count + Labels.Length;
 
-         Data.Tokens.Rules.Append
-           ((+LHS_String, Right_Hand_Sides, Labels,
-             Optimized_List => Is_Optimized_List,
-             Source_Line    =>
-               (case Tree.Label (LHS_Node) is
-                when Source_Terminal    => Tree.Line_Region (LHS_Node, Trailing_Non_Grammar => True).First,
-                when Virtual_Identifier => Line_Number_Type'First, -- IMPROVEME: get line from Right_Hand_Sides
-                when others             => raise SAL.Programmer_Error)));
+         declare
+            --  Work around "unspecified order" warning; Tree is 'in out' in Get_Precedence.
+            Prec : constant WisiToken.Base_Precedence_ID := Get_Precedence (Data, Tree, Attr_List);
+         begin
+            Data.Tokens.Rules.Append
+              ((Left_Hand_Side   => +LHS_String,
+                Precedence       => Prec,
+                Right_Hand_Sides => Right_Hand_Sides,
+                Labels           => Labels,
+                Optimized_List   => Is_Optimized_List,
+                Source_Line      =>
+                  (case Tree.Label (LHS_Node) is
+                   when Source_Terminal    => Tree.Line_Region (LHS_Node, Trailing_Non_Grammar => True).First,
+                   when Virtual_Identifier => Line_Number_Type'First, -- IMPROVEME: get line from Right_Hand_Sides
+                   when others             => raise SAL.Programmer_Error)));
+         end;
       end if;
    end Add_Nonterminal;
 
@@ -1003,6 +1077,80 @@ package body WisiToken_Grammar_Runtime is
          raise SAL.Programmer_Error;
       end case;
    end Check_EBNF;
+
+   function Get_Associativity
+     (Data      : in     User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Attr_List : in     WisiToken.Syntax_Trees.Node_Access)
+     return WisiToken.Associativity
+   is
+      use WisiToken.Syntax_Trees;
+   begin
+      if Attr_List = Invalid_Node_Access then
+         return WisiToken.None;
+      else
+         declare
+            List : constant LR_Utils.Constant_List := LR_Utils.Creators.Create_List
+              (Tree       => Tree,
+               Root       => Attr_List,
+               List_ID    => +attribute_list_ID,
+               Element_ID => +attribute_ID);
+         begin
+            for Attr of List loop
+               if Get_Text (Data, Tree, Tree.Child (Attr, 1)) = "assoc" then
+                  declare
+                     Name : constant String := Get_Text (Data, Tree, Tree.Child (Attr, 4));
+                  begin
+                     return WisiToken.Associativity'Value (Name);
+                  exception
+                  when Constraint_Error =>
+                     Put_Error
+                       (Tree.Error_Message
+                          (Attr_List, "invalid associativity name '" & Name & "'; must be 'left' or 'right'"));
+                  end;
+               end if;
+            end loop;
+         end;
+         return WisiToken.None;
+      end if;
+   end Get_Associativity;
+
+   function Get_Precedence
+     (Data      : in     User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Attr_List : in     WisiToken.Syntax_Trees.Node_Access)
+     return WisiToken.Base_Precedence_ID
+   is
+      use WisiToken.Syntax_Trees;
+   begin
+      if Attr_List = Invalid_Node_Access then
+         return WisiToken.No_Precedence;
+      else
+         declare
+            List : constant LR_Utils.Constant_List := LR_Utils.Creators.Create_List
+              (Tree       => Tree,
+               Root       => Attr_List,
+               List_ID    => +attribute_list_ID,
+               Element_ID => +attribute_ID);
+         begin
+            for Attr of List loop
+               if Get_Text (Data, Tree, Tree.Child (Attr, 1)) = "prec" then
+                  declare
+                     Name  : constant String                  := Get_Text (Data, Tree, Tree.Child (Attr, 4));
+                     Found : constant WisiToken.Precedence_Maps.Cursor := Data.Precedence_Map.Find (Name);
+                  begin
+                     if WisiToken.Precedence_Maps.Has_Element (Found) then
+                        return Data.Precedence_Map (Found);
+                     else
+                        Put_Error (Tree.Error_Message (Attr_List, "undeclared precedence name '" & Name & "'"));
+                     end if;
+                  end;
+               end if;
+            end loop;
+         end;
+         return WisiToken.No_Precedence;
+      end if;
+   end Get_Precedence;
 
    function Get_Text
      (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;

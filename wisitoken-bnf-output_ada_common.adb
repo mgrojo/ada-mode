@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -110,10 +110,10 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      if not (Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0) then
+      if not (Input_Data.Post_Parse_Action_Count > 0 or Input_Data.In_Parse_Action_Count > 0) then
          Put_Line ("with WisiToken;");
       end if;
-      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
+      if Input_Data.Post_Parse_Action_Count > 0 or Input_Data.In_Parse_Action_Count > 0 then
          Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
@@ -200,7 +200,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       end if;
 
-      for Name_List of Generate_Data.Action_Names.all loop
+      for Name_List of Generate_Data.Post_Parse_Action_Names.all loop
          if Name_List /= null then
             for Name of Name_List.all loop
                if Name /= null then
@@ -213,7 +213,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
       end loop;
 
-      for Name_List of Generate_Data.Check_Names.all loop
+      for Name_List of Generate_Data.In_Parse_Action_Names.all loop
          if Name_List /= null then
             for Name of Name_List.all loop
                if Name /= null then
@@ -841,7 +841,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         WisiToken.BNF.Generate_Grammar (Generate_Data.Grammar, Generate_Data.Action_Names.all);
+         WisiToken.BNF.Generate_Grammar (Generate_Data.Grammar, Generate_Data.Post_Parse_Action_Names.all);
 
          Indent_Line
            ("return Parser : WisiToken.Parse.Packrat.Procedural.Parser (" &
@@ -873,7 +873,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Line ("return Grammar : WisiToken.Productions.Prod_Arrays.Vector do");
       Indent := Indent + 3;
-      WisiToken.BNF.Generate_Grammar (Generate_Data.Grammar, Generate_Data.Action_Names.all);
+      WisiToken.BNF.Generate_Grammar (Generate_Data.Grammar, Generate_Data.Post_Parse_Action_Names.all);
       Indent := Indent - 3;
       Indent_Line ("end return;");
       Indent := Indent - 3;
@@ -906,8 +906,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                Actions_Present := True;
             end if;
 
-            if Generate_Data.Check_Names (P.LHS) /= null or
-              Generate_Data.Action_Names (P.LHS) /= null
+            if Generate_Data.In_Parse_Action_Names (P.LHS) /= null or
+              Generate_Data.Post_Parse_Action_Names (P.LHS) /= null
             then
                Indent_Line
                  ("Result (" & Trimmed_Image (P.LHS) & ").RHSs.Set_First_Last (" &
@@ -915,7 +915,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                     Trimmed_Image (P.RHSs.Last_Index) & ");");
 
                for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
-                  if Generate_Data.Check_Names (P.LHS) = null then
+                  if Generate_Data.In_Parse_Action_Names (P.LHS) = null then
                      Indent_Line
                        ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) &
                           ").In_Parse_Action := null;");
@@ -923,11 +923,11 @@ package body WisiToken.BNF.Output_Ada_Common is
                      Actions_Present := True;
                      Indent_Line
                        ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) & ").In_Parse_Action := " &
-                          (if Generate_Data.Check_Names (P.LHS)(J) = null then "null"
-                           else Generate_Data.Check_Names (P.LHS)(J).all & "'Access") &
+                          (if Generate_Data.In_Parse_Action_Names (P.LHS)(J) = null then "null"
+                           else Generate_Data.In_Parse_Action_Names (P.LHS)(J).all & "'Access") &
                           ";");
                   end if;
-                  if Generate_Data.Action_Names (P.LHS) = null then
+                  if Generate_Data.Post_Parse_Action_Names (P.LHS) = null then
                      Indent_Line
                        ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) &
                           ").Post_Parse_Action := null;");
@@ -936,8 +936,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                      Indent_Line
                        ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) &
                           ").Post_Parse_Action := " &
-                          (if Generate_Data.Action_Names (P.LHS)(J) = null then "null"
-                           else Generate_Data.Action_Names (P.LHS)(J).all & "'Access") &
+                          (if Generate_Data.Post_Parse_Action_Names (P.LHS)(J) = null then "null"
+                           else Generate_Data.Post_Parse_Action_Names (P.LHS)(J).all & "'Access") &
                           ";");
                   end if;
                end loop;

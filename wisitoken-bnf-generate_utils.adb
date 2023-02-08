@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014, 2015, 2017 - 2022  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017 - 2023  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -117,8 +117,10 @@ package body WisiToken.BNF.Generate_Utils is
       Data.Grammar.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
       Data.Source_Line_Map.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
 
-      Data.Action_Names := new Names_Array_Array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
-      Data.Check_Names  := new Names_Array_Array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
+      Data.Post_Parse_Action_Names := new Names_Array_Array
+        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
+      Data.In_Parse_Action_Names  := new Names_Array_Array
+        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
 
       pragma Assert (Descriptor.Accept_ID = Descriptor.First_Nonterminal);
 
@@ -147,10 +149,10 @@ package body WisiToken.BNF.Generate_Utils is
             RHS_Index        : Natural := 0;
             RHSs             : WisiToken.Productions.RHS_Arrays.Vector;
             LHS              : Token_ID; -- not initialized for exception handler
-            Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Action_All_Empty : Boolean := True;
-            Check_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Check_All_Empty  : Boolean := True;
+            Post_Parse_Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Post_Parse_Action_All_Empty : Boolean := True;
+            In_Parse_Action_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            In_Parse_Action_All_Empty  : Boolean := True;
          begin
             LHS := Find_Token_ID (Data, -Rule.Left_Hand_Side);
 
@@ -174,15 +176,20 @@ package body WisiToken.BNF.Generate_Utils is
                      end loop;
                   end if;
                   RHSs (RHS_Index) :=
-                    (Tokens => Tokens, Post_Parse_Action => null, In_Parse_Action => null, Recursion => <>);
-                  if Length (Right_Hand_Side.Action) > 0 then
-                     Action_All_Empty := False;
-                     Action_Names (RHS_Index) := new String'
+                    (Tokens            => Tokens,
+                     Post_Parse_Action => null,
+                     In_Parse_Action   => null,
+                     Recursion         => <>,
+                     Precedence        => <>);
+
+                  if Length (Right_Hand_Side.Post_Parse_Action) > 0 then
+                     Post_Parse_Action_All_Empty := False;
+                     Post_Parse_Action_Names (RHS_Index) := new String'
                        (-Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (RHS_Index));
                   end if;
-                  if Length (Right_Hand_Side.Check) > 0 then
-                     Check_All_Empty := False;
-                     Check_Names (RHS_Index) := new String'
+                  if Length (Right_Hand_Side.In_Parse_Action) > 0 then
+                     In_Parse_Action_All_Empty := False;
+                     In_Parse_Action_Names (RHS_Index) := new String'
                        (-Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (RHS_Index) & "_check");
                   end if;
 
@@ -197,13 +204,13 @@ package body WisiToken.BNF.Generate_Utils is
                RHS_Index := RHS_Index + 1;
             end loop;
 
-            Data.Grammar (LHS) := (LHS, Rule.Optimized_List, RHSs);
+            Data.Grammar (LHS) := (LHS, Rule.Optimized_List, RHSs, Rule.Precedence);
 
-            if not Action_All_Empty then
-               Data.Action_Names (LHS) := new Names_Array'(Action_Names);
+            if not Post_Parse_Action_All_Empty then
+               Data.Post_Parse_Action_Names (LHS) := new Names_Array'(Post_Parse_Action_Names);
             end if;
-            if not Check_All_Empty then
-               Data.Check_Names (LHS) := new Names_Array'(Check_Names);
+            if not In_Parse_Action_All_Empty then
+               Data.In_Parse_Action_Names (LHS) := new Names_Array'(In_Parse_Action_Names);
             end if;
 
          exception
@@ -938,8 +945,8 @@ package body WisiToken.BNF.Generate_Utils is
       New_Line;
       Put_Line
         (Integer'Image (Input_Data.Rule_Count) & " rules," &
-           Integer'Image (Input_Data.Action_Count) & " user actions," &
-           Integer'Image (Input_Data.Check_Count) & " checks," &
+           Integer'Image (Input_Data.Post_Parse_Action_Count) & " post_parse actions," &
+           Integer'Image (Input_Data.In_Parse_Action_Count) & " in_parse actions," &
            WisiToken.State_Index'Image (Generate_Data.Parser_State_Count) & " states");
    end Put_Stats;
 

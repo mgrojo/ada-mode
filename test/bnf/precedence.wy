@@ -1,0 +1,110 @@
+;;; Testing specifying precedence.
+;;
+;; BNF syntax, to focus on conflict resolutions. See
+;; prec_assoc_ebnf.wy, for handling attributes during ebnf => bnf
+;; translation. Specifying associativity is not relevant here; the BNF
+;; form of a list already does that.
+;;
+;; This is a small subset of the Ada grammar, describing expressions,
+;; but using precedence and associativity rather than multiple syntax
+;; rules.
+;;
+;; Tested in test_prec_assoc.adb, which parses expressions, inserts
+;; parentheses, and compares to the Ada equivalent expressions.
+
+%code copyright_license %{
+;;  Copyright (C) 2023 Free Software Foundation, Inc.
+;;
+;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;
+;;  This file is part of WisiToken.
+;;
+;;  WisiToken is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
+;;
+;;  WisiToken is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%generate LALR Ada re2c
+
+%keyword AND 'and'
+%keyword NOT 'not'
+%keyword OR 'or'
+%keyword XOR 'xor'
+
+%token <punctuation> EQUAL "="
+%token <punctuation> GREATER ">"
+%token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> LEFT_PAREN "("
+%token <punctuation> LESS "<"
+%token <punctuation> LESS_EQUAL "<="
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> RIGHT_PAREN ")"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> SLASH_EQUAL "/="
+%token <punctuation> STAR "*"
+
+%non_grammar <comment-new-line> COMMENT "--"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE
+
+%start compilation_unit_list
+
+%precedence unary binary
+%precedence multiply add relational logical
+
+compilation_unit
+  : expression SEMICOLON
+  ;
+
+compilation_unit_list
+  : compilation_unit_list compilation_unit
+  | compilation_unit
+  ;
+
+expression
+  : primary
+  | <prec=unary> unary_operator expression
+  | <prec=binary> expression_list
+  | LEFT_PAREN expression RIGHT_PAREN
+  ;
+
+expression_list
+  : expression_list binary_operator expression
+  ;
+
+unary_operator : NOT | PLUS | MINUS ;
+
+relational_op <prec=relational> : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
+logical_op    <prec=logical>    : AND | OR | XOR ;
+multiply_op   <prec=multiply>   : STAR | SLASH ;
+add_op        <prec=add>        : PLUS | MINUS ;
+
+binary_operator
+  : relational_op
+  | logical_op
+  | multiply_op
+  | add_op
+  ;
+
+primary
+  : NUMERIC_LITERAL
+  | IDENTIFIER
+  ;
+
+;;; end of file
