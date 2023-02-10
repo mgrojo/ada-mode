@@ -1,8 +1,2 @@
-procedure Prec_1
-is
-   A : Integer := 1;
-   B : Integer := 2;
-   C : Integer := 3;
-begin
-   return A + B * C;
-end Prec_1;
+A + B * C;
+1 + -2 + 3;

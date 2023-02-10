@@ -90,6 +90,7 @@ project WisiToken_Test is
       "optimized_conflict_04_lalr_run.ads",
       "optimized_list_lr1_run.ads",
       "optimized_list_ebnf_lr1_run.ads",
+      "prec_assoc_lalr_run.ads",
       "range_conflict_lalr_run.ads",
       "range_conflict_packrat_gen_run.ads",
       "range_conflict_packrat_proc_run.ads",

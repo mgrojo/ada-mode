@@ -65,8 +65,7 @@
 
 %start compilation_unit_list
 
-%precedence unary binary
-%precedence multiply add relational logical
+%precedence unary binary_relational binary_and binary_or binary_multiply binary_add
 
 compilation_unit
   : expression SEMICOLON
@@ -79,32 +78,25 @@ compilation_unit_list
 
 expression
   : primary
-  | <prec=unary> unary_operator expression
-  | <prec=binary> expression_list
-  | LEFT_PAREN expression RIGHT_PAREN
-  ;
-
-expression_list
-  : expression_list binary_operator expression
+  | <prec=unary>             unary_operator expression
+  | <assoc=left><prec=binary_relational> expression relational_op expression
+  | <assoc=left><prec=binary_and>        expression AND expression
+  | <assoc=left><prec=binary_or>         expression or_op expression
+  | <assoc=left><prec=binary_multiply>   expression multiply_op expression
+  | <assoc=left><prec=binary_add>        expression add_op expression
   ;
 
 unary_operator : NOT | PLUS | MINUS ;
 
-relational_op <prec=relational> : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
-logical_op    <prec=logical>    : AND | OR | XOR ;
-multiply_op   <prec=multiply>   : STAR | SLASH ;
-add_op        <prec=add>        : PLUS | MINUS ;
-
-binary_operator
-  : relational_op
-  | logical_op
-  | multiply_op
-  | add_op
-  ;
+relational_op <prec=binary_relational> : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
+or_op         <prec=binary_or>         : OR    | XOR ;
+multiply_op   <prec=binary_multiply>   : STAR  | SLASH ;
+add_op        <prec=binary_add>        : PLUS  | MINUS ;
 
 primary
   : NUMERIC_LITERAL
   | IDENTIFIER
+  | LEFT_PAREN expression RIGHT_PAREN
   ;
 
 ;;; end of file

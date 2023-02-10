@@ -512,6 +512,8 @@ package WisiToken is
    subtype Precedence_ID is Base_Precedence_ID range 1 .. 255;
    No_Precedence : constant Base_Precedence_ID := 0;
 
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Precedence_ID);
+
    type Precedence_List_ID is range 1 .. 255;
 
    package Precedence_Maps is new Ada.Containers.Indefinite_Hashed_Maps
@@ -526,6 +528,19 @@ package WisiToken is
      (Precedence_List_ID, Precedence_Lists.List, Precedence_Lists."=");
    --  Actual precedence relation is given by order of two Precedence_IDs
    --  in a Precedence_List; earlier ID has higher precedence.
+
+   procedure Put
+     (Lists : in Precedence_Lists_Arrays.Vector;
+      Map   : in Precedence_Maps.Map);
+   --  Put Lists, Map to Ada.Text_IO.Current_Ouput, for debugging.
+
+   type Precedence_Compare_Result is (Left, Right, None);
+
+   function Compare
+     (Left        : in Precedence_ID;
+      Right       : in Precedence_ID;
+      Precedences : in Precedence_Lists_Arrays.Vector)
+     return Precedence_Compare_Result;
 
    type Cache_Version is mod 2**16;
 

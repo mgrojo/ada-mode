@@ -1,0 +1,95 @@
+ 14 tokens lexed
+ 0: 0: 1:(IDENTIFIER, (1 . 1)) : shift and goto state 5
+ 0: 5: 2:(PLUS, (3 . 3)) : reduce 1 tokens to primary
+(primary, (1 . 1) <= (1:(IDENTIFIER, (1 . 1))))
+ ... goto state 11
+ 0: 11: 2:(PLUS, (3 . 3)) : reduce 1 tokens to expression
+(expression, (1 . 1) <= ((primary, (1 . 1))))
+ ... goto state 9
+ 0: 9: 2:(PLUS, (3 . 3)) : shift and goto state 23
+ 0: 23: 3:(IDENTIFIER, (5 . 5)) : reduce 1 tokens to add_op
+(add_op, (3 . 3) <= (2:(PLUS, (3 . 3))))
+ ... goto state 31
+ 0: 31: 3:(IDENTIFIER, (5 . 5)) : shift and goto state 5
+ 0: 5: 4:(STAR, (7 . 7)) : reduce 1 tokens to primary
+(primary, (5 . 5) <= (3:(IDENTIFIER, (5 . 5))))
+ ... goto state 11
+ 0: 11: 4:(STAR, (7 . 7)) : reduce 1 tokens to expression
+(expression, (5 . 5) <= ((primary, (5 . 5))))
+ ... goto state 38
+ 0: 38: 4:(STAR, (7 . 7)) : shift and goto state 27
+ 0: 27: 5:(IDENTIFIER, (9 . 9)) : reduce 1 tokens to multiply_op
+(multiply_op, (7 . 7) <= (4:(STAR, (7 . 7))))
+ ... goto state 30
+ 0: 30: 5:(IDENTIFIER, (9 . 9)) : shift and goto state 5
+ 0: 5: 6:(SEMICOLON, (10 . 10)) : reduce 1 tokens to primary
+(primary, (9 . 9) <= (5:(IDENTIFIER, (9 . 9))))
+ ... goto state 11
+ 0: 11: 6:(SEMICOLON, (10 . 10)) : reduce 1 tokens to expression
+(expression, (9 . 9) <= ((primary, (9 . 9))))
+ ... goto state 37
+ 0: 37: 6:(SEMICOLON, (10 . 10)) : reduce 3 tokens to expression
+(expression, (5 . 9) <= ((expression, (5 . 5)), (multiply_op, (7 . 7)), (expression, (9 . 9))))
+ ... goto state 38
+ 0: 38: 6:(SEMICOLON, (10 . 10)) : reduce 3 tokens to expression
+(expression, (1 . 9) <= ((expression, (1 . 1)), (add_op, (3 . 3)), (expression, (5 . 9))))
+ ... goto state 9
+ 0: 9: 6:(SEMICOLON, (10 . 10)) : shift and goto state 24
+ 0: 24: 7:(Wisi_EOI, (12 . 11)) : reduce 2 tokens to compilation_unit
+(compilation_unit, (1 . 10) <= ((expression, (1 . 9)), 6:(SEMICOLON, (10 . 10))))
+ ... goto state 7
+ 0: 7: 7:(Wisi_EOI, (12 . 11)) : reduce 1 tokens to compilation_unit_list
+(compilation_unit_list, (1 . 10) <= ((compilation_unit, (1 . 10))))
+ ... goto state 8
+ 0: 8: 7:(NUMERIC_LITERAL, (12 . 12)) : shift and goto state 6
+ 0: 6: 8:(PLUS, (14 . 14)) : reduce 1 tokens to primary
+(primary, (12 . 12) <= (7:(NUMERIC_LITERAL, (12 . 12))))
+ ... goto state 11
+ 0: 11: 8:(PLUS, (14 . 14)) : reduce 1 tokens to expression
+(expression, (12 . 12) <= ((primary, (12 . 12))))
+ ... goto state 9
+ 0: 9: 8:(PLUS, (14 . 14)) : shift and goto state 23
+ 0: 23: 9:(MINUS, (16 . 16)) : reduce 1 tokens to add_op
+(add_op, (14 . 14) <= (8:(PLUS, (14 . 14))))
+ ... goto state 31
+ 0: 31: 9:(MINUS, (16 . 16)) : shift and goto state 3
+ 0: 3: 10:(NUMERIC_LITERAL, (17 . 17)) : reduce 1 tokens to unary_operator
+(unary_operator, (16 . 16) <= (9:(MINUS, (16 . 16))))
+ ... goto state 10
+ 0: 10: 10:(NUMERIC_LITERAL, (17 . 17)) : shift and goto state 6
+ 0: 6: 11:(PLUS, (19 . 19)) : reduce 1 tokens to primary
+(primary, (17 . 17) <= (10:(NUMERIC_LITERAL, (17 . 17))))
+ ... goto state 11
+ 0: 11: 11:(PLUS, (19 . 19)) : reduce 1 tokens to expression
+(expression, (17 . 17) <= ((primary, (17 . 17))))
+ ... goto state 32
+ 0: 32: 11:(PLUS, (19 . 19)) : reduce 2 tokens to expression
+(expression, (16 . 17) <= ((unary_operator, (16 . 16)), (expression, (17 . 17))))
+ ... goto state 38
+ 0: 38: 11:(PLUS, (19 . 19)) : reduce 3 tokens to expression
+(expression, (12 . 17) <= ((expression, (12 . 12)), (add_op, (14 . 14)), (expression, (16 . 17))))
+ ... goto state 9
+ 0: 9: 11:(PLUS, (19 . 19)) : shift and goto state 23
+ 0: 23: 12:(NUMERIC_LITERAL, (21 . 21)) : reduce 1 tokens to add_op
+(add_op, (19 . 19) <= (11:(PLUS, (19 . 19))))
+ ... goto state 31
+ 0: 31: 12:(NUMERIC_LITERAL, (21 . 21)) : shift and goto state 6
+ 0: 6: 13:(SEMICOLON, (22 . 22)) : reduce 1 tokens to primary
+(primary, (21 . 21) <= (12:(NUMERIC_LITERAL, (21 . 21))))
+ ... goto state 11
+ 0: 11: 13:(SEMICOLON, (22 . 22)) : reduce 1 tokens to expression
+(expression, (21 . 21) <= ((primary, (21 . 21))))
+ ... goto state 38
+ 0: 38: 13:(SEMICOLON, (22 . 22)) : reduce 3 tokens to expression
+(expression, (12 . 21) <= ((expression, (12 . 17)), (add_op, (19 . 19)), (expression, (21 . 21))))
+ ... goto state 9
+ 0: 9: 13:(SEMICOLON, (22 . 22)) : shift and goto state 24
+ 0: 24: 14:(Wisi_EOI, (24 . 23)) : reduce 2 tokens to compilation_unit
+(compilation_unit, (12 . 22) <= ((expression, (12 . 21)), 13:(SEMICOLON, (22 . 22))))
+ ... goto state 13
+ 0: 13: 14:(Wisi_EOI, (24 . 23)) : reduce 2 tokens to compilation_unit_list
+(compilation_unit_list, (1 . 22) <= ((compilation_unit_list, (1 . 10)), (compilation_unit, (12 . 22))))
+ ... goto state 8
+ 0: 8: 14:(Wisi_EOI, (24 . 23)) : accept it
+(wisitoken_accept, (1 . 22) <= ((compilation_unit_list, (1 . 22))))
+ 0: succeed

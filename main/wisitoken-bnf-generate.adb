@@ -578,18 +578,26 @@ begin
                      if Trace_Generate > Outline then
                         Trace.Put_Line ("generate LALR parse table");
 
-                        if Trace_Generate > Detail then
-                           Ada.Text_IO.New_Line;
-                           Ada.Text_IO.Put_Line ("Tokens:");
+                        if Trace_Generate > Detail or Trace_Generate_Conflicts > Detail then
+                           Trace.New_Line;
+                           Trace.Put_Line ("Tokens:");
                            WisiToken.Put_Tokens (Generate_Data.Descriptor.all);
-                           Ada.Text_IO.Put_Line ("grammar:");
+                           Trace.Put_Line ("Precedences:");
+                           WisiToken.Put (Input_Data.Precedence_Lists, Input_Data.Precedence_Map);
+                           Trace.Put_Line ("grammar:");
                            WisiToken.Productions.Put (Generate_Data.Grammar, Generate_Data.Descriptor.all);
-                           Ada.Text_IO.New_Line;
+                           Trace.New_Line;
+                           if Trace_Generate > Extra or Trace_Generate_Conflicts > Extra then
+                              Trace.Put_Line ("tree:");
+                              Grammar_Parser.Tree.Print_Tree;
+                              Trace.New_Line;
+                           end if;
                         end if;
                      end if;
 
                      Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LALR_Generate.Generate
                        (Generate_Data.Grammar,
+                        Input_Data.Precedence_Lists,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
                         Input_Data.Language_Params.Error_Recover,
@@ -632,6 +640,7 @@ begin
 
                      Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LR1_Generate.Generate
                        (Generate_Data.Grammar,
+                        Input_Data.Precedence_Lists,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
                         Input_Data.Language_Params.Error_Recover,

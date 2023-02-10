@@ -795,26 +795,24 @@ times. ''@{@}-'', ''()+'', and ''token+'' mean the content is present one or
 more times.
 
 @node Precedence attributes
+@c https://github.com/tree-sitter/tree-sitter/pull/939
+@c https://tree-sitter.github.io/tree-sitter/creating-parsers#using-precedence
+@c https://github.com/tree-sitter/tree-sitter-javascript/blob/master/grammar.js
 Some ambiguous LR grammars can be made non-ambiguous by adding precedence
 and/or associativity attributes (these attributes have no meaning for
 packrat parsers). Consider an expression grammar that
 includes binary add and multiply, and unary negate:
 
 @example
-%precedence unary binary
-%precedence multiply add
+%precedence unary binary_multiply binary_add
 
 expression
   : primary
-  | <prec=unary> unary_operator expression
-  | <prec=binary><assoc=left> expression (binary_operator expression)+
-
-unary_operator : '-' ;
-
-binary_operator
-  : (<prec=multiply> '*')
-  | (<prec=add> '+')
+  | <prec=unary> '-' expression
+  | <prec=binary_multiply><assoc=left> expression ('*' expression)+
+  | <prec=binary_add><assoc=left> expression ('+' expression)+
   ;
+
 @end example
 
 Without the attributes, this is ambiguous: the statement @code{1 + 2 *
@@ -822,19 +820,20 @@ Without the attributes, this is ambiguous: the statement @code{1 + 2 *
 3)}. Similarly @code{1 + -2 + 3} can be parsed as @code{(1 + (-2)) + 3)} or
 @code{1 + -(2 + 3)}, etc.
 
-The @code{%precedence} declarations each give an order for the list of
+The @code{%precedence} declaration gives an order for the list of
 precedence labels; here unary operations are done before binary, and
-multiply before add. There is no order between separate
+multiply before add. More complex grammars may have more than one
+@code{%precedence} declaration; there is no order between separate
 @code{%precedence} declarations.
 
-The @code{prec} attribute applies a precedence label to a group of
-tokens in the right-hand side of a production. If the LR parser
-generation algorithm encounters a conflict involving productions with
-precedence labels, the labels are compared, and the higher precedence
-production is used. If there is no higher precedence, either because
-both productions have the same label, or the labels are from different
-precedence declarations, the conflict is kept, and resolved at runtime
-via the generalized parser algorithm.
+The @code{prec} attribute applies a precedence label to a
+production. If the LR parser generation algorithm encounters a
+conflict involving productions with precedence labels, the labels are
+compared, and the higher precedence production is used. If there is no
+higher precedence, either because both productions have the same
+label, or the labels are from different precedence declarations, the
+conflict is kept, and resolved at runtime via the generalized parser
+algorithm.
 
 This resolves the first example conflict; @code{1 + 2 * 3} is parsed
 as @code{(1 + (2 * 3)} because multiply has higher precedence than

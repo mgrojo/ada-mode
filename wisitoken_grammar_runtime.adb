@@ -1097,7 +1097,7 @@ package body WisiToken_Grammar_Runtime is
                Element_ID => +attribute_ID);
          begin
             for Attr of List loop
-               if Get_Text (Data, Tree, Tree.Child (Attr, 1)) = "assoc" then
+               if Get_Text (Data, Tree, Tree.Child (Attr, 2)) = "assoc" then
                   declare
                      Name : constant String := Get_Text (Data, Tree, Tree.Child (Attr, 4));
                   begin
@@ -1134,7 +1134,7 @@ package body WisiToken_Grammar_Runtime is
                Element_ID => +attribute_ID);
          begin
             for Attr of List loop
-               if Get_Text (Data, Tree, Tree.Child (Attr, 1)) = "prec" then
+               if Get_Text (Data, Tree, Tree.Child (Attr, 2)) = "prec" then
                   declare
                      Name  : constant String                  := Get_Text (Data, Tree, Tree.Child (Attr, 4));
                      Found : constant WisiToken.Precedence_Maps.Cursor := Data.Precedence_Map.Find (Name);

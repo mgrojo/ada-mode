@@ -9,7 +9,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -69,7 +69,8 @@ package WisiToken.Parse.LR is
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is
    record
       Production : Production_ID;
-      --  The production that produced this action. Used to find kernel
+      --  The production that produced this action. Used to find precedence
+      --  during grammar generation conflict resolution, and to find kernel
       --  items during error recovery.
 
       case Verb is

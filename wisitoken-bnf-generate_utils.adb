@@ -146,13 +146,13 @@ package body WisiToken.BNF.Generate_Utils is
 
       for Rule of Data.Tokens.Rules loop
          declare
-            RHS_Index        : Natural := 0;
-            RHSs             : WisiToken.Productions.RHS_Arrays.Vector;
-            LHS              : Token_ID; -- not initialized for exception handler
+            RHS_Index                   : Natural := 0;
+            RHSs                        : WisiToken.Productions.RHS_Arrays.Vector;
+            LHS                         : Token_ID; -- not initialized for exception handler
             Post_Parse_Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
             Post_Parse_Action_All_Empty : Boolean := True;
-            In_Parse_Action_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            In_Parse_Action_All_Empty  : Boolean := True;
+            In_Parse_Action_Names       : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            In_Parse_Action_All_Empty   : Boolean := True;
          begin
             LHS := Find_Token_ID (Data, -Rule.Left_Hand_Side);
 
@@ -180,7 +180,8 @@ package body WisiToken.BNF.Generate_Utils is
                      Post_Parse_Action => null,
                      In_Parse_Action   => null,
                      Recursion         => <>,
-                     Precedence        => <>);
+                     Associativity     => Right_Hand_Side.Associativity,
+                     Precedence        => Right_Hand_Side.Precedence);
 
                   if Length (Right_Hand_Side.Post_Parse_Action) > 0 then
                      Post_Parse_Action_All_Empty := False;
