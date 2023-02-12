@@ -1,0 +1,84 @@
+new_parse
+process version:0, version_count:1, state:1, row:0, col:0
+lex_internal state:13, row:0, column:0
+lexed_lookahead sym:IDENTIFIER, size:1
+shift state:10
+process version:0, version_count:1, state:10, row:0, col:1
+lex_internal state:3, row:0, column:1
+lexed_lookahead sym:PLUS, size:2
+reduce sym:primary, child_count:1
+reduce sym:expression, child_count:1
+shift state:26
+process version:0, version_count:1, state:26, row:0, col:3
+lex_internal state:13, row:0, column:3
+lexed_lookahead sym:IDENTIFIER, size:2
+reduce sym:add_op, child_count:1
+shift state:10
+process version:0, version_count:1, state:10, row:0, col:5
+lex_internal state:3, row:0, column:5
+lexed_lookahead sym:STAR, size:2
+reduce sym:primary, child_count:1
+reduce sym:expression, child_count:1
+shift state:27
+process version:0, version_count:1, state:27, row:0, col:7
+lex_internal state:13, row:0, column:7
+lexed_lookahead sym:IDENTIFIER, size:2
+reduce sym:multiply_op, child_count:1
+shift state:10
+process version:0, version_count:1, state:10, row:0, col:9
+lex_internal state:3, row:0, column:9
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:primary, child_count:1
+reduce sym:expression, child_count:1
+reduce sym:expression, child_count:3
+reduce sym:expression, child_count:3
+shift state:21
+process version:0, version_count:1, state:21, row:0, col:10
+lex_internal state:13, row:0, column:10
+lexed_lookahead sym:NUMERIC_LITERAL, size:2
+reduce sym:compilation_unit, child_count:2
+reduce sym:compilation_unit_list, child_count:1
+shift state:10
+process version:0, version_count:1, state:10, row:1, col:1
+lex_internal state:3, row:1, column:1
+lexed_lookahead sym:PLUS, size:2
+reduce sym:primary, child_count:1
+reduce sym:expression, child_count:1
+shift state:26
+process version:0, version_count:1, state:26, row:1, col:3
+lex_internal state:13, row:1, column:3
+lexed_lookahead sym:MINUS, size:2
+reduce sym:add_op, child_count:1
+shift state:32
+process version:0, version_count:1, state:32, row:1, col:5
+lex_internal state:13, row:1, column:5
+lexed_lookahead sym:NUMERIC_LITERAL, size:1
+reduce sym:unary_operator, child_count:1
+shift state:10
+process version:0, version_count:1, state:10, row:1, col:6
+lex_internal state:3, row:1, column:6
+lexed_lookahead sym:PLUS, size:2
+reduce sym:primary, child_count:1
+reduce sym:expression, child_count:1
+reduce sym:expression, child_count:2
+reduce sym:expression, child_count:3
+shift state:26
+process version:0, version_count:1, state:26, row:1, col:8
+lex_internal state:13, row:1, column:8
+lexed_lookahead sym:NUMERIC_LITERAL, size:2
+reduce sym:add_op, child_count:1
+shift state:10
+process version:0, version_count:1, state:10, row:1, col:10
+lex_internal state:3, row:1, column:10
+lexed_lookahead sym:SEMICOLON, size:1
+reduce sym:primary, child_count:1
+reduce sym:expression, child_count:1
+reduce sym:expression, child_count:3
+shift state:21
+process version:0, version_count:1, state:21, row:1, col:11
+lex_internal state:13, row:1, column:11
+lexed_lookahead sym:end, size:1
+reduce sym:compilation_unit, child_count:2
+reduce sym:compilation_unit_list, child_count:2
+accept
+done

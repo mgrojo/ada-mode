@@ -832,6 +832,7 @@ package body WisiToken_Grammar_Runtime is
                         if not Precedence_Maps.Has_Element (Found)  then
                            P_ID := 1 + WisiToken.Base_Precedence_ID (Data.Precedence_Map.Length);
                            Data.Precedence_Map.Insert (Name, P_ID);
+                           Data.Precedence_Inverse_Map.Append (+Name);
                         else
                            P_ID := Data.Precedence_Map (Found);
                         end if;

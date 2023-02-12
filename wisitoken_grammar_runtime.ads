@@ -61,11 +61,12 @@ package WisiToken_Grammar_Runtime is
       Suppress : WisiToken.BNF.String_Pair_Lists.List;
       --  Declaration name, warning label; suppress warnings.
 
-      Precedence_Map   : WisiToken.Precedence_Maps.Map;
-      Precedence_Lists : WisiToken.Precedence_Lists_Arrays.Vector;
-      Conflicts        : WisiToken.BNF.Conflict_Lists.List;
-      McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
-      Max_Parallel     : SAL.Base_Peek_Type := 15;
+      Precedence_Map         : WisiToken.Precedence_Maps.Map;
+      Precedence_Inverse_Map : WisiToken.Precedence_Inverse_Maps.Vector;
+      Precedence_Lists       : WisiToken.Precedence_Lists_Arrays.Vector;
+      Conflicts              : WisiToken.BNF.Conflict_Lists.List;
+      McKenzie_Recover       : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Max_Parallel           : SAL.Base_Peek_Type := 15;
 
       Rule_Count              : Integer                   := 0;
       Post_Parse_Action_Count : Integer                   := 0;

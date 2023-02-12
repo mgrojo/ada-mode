@@ -522,6 +522,11 @@ package WisiToken is
       Hash            => Ada.Strings.Hash_Case_Insensitive,
       Equivalent_Keys => Ada.Strings.Equal_Case_Insensitive);
 
+   package Precedence_Inverse_Maps is new Ada.Containers.Vectors
+     (Index_Type   => Precedence_ID,
+      Element_Type => Ada.Strings.Unbounded.Unbounded_String,
+      "="          => Ada.Strings.Unbounded."=");
+
    package Precedence_Lists is new Ada.Containers.Doubly_Linked_Lists (Precedence_ID);
 
    package Precedence_Lists_Arrays is new Ada.Containers.Vectors

@@ -35,10 +35,10 @@
 (expression, (1 . 9) <= ((expression, (1 . 1)), (add_op, (3 . 3)), (expression, (5 . 9))))
  ... goto state 9
  0: 9: 6:(SEMICOLON, (10 . 10)) : shift and goto state 24
- 0: 24: 7:(Wisi_EOI, (12 . 11)) : reduce 2 tokens to compilation_unit
+ 0: 24: 7:(NUMERIC_LITERAL, (12 . 12)) : reduce 2 tokens to compilation_unit
 (compilation_unit, (1 . 10) <= ((expression, (1 . 9)), 6:(SEMICOLON, (10 . 10))))
  ... goto state 7
- 0: 7: 7:(Wisi_EOI, (12 . 11)) : reduce 1 tokens to compilation_unit_list
+ 0: 7: 7:(NUMERIC_LITERAL, (12 . 12)) : reduce 1 tokens to compilation_unit_list
 (compilation_unit_list, (1 . 10) <= ((compilation_unit, (1 . 10))))
  ... goto state 8
  0: 8: 7:(NUMERIC_LITERAL, (12 . 12)) : shift and goto state 6

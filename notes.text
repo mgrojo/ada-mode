@@ -91,15 +91,6 @@ test_incremental.adb fails
 ;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
 ;; wisitoken-generate-tree_sitter.adb should be in user guide.)
 
-don't compute recursion if no error recovery
-
-add tree-sitter to test/bnf/prec_assoc.wy
-
-do prec_assoc_ebnf.wy
-
-
-ada_lite.wy broken
-
 handle prec, assoc in ebnf translation
     test/bnf/prec_assoc_ebnf.wy
         make one
@@ -110,7 +101,7 @@ handle prec, assoc in ebnf translation
     test/bnf/test_prec_assoc.adb
         insert parens, compare to expected.
 
-translate %conflict_resolution to precedences?
+translate %conflict_resolution to tree-sitter precedences?
     https://github.com/tree-sitter/tree-sitter/pull/939 documents named precedences.
 
 handle prec, assoc for tree-sitter
@@ -119,6 +110,9 @@ handle prec, assoc for tree-sitter
     not needed if use canonical list pattern?
         does that sacrifice list optimization?
             need to print tree-sitter trees
+
+don't compute recursion if no error recovery
+
 
 consider https://github.com/briot/tree-sitter-ada
     some good conflict reduction

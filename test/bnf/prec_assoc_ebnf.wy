@@ -80,8 +80,7 @@ word : IDENTIFIER ;
 
 %start compilation_unit_list
 
-%precedence unary binary
-%precedence multiply add relational logical
+%precedence unary binary_relational binary_and binary_or binary_multiply binary_add
 
 compilation_unit
   : expression ';'
@@ -94,26 +93,24 @@ compilation_unit_list
 expression
   : primary
   | <prec=unary> unary_operator expression
-  | <prec=binary><assoc=left> expression (binary_operator expression)+
-  | '(' expression ')'
+  | <assoc=left><prec=binary_relational> expression relational_op expression
+  | <assoc=left><prec=binary_and>        expression AND expression
+  | <assoc=left><prec=binary_or>         expression or_op expression
+  | <assoc=left><prec=binary_multiply>   expression multiply_op expression
+  | <assoc=left><prec=binary_add>        expression add_op expression
   ;
 
 unary_operator : 'not' | '+' | '-' ;
 
-relational_op <prec=relational> : '=' | '/=' | '<' | '<=' | '>' | '>=' ;
-logical_op    <prec=logical>    : 'and' | 'or' | 'xor' ;
-multiply_op   <prec=multiply>   : '*' | '/' ;
-
-binary_operator
-  : relational_op
-  | logical_op
-  | multiply_op
-  | <prec=add>  ( '+' | '-' ) ;; This attribute is promoted to apply to the created nonterm
-  ;
+relational_op <prec=binary_relational> : '=' | '/=' | '<' | '<=' | '>' | '>=' ;
+logical_op    <prec=binary_or>         : 'or' | 'xor' ;
+multiply_op   <prec=binary_multiply>   : '*' | '/' ;
+add_op        <prec=binary_add>        : '+' | '-' ;
 
 primary
   : NUMERIC_LITERAL
   | IDENTIFIER
+  | '(' expression ')'
   ;
 
 ;;; end of file
