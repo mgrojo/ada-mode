@@ -183,9 +183,9 @@ package WisiToken_Grammar_Editing is
    --  Generator.LR.*_Generate requires a BNF grammar.
 
    procedure Print_Source
-     (File_Name : in String;
-      Tree      : in WisiToken.Syntax_Trees.Tree;
-      Data      : in WisiToken_Grammar_Runtime.User_Data_Type);
+     (File_Name : in     String;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Data      : in     WisiToken_Grammar_Runtime.User_Data_Type);
    --  Print the wisitoken grammar source represented by Tree, Terminals
    --  to a new file File_Name.
 

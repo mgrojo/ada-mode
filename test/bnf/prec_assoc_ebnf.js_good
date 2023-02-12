@@ -1,4 +1,4 @@
-// generated from prec_assoc.wy -*- buffer-read-only:t js-indent-level:3 -*-
+// generated from prec_assoc_ebnf.wy -*- buffer-read-only:t js-indent-level:3 -*-
 
 // 
 // ;;  Copyright (C) 2023 Free Software Foundation, Inc.
@@ -24,7 +24,7 @@ const caseInsensitive = word => word.split('') .map(letter => `[${letter}${lette
 const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
 
 module.exports = grammar({
-   name: 'Prec_Assoc',
+   name: 'Prec_Assoc_Ebnf',
 
    precedences: () => [
      [
@@ -38,7 +38,7 @@ module.exports = grammar({
    ],
 
    rules: {
-      compilation_unit_list: $ => choice(seq($.compilation_unit_list, $.compilation_unit), $.compilation_unit),
+      compilation_unit_list: $ => repeat1($.compilation_unit),
 
       AND: $ => reservedInsensitive('and'),
 
@@ -82,21 +82,21 @@ module.exports = grammar({
 
       NUMERIC_LITERAL: $ => /[0-9]+/,
 
-      compilation_unit: $ => seq($.expression, $.SEMICOLON),
+      compilation_unit: $ => seq($.expression, ';'),
 
       expression: $ => choice($.primary, prec('unary',seq($.unary_operator, $.expression)), prec.left('binary_relational',seq($.expression, $.relational_op, $.expression)), prec.left('binary_and',seq($.expression, $.AND, $.expression)), prec.left('binary_or',seq($.expression, $.or_op, $.expression)), prec.left('binary_multiply',seq($.expression, $.multiply_op, $.expression)), prec.left('binary_add',seq($.expression, $.add_op, $.expression))),
 
-      unary_operator: $ => choice($.NOT, $.PLUS, $.MINUS),
+      unary_operator: $ => choice($.NOT, '+', '-'),
 
-      relational_op: $ => prec('binary_relational',choice($.EQUAL, $.SLASH_EQUAL, $.LESS, $.LESS_EQUAL, $.GREATER, $.GREATER_EQUAL)),
+      relational_op: $ => prec('binary_relational',choice('=', '/=', '<', '<=', '>', '>=')),
 
       or_op: $ => prec('binary_or',choice($.OR, $.XOR)),
 
-      multiply_op: $ => prec('binary_multiply',choice($.STAR, $.SLASH)),
+      multiply_op: $ => prec('binary_multiply',choice('*', '/')),
 
-      add_op: $ => prec('binary_add',choice($.PLUS, $.MINUS)),
+      add_op: $ => prec('binary_add',choice('+', '-')),
 
-      primary: $ => choice($.NUMERIC_LITERAL, $.IDENTIFIER, seq($.LEFT_PAREN, $.expression, $.RIGHT_PAREN)),
+      primary: $ => choice($.NUMERIC_LITERAL, $.IDENTIFIER, seq('(', $.expression, ')')),
 
   },
   extras: $ => [

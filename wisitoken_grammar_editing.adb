@@ -200,10 +200,10 @@ package body WisiToken_Grammar_Editing is
       is begin
          return
            (if In_Parse_Action /= Invalid_Node_Access
-            then (if Attr_List /= Invalid_Node_Access then 6 else 5)
+            then (if Attr_List = Invalid_Node_Access then 5 else 6)
             elsif Post_Parse_Action /= Invalid_Node_Access
-            then (if Attr_List /= Invalid_Node_Access then 3 else 4)
-            else (if Attr_List /= Invalid_Node_Access then 1 else 2));
+            then (if Attr_List = Invalid_Node_Access then 3 else 4)
+            else (if Attr_List = Invalid_Node_Access then 1 else 2));
       end RHS_Index;
 
       function Children return Valid_Node_Access_Array
@@ -2497,10 +2497,9 @@ package body WisiToken_Grammar_Editing is
             if Element_1 = Invalid_Node_Access then
                Has_Separator := False;
             else
-               if Tree.RHS_Index (B) in 4 .. 5 then
-                  Has_Separator := False;
+               pragma Assert (Tree.RHS_Index (B) <= 3);
 
-               elsif B_Alt_List_Item_List.Count in 1 .. 2 and then
+               if B_Alt_List_Item_List.Count in 1 .. 2 and then
                  Get_Item_Text (Data, Tree, Element_1) =
                  Get_Item_Text (Data, Tree, Element (B_Alt_List_Item_List.Last))
                then
@@ -2529,7 +2528,9 @@ package body WisiToken_Grammar_Editing is
                return;
             end if;
 
-            if (RHS_List.Count = 1 and Tree.ID (RHS) = +rhs_ID and Tree.RHS_Index (RHS) = 1) and then
+            if (RHS_List.Count = 1 and
+                  Tree.ID (RHS) = +rhs_ID and
+                  Tree.ID (Tree.Child (RHS, Tree.Child_Count (RHS))) /= +ACTION_ID) and then
               ((RHS_Item_List_List.Count = 1 and
                   (B_Alt_List_List.Is_Invalid or else B_Alt_List_Item_List.Count = 1)) or
                  (RHS_Item_List_List.Count = 2 and Element_2 = RHS_Item_List_List.Last))
@@ -3219,7 +3220,9 @@ package body WisiToken_Grammar_Editing is
                if Tree.ID (Nonterm) = +nonterminal_ID then
                   declare
                      RHS_List : constant Constant_List := Creators.Create_List
-                       (Tree, Tree.Child (Nonterm, 3), +rhs_list_ID, +rhs_ID);
+                       (Tree,
+                        Tree.Child (Nonterm, (if Tree.ID (Tree.Child (Nonterm, 3)) = +rhs_list_ID then 3 else 4)),
+                        +rhs_list_ID, +rhs_ID);
                   begin
                      for RHS of RHS_List loop
                         Last_Token_Index := 0;
@@ -3292,7 +3295,7 @@ package body WisiToken_Grammar_Editing is
                      Byte_Region_Order => False);
                   if Data.Error_Reported.Count /= 0 then
                      Ada.Text_IO.New_Line;
-                     Ada.Text_IO.Put_Line ("invalid tree after translate one node:");
+                     Ada.Text_IO.Put_Line ("invalid tree:");
                      Tree.Print_Tree;
                   end if;
                   Check_Original_Copied_EBNF;
@@ -3407,9 +3410,9 @@ package body WisiToken_Grammar_Editing is
    end Translate_EBNF_To_BNF;
 
    procedure Print_Source
-     (File_Name : in String;
-      Tree      : in Syntax_Trees.Tree;
-      Data      : in WisiToken_Grammar_Runtime.User_Data_Type)
+     (File_Name : in     String;
+      Tree      : in out Syntax_Trees.Tree;
+      Data      : in     WisiToken_Grammar_Runtime.User_Data_Type)
    is
       use Ada.Text_IO;
 
@@ -3514,23 +3517,42 @@ package body WisiToken_Grammar_Editing is
          end if;
       end Put_Identifier_List;
 
+      procedure Put_Attr_List (Attr_List : in Valid_Node_Access)
+      is
+         Prec  : constant WisiToken.Base_Precedence_ID := WisiToken_Grammar_Runtime.Get_Precedence
+           (Data, Tree, Attr_List);
+         Assoc : constant WisiToken.Associativity      := WisiToken_Grammar_Runtime.Get_Associativity
+           (Data, Tree, Attr_List);
+      begin
+         case Assoc is
+         when Left =>
+            Put (File, "<assoc=left>");
+
+         when Right =>
+            Put (File, "<assoc=right>");
+
+         when None =>
+            pragma Assert (Prec /= No_Precedence);
+            null;
+         end case;
+         if Prec /= No_Precedence then
+            Put (File, "<prec=" & (-Data.Precedence_Inverse_Map (Prec)) & ">");
+         end if;
+      end Put_Attr_List;
+
       procedure Put_RHS_Element (Node : in Valid_Node_Access)
       with Pre => Tree.ID (Node) = +rhs_element_ID
       is begin
-         --  We don't raise an exception for errors here; it's easier to debug from the
-         --  mangled source listing.
-
          case Tree.RHS_Index (Node) is
          when 0 =>
             Put (File, Get_Text (Data, Tree, Node));
 
          when 1 =>
-            --  Output no spaces around "="
             declare
                Children : constant Node_Access_Array := Tree.Children (Node);
             begin
-               Put
-                 (File, Get_Text (Data, Tree, Children (1)) & "=" & Get_Text (Data, Tree, Children (3)));
+               --  Output no spaces around "="
+               Put (File, Get_Text (Data, Tree, Children (1)) & "=" & Get_Text (Data, Tree, Children (3)));
             end;
 
          when others =>
@@ -3585,30 +3607,32 @@ package body WisiToken_Grammar_Editing is
          First : in Boolean)
       with Pre => Tree.ID (Node) = +rhs_ID
       is
+         use all type SAL.Base_Peek_Type;
          Children : constant Node_Access_Array := Tree.Children (Node);
+         Last     : SAL.Base_Peek_Type         := Children'First - 1;
       begin
          Put (File, (if First then "  : " else "  | "));
-         case Tree.RHS_Index (Node) is
-         when 0 =>
+         if Tree.Child_Count (Node) = 0 then
             Put_Comments (Tree.Parent (Node), Force_Comment => ";; empty");
 
-         when 1 .. 3 =>
-            Put_RHS_Item_List (Children (1));
-            Put_Comments (Children (1), Force_New_Line => True);
-
-            if Tree.RHS_Index (Node) > 1 then
-               Put (File, "    %(" & Get_Text (Data, Tree, Children (2)) & ")%"); -- action
-               Put_Comments (Children (2), Force_New_Line => True);
-
-               if Tree.RHS_Index (Node) > 2 then
-                  Put (File, "    %(" & Get_Text (Data, Tree, Children (3)) & ")%"); -- check
-                  Put_Comments (Children (3), Force_New_Line => True);
-               end if;
+         else
+            if Tree.ID (Tree.Child (Node, 1)) = +attribute_list_ID then
+               Put_Attr_List (Tree.Child (Node, 1));
+               Last := 1;
             end if;
 
-         when others =>
-            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("Put_RHS", Tree, Node);
-         end case;
+            Last := @ + 1;
+            Put_RHS_Item_List (Children (Last));
+            Put_Comments (Children (Last), Force_New_Line => True);
+
+            for I in 1 .. 2 loop
+               Last := @ + 1;
+               if Last <= Tree.Child_Count (Node) then
+                  Put (File, "    %(" & Get_Text (Data, Tree, Children (Last)) & ")%");
+                  Put_Comments (Children (Last), Force_New_Line => True);
+               end if;
+            end loop;
+         end if;
       exception
       when SAL.Programmer_Error =>
          raise;
@@ -3648,15 +3672,15 @@ package body WisiToken_Grammar_Editing is
                   Put
                     (File,
                      (case To_Token_Enum (Tree.ID (Children (3))) is
-                        when IF_ID => "%if",
-                        when ELSIF_ID => "$elsif",
-                        when others => raise SAL.Programmer_Error) &
+                      when IF_ID => "%if",
+                      when ELSIF_ID => "$elsif",
+                      when others => raise SAL.Programmer_Error) &
                        Get_Text (Data, Tree, Children (4)) &
                        (case To_Token_Enum (Tree.ID (Children (5))) is
                         when EQUAL_ID => " = ",
                         when IN_ID => "in",
                         when others => raise SAL.Programmer_Error) &
-                  Get_Text (Data, Tree, Children (6)));
+                       Get_Text (Data, Tree, Children (6)));
                   Put_Comments (Node);
 
                when END_ID =>
@@ -3798,16 +3822,21 @@ package body WisiToken_Grammar_Editing is
                Put (File, Get_Text (Data, Tree, Children (1)));
                Put_Comments (Children (1), Force_New_Line => True);
 
-               Put_RHS_List (Children (3), First, Virtual);
+               if Tree.ID (Children (2)) = +attribute_list_ID then
+                  Put_Attr_List (Children (2));
+                  Put_RHS_List (Children (4), First, Virtual);
+               else
+                  Put_RHS_List (Children (3), First, Virtual);
+               end if;
 
                --  We force a terminating ";" here, to speed parsing in _bnf.wy files.
-               if Tree.RHS_Index (Children (4)) = 1 then
+               if Tree.RHS_Index (Children (Children'Last)) = 1 then
                   --  Empty
                   Put_Line (File, "  ;");
                else
                   --  ";" present, including trailing newline, unless virtual.
                   Put (File, "  ;");
-                  Put_Comments (Children (4), Force_New_Line => True);
+                  Put_Comments (Children (Children'Last), Force_New_Line => True);
                end if;
             end;
 

@@ -565,9 +565,6 @@ package WisiToken.Syntax_Trees is
    type User_Data_Access is access all User_Data_Type'Class;
    type User_Data_Access_Constant is access constant User_Data_Type'Class;
 
-   procedure Reset (User_Data : in out User_Data_Type) is null;
-   --  Reset to start a new parse.
-
    procedure Initialize_Actions
      (User_Data : in out User_Data_Type;
       Tree      : in     Syntax_Trees.Tree'Class)

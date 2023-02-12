@@ -84,6 +84,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_list", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_list_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"prec_assoc", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"prec_assoc_ebnf", +"prec_assoc")));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"python_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"range_conflict", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"skip_to_grammar", null)));

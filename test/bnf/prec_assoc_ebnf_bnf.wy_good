@@ -1,3 +1,5 @@
+;;; generated from prec_assoc_ebnf.wy -*- buffer-read-only:t -*-
+;;;
 ;;; Testing specifying precedence and associativity in ebnf syntax.
 ;;
 ;; This is a small subset of the Ada grammar, describing expressions,
@@ -31,7 +33,7 @@
 %generate LALR Ada re2c
 %generate Tree_Sitter Ada tree_sitter
 
-%meta_syntax EBNF
+%meta_syntax BNF
 
 ;; Tree_Sitter requires all keywords declared explicitly; Ada keywords
 ;; are case insensitive.
@@ -71,7 +73,9 @@
 
 ;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
 ;; wisitoken-generate-tree_sitter.adb should be in user guide.)
-word : IDENTIFIER ;
+word
+  : IDENTIFIER
+  ;
 
 %token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
 
@@ -82,34 +86,55 @@ word : IDENTIFIER ;
 %precedence unary binary_relational binary_and binary_or binary_multiply binary_add
 
 compilation_unit
-  : expression ';'
+  : expression SEMICOLON
   ;
 
 compilation_unit_list
-  : compilation_unit+
+  : compilation_unit
+  | compilation_unit_list compilation_unit
   ;
 
 expression
   : primary
-  | <prec=unary> unary_operator expression
-  | <assoc=left><prec=binary_relational> expression relational_op expression
-  | <assoc=left><prec=binary_and>        expression AND expression
-  | <assoc=left><prec=binary_or>         expression or_op expression
-  | <assoc=left><prec=binary_multiply>   expression multiply_op expression
-  | <assoc=left><prec=binary_add>        expression add_op expression
+  | <prec=unary>unary_operator expression
+  | <assoc=left><prec=binary_relational>expression relational_op expression
+  | <assoc=left><prec=binary_and>expression AND expression
+  | <assoc=left><prec=binary_or>expression or_op expression
+  | <assoc=left><prec=binary_multiply>expression multiply_op expression
+  | <assoc=left><prec=binary_add>expression add_op expression
   ;
 
-unary_operator : 'not' | '+' | '-' ;
+unary_operator
+  : NOT
+  | PLUS
+  | MINUS
+  ;
 
-relational_op <prec=binary_relational> : '=' | '/=' | '<' | '<=' | '>' | '>=' ;
-or_op         <prec=binary_or>         : 'or' | 'xor' ;
-multiply_op   <prec=binary_multiply>   : '*' | '/' ;
-add_op        <prec=binary_add>        : '+' | '-' ;
+relational_op
+<prec=binary_relational>  : EQUAL
+  | SLASH_EQUAL
+  | LESS
+  | LESS_EQUAL
+  | GREATER
+  | GREATER_EQUAL
+  ;
+or_op
+<prec=binary_or>  : OR
+  | XOR
+  ;
+multiply_op
+<prec=binary_multiply>  : STAR
+  | SLASH
+  ;
+add_op
+<prec=binary_add>  : PLUS
+  | MINUS
+  ;
 
 primary
   : NUMERIC_LITERAL
   | IDENTIFIER
-  | '(' expression ')'
+  | LEFT_PAREN expression RIGHT_PAREN
   ;
 
 ;;; end of file

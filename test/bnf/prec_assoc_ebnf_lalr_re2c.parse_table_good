@@ -1,0 +1,812 @@
+Tokens:
+ 0 => COMMENT
+ 1 => WHITESPACE
+ 2 => NEW_LINE
+ 3 => AND
+ 4 => NOT
+ 5 => OR
+ 6 => XOR
+ 7 => EQUAL
+ 8 => GREATER
+ 9 => GREATER_EQUAL
+ 10 => LEFT_PAREN
+ 11 => LESS
+ 12 => LESS_EQUAL
+ 13 => MINUS
+ 14 => PLUS
+ 15 => RIGHT_PAREN
+ 16 => SEMICOLON
+ 17 => SLASH
+ 18 => SLASH_EQUAL
+ 19 => STAR
+ 20 => IDENTIFIER
+ 21 => NUMERIC_LITERAL
+ 22 => Wisi_EOI
+ 23 => wisitoken_accept
+ 24 => compilation_unit
+ 25 => compilation_unit_list
+ 26 => expression
+ 27 => unary_operator
+ 28 => relational_op
+ 29 => or_op
+ 30 => multiply_op
+ 31 => add_op
+ 32 => primary
+
+Productions:
+23.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
+24.0: compilation_unit <= expression SEMICOLON
+25.0: compilation_unit_list <= compilation_unit
+25.1: compilation_unit_list <= compilation_unit_list compilation_unit ; (1 => Direct_Left)
+26.0: expression <= primary ; (1 => Other_Left)
+26.1: expression <= <1> unary_operator expression ; (2 => Direct_Right)
+26.2: expression <= <LEFT> <2> expression relational_op expression ; (1 => Direct_Left, 3 => Direct_Right)
+26.3: expression <= <LEFT> <3> expression AND expression ; (1 => Direct_Left, 3 => Direct_Right)
+26.4: expression <= <LEFT> <4> expression or_op expression ; (1 => Direct_Left, 3 => Direct_Right)
+26.5: expression <= <LEFT> <5> expression multiply_op expression ; (1 => Direct_Left, 3 => Direct_Right)
+26.6: expression <= <LEFT> <6> expression add_op expression ; (1 => Direct_Left, 3 => Direct_Right)
+27.0: unary_operator <= NOT
+27.1: unary_operator <= PLUS
+27.2: unary_operator <= MINUS
+< 2> 28.0: relational_op <= EQUAL
+< 2> 28.1: relational_op <= SLASH_EQUAL
+< 2> 28.2: relational_op <= LESS
+< 2> 28.3: relational_op <= LESS_EQUAL
+< 2> 28.4: relational_op <= GREATER
+< 2> 28.5: relational_op <= GREATER_EQUAL
+< 4> 29.0: or_op <= OR
+< 4> 29.1: or_op <= XOR
+< 5> 30.0: multiply_op <= STAR
+< 5> 30.1: multiply_op <= SLASH
+< 6> 31.0: add_op <= PLUS
+< 6> 31.1: add_op <= MINUS
+32.0: primary <= NUMERIC_LITERAL
+32.1: primary <= IDENTIFIER
+32.2: primary <= LEFT_PAREN expression RIGHT_PAREN ; (2 => Other)
+
+Recursions:
+1 => (25 (1.1) -> )
+2 => (26 (1.2, 2.1, 2.3, 3.1, 3.3, 4.1, 4.3, 5.1, 5.3, 6.1, 6.3) -> )
+3 => (26 (0.1) -> 32 (2.2) -> )
+
+LALR Parse Table:
+State 0:
+     23.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   compilation_unit      goto state 7
+   compilation_unit_list goto state 8
+   expression            goto state 9
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 1:
+     27.0:unary_operator <= NOT ^
+
+   NOT                   => reduce 1 tokens to unary_operator 27.0
+   LEFT_PAREN            => reduce 1 tokens to unary_operator 27.0
+   MINUS                 => reduce 1 tokens to unary_operator 27.0
+   PLUS                  => reduce 1 tokens to unary_operator 27.0
+   IDENTIFIER            => reduce 1 tokens to unary_operator 27.0
+   NUMERIC_LITERAL       => reduce 1 tokens to unary_operator 27.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 2:
+     32.2:primary <= LEFT_PAREN ^ expression RIGHT_PAREN
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 12
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 3:
+     27.2:unary_operator <= MINUS ^
+
+   NOT                   => reduce 1 tokens to unary_operator 27.2
+   LEFT_PAREN            => reduce 1 tokens to unary_operator 27.2
+   MINUS                 => reduce 1 tokens to unary_operator 27.2
+   PLUS                  => reduce 1 tokens to unary_operator 27.2
+   IDENTIFIER            => reduce 1 tokens to unary_operator 27.2
+   NUMERIC_LITERAL       => reduce 1 tokens to unary_operator 27.2
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 4:
+     27.1:unary_operator <= PLUS ^
+
+   NOT                   => reduce 1 tokens to unary_operator 27.1
+   LEFT_PAREN            => reduce 1 tokens to unary_operator 27.1
+   MINUS                 => reduce 1 tokens to unary_operator 27.1
+   PLUS                  => reduce 1 tokens to unary_operator 27.1
+   IDENTIFIER            => reduce 1 tokens to unary_operator 27.1
+   NUMERIC_LITERAL       => reduce 1 tokens to unary_operator 27.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 5:
+     32.1:primary <= IDENTIFIER ^
+
+   AND                   => reduce 1 tokens to primary 32.1
+   OR                    => reduce 1 tokens to primary 32.1
+   XOR                   => reduce 1 tokens to primary 32.1
+   EQUAL                 => reduce 1 tokens to primary 32.1
+   GREATER               => reduce 1 tokens to primary 32.1
+   GREATER_EQUAL         => reduce 1 tokens to primary 32.1
+   LESS                  => reduce 1 tokens to primary 32.1
+   LESS_EQUAL            => reduce 1 tokens to primary 32.1
+   MINUS                 => reduce 1 tokens to primary 32.1
+   PLUS                  => reduce 1 tokens to primary 32.1
+   RIGHT_PAREN           => reduce 1 tokens to primary 32.1
+   SEMICOLON             => reduce 1 tokens to primary 32.1
+   SLASH                 => reduce 1 tokens to primary 32.1
+   SLASH_EQUAL           => reduce 1 tokens to primary 32.1
+   STAR                  => reduce 1 tokens to primary 32.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 6:
+     32.0:primary <= NUMERIC_LITERAL ^
+
+   AND                   => reduce 1 tokens to primary 32.0
+   OR                    => reduce 1 tokens to primary 32.0
+   XOR                   => reduce 1 tokens to primary 32.0
+   EQUAL                 => reduce 1 tokens to primary 32.0
+   GREATER               => reduce 1 tokens to primary 32.0
+   GREATER_EQUAL         => reduce 1 tokens to primary 32.0
+   LESS                  => reduce 1 tokens to primary 32.0
+   LESS_EQUAL            => reduce 1 tokens to primary 32.0
+   MINUS                 => reduce 1 tokens to primary 32.0
+   PLUS                  => reduce 1 tokens to primary 32.0
+   RIGHT_PAREN           => reduce 1 tokens to primary 32.0
+   SEMICOLON             => reduce 1 tokens to primary 32.0
+   SLASH                 => reduce 1 tokens to primary 32.0
+   SLASH_EQUAL           => reduce 1 tokens to primary 32.0
+   STAR                  => reduce 1 tokens to primary 32.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 7:
+     25.0:compilation_unit_list <= compilation_unit ^
+
+   NOT                   => reduce 1 tokens to compilation_unit_list 25.0
+   LEFT_PAREN            => reduce 1 tokens to compilation_unit_list 25.0
+   MINUS                 => reduce 1 tokens to compilation_unit_list 25.0
+   PLUS                  => reduce 1 tokens to compilation_unit_list 25.0
+   IDENTIFIER            => reduce 1 tokens to compilation_unit_list 25.0
+   NUMERIC_LITERAL       => reduce 1 tokens to compilation_unit_list 25.0
+   Wisi_EOI              => reduce 1 tokens to compilation_unit_list 25.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 8:
+     23.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI
+     25.1:compilation_unit_list <= compilation_unit_list ^ compilation_unit
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   Wisi_EOI              => accept it 23.0
+   default               => ERROR
+
+   compilation_unit      goto state 13
+   expression            goto state 9
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 9:
+     24.0:compilation_unit <= expression ^ SEMICOLON
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => shift and goto state 14 26.3
+   OR                    => shift and goto state 15 29.0
+   XOR                   => shift and goto state 16 29.1
+   EQUAL                 => shift and goto state 17 28.0
+   GREATER               => shift and goto state 18 28.4
+   GREATER_EQUAL         => shift and goto state 19 28.5
+   LESS                  => shift and goto state 20 28.2
+   LESS_EQUAL            => shift and goto state 21 28.3
+   MINUS                 => shift and goto state 22 31.1
+   PLUS                  => shift and goto state 23 31.0
+   SEMICOLON             => shift and goto state 24 24.0
+   SLASH                 => shift and goto state 25 30.1
+   SLASH_EQUAL           => shift and goto state 26 28.1
+   STAR                  => shift and goto state 27 30.0
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 10:
+     26.1:expression <= unary_operator ^ expression
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 32
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 11:
+     26.0:expression <= primary ^
+
+   AND                   => reduce 1 tokens to expression 26.0
+   OR                    => reduce 1 tokens to expression 26.0
+   XOR                   => reduce 1 tokens to expression 26.0
+   EQUAL                 => reduce 1 tokens to expression 26.0
+   GREATER               => reduce 1 tokens to expression 26.0
+   GREATER_EQUAL         => reduce 1 tokens to expression 26.0
+   LESS                  => reduce 1 tokens to expression 26.0
+   LESS_EQUAL            => reduce 1 tokens to expression 26.0
+   MINUS                 => reduce 1 tokens to expression 26.0
+   PLUS                  => reduce 1 tokens to expression 26.0
+   RIGHT_PAREN           => reduce 1 tokens to expression 26.0
+   SEMICOLON             => reduce 1 tokens to expression 26.0
+   SLASH                 => reduce 1 tokens to expression 26.0
+   SLASH_EQUAL           => reduce 1 tokens to expression 26.0
+   STAR                  => reduce 1 tokens to expression 26.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 12:
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+     32.2:primary <= LEFT_PAREN expression ^ RIGHT_PAREN
+
+   AND                   => shift and goto state 14 26.3
+   OR                    => shift and goto state 15 29.0
+   XOR                   => shift and goto state 16 29.1
+   EQUAL                 => shift and goto state 17 28.0
+   GREATER               => shift and goto state 18 28.4
+   GREATER_EQUAL         => shift and goto state 19 28.5
+   LESS                  => shift and goto state 20 28.2
+   LESS_EQUAL            => shift and goto state 21 28.3
+   MINUS                 => shift and goto state 22 31.1
+   PLUS                  => shift and goto state 23 31.0
+   RIGHT_PAREN           => shift and goto state 33 32.2
+   SLASH                 => shift and goto state 25 30.1
+   SLASH_EQUAL           => shift and goto state 26 28.1
+   STAR                  => shift and goto state 27 30.0
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 13:
+     25.1:compilation_unit_list <= compilation_unit_list compilation_unit ^
+
+   NOT                   => reduce 2 tokens to compilation_unit_list 25.1
+   LEFT_PAREN            => reduce 2 tokens to compilation_unit_list 25.1
+   MINUS                 => reduce 2 tokens to compilation_unit_list 25.1
+   PLUS                  => reduce 2 tokens to compilation_unit_list 25.1
+   IDENTIFIER            => reduce 2 tokens to compilation_unit_list 25.1
+   NUMERIC_LITERAL       => reduce 2 tokens to compilation_unit_list 25.1
+   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 25.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 14:
+     26.3:expression <= expression AND ^ expression
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 34
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 15:
+     29.0:or_op <= OR ^
+
+   NOT                   => reduce 1 tokens to or_op 29.0
+   LEFT_PAREN            => reduce 1 tokens to or_op 29.0
+   MINUS                 => reduce 1 tokens to or_op 29.0
+   PLUS                  => reduce 1 tokens to or_op 29.0
+   IDENTIFIER            => reduce 1 tokens to or_op 29.0
+   NUMERIC_LITERAL       => reduce 1 tokens to or_op 29.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 16:
+     29.1:or_op <= XOR ^
+
+   NOT                   => reduce 1 tokens to or_op 29.1
+   LEFT_PAREN            => reduce 1 tokens to or_op 29.1
+   MINUS                 => reduce 1 tokens to or_op 29.1
+   PLUS                  => reduce 1 tokens to or_op 29.1
+   IDENTIFIER            => reduce 1 tokens to or_op 29.1
+   NUMERIC_LITERAL       => reduce 1 tokens to or_op 29.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 17:
+     28.0:relational_op <= EQUAL ^
+
+   NOT                   => reduce 1 tokens to relational_op 28.0
+   LEFT_PAREN            => reduce 1 tokens to relational_op 28.0
+   MINUS                 => reduce 1 tokens to relational_op 28.0
+   PLUS                  => reduce 1 tokens to relational_op 28.0
+   IDENTIFIER            => reduce 1 tokens to relational_op 28.0
+   NUMERIC_LITERAL       => reduce 1 tokens to relational_op 28.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 18:
+     28.4:relational_op <= GREATER ^
+
+   NOT                   => reduce 1 tokens to relational_op 28.4
+   LEFT_PAREN            => reduce 1 tokens to relational_op 28.4
+   MINUS                 => reduce 1 tokens to relational_op 28.4
+   PLUS                  => reduce 1 tokens to relational_op 28.4
+   IDENTIFIER            => reduce 1 tokens to relational_op 28.4
+   NUMERIC_LITERAL       => reduce 1 tokens to relational_op 28.4
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 19:
+     28.5:relational_op <= GREATER_EQUAL ^
+
+   NOT                   => reduce 1 tokens to relational_op 28.5
+   LEFT_PAREN            => reduce 1 tokens to relational_op 28.5
+   MINUS                 => reduce 1 tokens to relational_op 28.5
+   PLUS                  => reduce 1 tokens to relational_op 28.5
+   IDENTIFIER            => reduce 1 tokens to relational_op 28.5
+   NUMERIC_LITERAL       => reduce 1 tokens to relational_op 28.5
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 20:
+     28.2:relational_op <= LESS ^
+
+   NOT                   => reduce 1 tokens to relational_op 28.2
+   LEFT_PAREN            => reduce 1 tokens to relational_op 28.2
+   MINUS                 => reduce 1 tokens to relational_op 28.2
+   PLUS                  => reduce 1 tokens to relational_op 28.2
+   IDENTIFIER            => reduce 1 tokens to relational_op 28.2
+   NUMERIC_LITERAL       => reduce 1 tokens to relational_op 28.2
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 21:
+     28.3:relational_op <= LESS_EQUAL ^
+
+   NOT                   => reduce 1 tokens to relational_op 28.3
+   LEFT_PAREN            => reduce 1 tokens to relational_op 28.3
+   MINUS                 => reduce 1 tokens to relational_op 28.3
+   PLUS                  => reduce 1 tokens to relational_op 28.3
+   IDENTIFIER            => reduce 1 tokens to relational_op 28.3
+   NUMERIC_LITERAL       => reduce 1 tokens to relational_op 28.3
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 22:
+     31.1:add_op <= MINUS ^
+
+   NOT                   => reduce 1 tokens to add_op 31.1
+   LEFT_PAREN            => reduce 1 tokens to add_op 31.1
+   MINUS                 => reduce 1 tokens to add_op 31.1
+   PLUS                  => reduce 1 tokens to add_op 31.1
+   IDENTIFIER            => reduce 1 tokens to add_op 31.1
+   NUMERIC_LITERAL       => reduce 1 tokens to add_op 31.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 23:
+     31.0:add_op <= PLUS ^
+
+   NOT                   => reduce 1 tokens to add_op 31.0
+   LEFT_PAREN            => reduce 1 tokens to add_op 31.0
+   MINUS                 => reduce 1 tokens to add_op 31.0
+   PLUS                  => reduce 1 tokens to add_op 31.0
+   IDENTIFIER            => reduce 1 tokens to add_op 31.0
+   NUMERIC_LITERAL       => reduce 1 tokens to add_op 31.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 24:
+     24.0:compilation_unit <= expression SEMICOLON ^
+
+   NOT                   => reduce 2 tokens to compilation_unit 24.0
+   LEFT_PAREN            => reduce 2 tokens to compilation_unit 24.0
+   MINUS                 => reduce 2 tokens to compilation_unit 24.0
+   PLUS                  => reduce 2 tokens to compilation_unit 24.0
+   IDENTIFIER            => reduce 2 tokens to compilation_unit 24.0
+   NUMERIC_LITERAL       => reduce 2 tokens to compilation_unit 24.0
+   Wisi_EOI              => reduce 2 tokens to compilation_unit 24.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 25:
+     30.1:multiply_op <= SLASH ^
+
+   NOT                   => reduce 1 tokens to multiply_op 30.1
+   LEFT_PAREN            => reduce 1 tokens to multiply_op 30.1
+   MINUS                 => reduce 1 tokens to multiply_op 30.1
+   PLUS                  => reduce 1 tokens to multiply_op 30.1
+   IDENTIFIER            => reduce 1 tokens to multiply_op 30.1
+   NUMERIC_LITERAL       => reduce 1 tokens to multiply_op 30.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 26:
+     28.1:relational_op <= SLASH_EQUAL ^
+
+   NOT                   => reduce 1 tokens to relational_op 28.1
+   LEFT_PAREN            => reduce 1 tokens to relational_op 28.1
+   MINUS                 => reduce 1 tokens to relational_op 28.1
+   PLUS                  => reduce 1 tokens to relational_op 28.1
+   IDENTIFIER            => reduce 1 tokens to relational_op 28.1
+   NUMERIC_LITERAL       => reduce 1 tokens to relational_op 28.1
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 27:
+     30.0:multiply_op <= STAR ^
+
+   NOT                   => reduce 1 tokens to multiply_op 30.0
+   LEFT_PAREN            => reduce 1 tokens to multiply_op 30.0
+   MINUS                 => reduce 1 tokens to multiply_op 30.0
+   PLUS                  => reduce 1 tokens to multiply_op 30.0
+   IDENTIFIER            => reduce 1 tokens to multiply_op 30.0
+   NUMERIC_LITERAL       => reduce 1 tokens to multiply_op 30.0
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 28:
+     26.2:expression <= expression relational_op ^ expression
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 35
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 29:
+     26.4:expression <= expression or_op ^ expression
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 36
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 30:
+     26.5:expression <= expression multiply_op ^ expression
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 37
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 31:
+     26.6:expression <= expression add_op ^ expression
+
+   NOT                   => shift and goto state 1 27.0
+   LEFT_PAREN            => shift and goto state 2 32.2
+   MINUS                 => shift and goto state 3 27.2
+   PLUS                  => shift and goto state 4 27.1
+   IDENTIFIER            => shift and goto state 5 32.1
+   NUMERIC_LITERAL       => shift and goto state 6 32.0
+   default               => ERROR
+
+   expression            goto state 38
+   unary_operator        goto state 10
+   primary               goto state 11
+
+   Minimal_Complete_Actions => 
+
+State 32:
+     26.1:expression <= unary_operator expression ^
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => reduce 2 tokens to expression 26.1
+   OR                    => reduce 2 tokens to expression 26.1
+   XOR                   => reduce 2 tokens to expression 26.1
+   EQUAL                 => reduce 2 tokens to expression 26.1
+   GREATER               => reduce 2 tokens to expression 26.1
+   GREATER_EQUAL         => reduce 2 tokens to expression 26.1
+   LESS                  => reduce 2 tokens to expression 26.1
+   LESS_EQUAL            => reduce 2 tokens to expression 26.1
+   MINUS                 => reduce 2 tokens to expression 26.1
+   PLUS                  => reduce 2 tokens to expression 26.1
+   RIGHT_PAREN           => reduce 2 tokens to expression 26.1
+   SEMICOLON             => reduce 2 tokens to expression 26.1
+   SLASH                 => reduce 2 tokens to expression 26.1
+   SLASH_EQUAL           => reduce 2 tokens to expression 26.1
+   STAR                  => reduce 2 tokens to expression 26.1
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 33:
+     32.2:primary <= LEFT_PAREN expression RIGHT_PAREN ^
+
+   AND                   => reduce 3 tokens to primary 32.2
+   OR                    => reduce 3 tokens to primary 32.2
+   XOR                   => reduce 3 tokens to primary 32.2
+   EQUAL                 => reduce 3 tokens to primary 32.2
+   GREATER               => reduce 3 tokens to primary 32.2
+   GREATER_EQUAL         => reduce 3 tokens to primary 32.2
+   LESS                  => reduce 3 tokens to primary 32.2
+   LESS_EQUAL            => reduce 3 tokens to primary 32.2
+   MINUS                 => reduce 3 tokens to primary 32.2
+   PLUS                  => reduce 3 tokens to primary 32.2
+   RIGHT_PAREN           => reduce 3 tokens to primary 32.2
+   SEMICOLON             => reduce 3 tokens to primary 32.2
+   SLASH                 => reduce 3 tokens to primary 32.2
+   SLASH_EQUAL           => reduce 3 tokens to primary 32.2
+   STAR                  => reduce 3 tokens to primary 32.2
+   default               => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 34:
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression AND expression ^
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => reduce 3 tokens to expression 26.3
+   OR                    => reduce 3 tokens to expression 26.3
+   XOR                   => reduce 3 tokens to expression 26.3
+   EQUAL                 => shift and goto state 17 28.0
+   GREATER               => shift and goto state 18 28.4
+   GREATER_EQUAL         => shift and goto state 19 28.5
+   LESS                  => shift and goto state 20 28.2
+   LESS_EQUAL            => shift and goto state 21 28.3
+   MINUS                 => reduce 3 tokens to expression 26.3
+   PLUS                  => reduce 3 tokens to expression 26.3
+   RIGHT_PAREN           => reduce 3 tokens to expression 26.3
+   SEMICOLON             => reduce 3 tokens to expression 26.3
+   SLASH                 => reduce 3 tokens to expression 26.3
+   SLASH_EQUAL           => shift and goto state 26 28.1
+   STAR                  => reduce 3 tokens to expression 26.3
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 35:
+     26.2:expression <= expression relational_op expression ^
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => reduce 3 tokens to expression 26.2
+   OR                    => reduce 3 tokens to expression 26.2
+   XOR                   => reduce 3 tokens to expression 26.2
+   EQUAL                 => reduce 3 tokens to expression 26.2
+   GREATER               => reduce 3 tokens to expression 26.2
+   GREATER_EQUAL         => reduce 3 tokens to expression 26.2
+   LESS                  => reduce 3 tokens to expression 26.2
+   LESS_EQUAL            => reduce 3 tokens to expression 26.2
+   MINUS                 => reduce 3 tokens to expression 26.2
+   PLUS                  => reduce 3 tokens to expression 26.2
+   RIGHT_PAREN           => reduce 3 tokens to expression 26.2
+   SEMICOLON             => reduce 3 tokens to expression 26.2
+   SLASH                 => reduce 3 tokens to expression 26.2
+   SLASH_EQUAL           => reduce 3 tokens to expression 26.2
+   STAR                  => reduce 3 tokens to expression 26.2
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 36:
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression or_op expression ^
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => shift and goto state 14 26.3
+   OR                    => reduce 3 tokens to expression 26.4
+   XOR                   => reduce 3 tokens to expression 26.4
+   EQUAL                 => shift and goto state 17 28.0
+   GREATER               => shift and goto state 18 28.4
+   GREATER_EQUAL         => shift and goto state 19 28.5
+   LESS                  => shift and goto state 20 28.2
+   LESS_EQUAL            => shift and goto state 21 28.3
+   MINUS                 => reduce 3 tokens to expression 26.4
+   PLUS                  => reduce 3 tokens to expression 26.4
+   RIGHT_PAREN           => reduce 3 tokens to expression 26.4
+   SEMICOLON             => reduce 3 tokens to expression 26.4
+   SLASH                 => reduce 3 tokens to expression 26.4
+   SLASH_EQUAL           => shift and goto state 26 28.1
+   STAR                  => reduce 3 tokens to expression 26.4
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 37:
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression multiply_op expression ^
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => shift and goto state 14 26.3
+   OR                    => shift and goto state 15 29.0
+   XOR                   => shift and goto state 16 29.1
+   EQUAL                 => shift and goto state 17 28.0
+   GREATER               => shift and goto state 18 28.4
+   GREATER_EQUAL         => shift and goto state 19 28.5
+   LESS                  => shift and goto state 20 28.2
+   LESS_EQUAL            => shift and goto state 21 28.3
+   MINUS                 => reduce 3 tokens to expression 26.5
+   PLUS                  => reduce 3 tokens to expression 26.5
+   RIGHT_PAREN           => reduce 3 tokens to expression 26.5
+   SEMICOLON             => reduce 3 tokens to expression 26.5
+   SLASH                 => reduce 3 tokens to expression 26.5
+   SLASH_EQUAL           => shift and goto state 26 28.1
+   STAR                  => reduce 3 tokens to expression 26.5
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 38:
+     26.2:expression <= expression ^ relational_op expression
+     26.3:expression <= expression ^ AND expression
+     26.4:expression <= expression ^ or_op expression
+     26.5:expression <= expression ^ multiply_op expression
+     26.6:expression <= expression add_op expression ^
+     26.6:expression <= expression ^ add_op expression
+
+   AND                   => shift and goto state 14 26.3
+   OR                    => shift and goto state 15 29.0
+   XOR                   => shift and goto state 16 29.1
+   EQUAL                 => shift and goto state 17 28.0
+   GREATER               => shift and goto state 18 28.4
+   GREATER_EQUAL         => shift and goto state 19 28.5
+   LESS                  => shift and goto state 20 28.2
+   LESS_EQUAL            => shift and goto state 21 28.3
+   MINUS                 => reduce 3 tokens to expression 26.6
+   PLUS                  => reduce 3 tokens to expression 26.6
+   RIGHT_PAREN           => reduce 3 tokens to expression 26.6
+   SEMICOLON             => reduce 3 tokens to expression 26.6
+   SLASH                 => shift and goto state 25 30.1
+   SLASH_EQUAL           => shift and goto state 26 28.1
+   STAR                  => shift and goto state 27 30.0
+   default               => ERROR
+
+   relational_op         goto state 28
+   or_op                 goto state 29
+   multiply_op           goto state 30
+   add_op                goto state 31
+
+   Minimal_Complete_Actions => 
+
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
+
+ 9 rules, 0 post_parse actions, 0 in_parse actions, 39 states

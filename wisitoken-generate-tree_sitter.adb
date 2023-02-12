@@ -1116,7 +1116,7 @@ package body WisiToken.Generate.Tree_Sitter is
          end case;
       end Put_RHS;
 
-      procedure Put_RHS_List (Node  : in Valid_Node_Access; First : in Boolean)
+      procedure Put_RHS_List (Node : in Valid_Node_Access; First : in Boolean)
       with Pre => Tree.ID (Node) = +rhs_list_ID
       is
          Children : constant Node_Access_Array := Tree.Children (Node);

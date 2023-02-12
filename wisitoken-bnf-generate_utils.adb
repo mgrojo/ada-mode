@@ -358,10 +358,10 @@ package body WisiToken.BNF.Generate_Utils is
          end if;
       end if;
 
-      Input_Data.Reset;
-      Input_Data.Phase       := WisiToken_Grammar_Runtime.Other;
-      Input_Data.User_Parser := Generate_Algorithm;
-      Input_Data.User_Lexer  := Lexer;
+      Input_Data.Reset
+        (Phase       => WisiToken_Grammar_Runtime.Other,
+         User_Parser => Generate_Algorithm,
+         User_Lexer  => Lexer);
 
       Grammar_Parser.Execute_Actions; -- populates Input_Data.Tokens
 

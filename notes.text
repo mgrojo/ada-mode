@@ -90,16 +90,7 @@ test_incremental.adb fails
  tree-sitter
 ;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
 ;; wisitoken-generate-tree_sitter.adb should be in user guide.)
-
-handle prec, assoc in ebnf translation
-    test/bnf/prec_assoc_ebnf.wy
-        make one
-            several invalid tree errors
-            split out into debug.wy
-                translate group item wrong
-
-    test/bnf/test_prec_assoc.adb
-        insert parens, compare to expected.
+t_all
 
 translate %conflict_resolution to tree-sitter precedences?
     https://github.com/tree-sitter/tree-sitter/pull/939 documents named precedences.

@@ -292,26 +292,33 @@ package body WisiToken_Grammar_Runtime is
       return WisiToken.Syntax_Trees.Augmented_Class_Access (New_Aug);
    end Copy_Augmented;
 
-   overriding procedure Reset (Data : in out User_Data_Type)
+   procedure Reset
+     (Data        : in out User_Data_Type;
+      User_Lexer  : in     WisiToken.BNF.Lexer_Type;
+      User_Parser : in     WisiToken.BNF.Generate_Algorithm;
+      Phase       : in     Action_Phase)
    is begin
-      --  Preserve data set in Phase Meta, or by Set_Lexer_Terminals, or by
-      --  wisitoken-bnf-generate.
+      Data.User_Parser := User_Parser;
+      Data.User_Lexer  := User_Lexer;
+      Data.Phase       := Phase;
 
-      --  Preserve Lexer
-      --  Preserve User_Lexer
-      --  Preserve User_Parser
-      --  Perserve Generate_Set
-      --  Preserve Meta_Syntax
-      --  Preserve Phase
-      --  Preserve Terminals
-      --  Preserve Non_Grammar
+      if Phase = Meta then
+         WisiToken.BNF.Free (Data.Generate_Set);
+         Data.EBNF_Ok     := False;
+         Data.Meta_Syntax := Unknown;
+         Data.Precedence_Map.Clear;
+         Data.Precedence_Inverse_Map.Clear;
+         Data.Precedence_Lists.Clear;
+      end if;
+
       Data.Raw_Code := (others => <>);
 
       Data.Language_Params :=
         (Case_Insensitive    => Data.Language_Params.Case_Insensitive,
          Error_Recover       => Data.Language_Params.Error_Recover,
          others              => <>);
-      Data.Tokens          :=
+
+      Data.Tokens :=
         (Virtual_Identifiers => Data.Tokens.Virtual_Identifiers,
          others              => <>);
 
@@ -493,6 +500,34 @@ package body WisiToken_Grammar_Runtime is
                            end if;
                         end;
                      end if;
+
+                  elsif Kind = "precedence" then
+                     --  Translate_To_BNF needs this done.
+                     declare
+                        use WisiToken.Syntax_Trees.LR_Utils;
+                        Name_List : constant Constant_List := Creators.Create_List
+                          (Tree, Tree.Child (Nonterm, 3), +declaration_item_list_ID, +declaration_item_ID);
+                        P_List : WisiToken.Precedence_Lists.List;
+                     begin
+                        for Item of Name_List loop
+                           declare
+                              Name  : constant String                 := Get_Text (Data, Tree, Item);
+                              Found : constant Precedence_Maps.Cursor := Data.Precedence_Map.Find (Name);
+                              P_ID  : WisiToken.Precedence_ID;
+                           begin
+                              if not Precedence_Maps.Has_Element (Found)  then
+                                 P_ID := 1 + WisiToken.Base_Precedence_ID (Data.Precedence_Map.Length);
+                                 Data.Precedence_Map.Insert (Name, P_ID);
+                                 Data.Precedence_Inverse_Map.Append (+Name);
+                              else
+                                 P_ID := Data.Precedence_Map (Found);
+                              end if;
+                              P_List.Append (P_ID);
+                           end;
+                        end loop;
+                        Data.Precedence_Lists.Append (P_List);
+                     end;
+
                   end if;
                end;
             when others =>
@@ -817,30 +852,8 @@ package body WisiToken_Grammar_Runtime is
                Data.Language_Params.Recursion_Strategy := Partial;
 
             elsif Kind = "precedence" then
-               declare
-                  use WisiToken.Syntax_Trees.LR_Utils;
-                  Name_List : constant Constant_List := Creators.Create_List
-                    (Tree, Tree.Child (Nonterm, 3), +declaration_item_list_ID, +declaration_item_ID);
-                  P_List : WisiToken.Precedence_Lists.List;
-               begin
-                  for Item of Name_List loop
-                     declare
-                        Name  : constant String                 := Get_Text (Data, Tree, Item);
-                        Found : constant Precedence_Maps.Cursor := Data.Precedence_Map.Find (Name);
-                        P_ID  : WisiToken.Precedence_ID;
-                     begin
-                        if not Precedence_Maps.Has_Element (Found)  then
-                           P_ID := 1 + WisiToken.Base_Precedence_ID (Data.Precedence_Map.Length);
-                           Data.Precedence_Map.Insert (Name, P_ID);
-                           Data.Precedence_Inverse_Map.Append (+Name);
-                        else
-                           P_ID := Data.Precedence_Map (Found);
-                        end if;
-                        P_List.Append (P_ID);
-                     end;
-                  end loop;
-                  Data.Precedence_Lists.Append (P_List);
-               end;
+               --  Done in meta phase
+               null;
 
             elsif Kind = "start" then
                Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));

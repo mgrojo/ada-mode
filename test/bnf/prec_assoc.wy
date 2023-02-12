@@ -36,6 +36,7 @@
 %generate LALR Ada re2c
 %generate Tree_Sitter Ada tree_sitter
 
+;; Ada keywords are case insensitive.
 %keyword AND 'and'
 %keyword NOT 'not'
 %keyword OR 'or'

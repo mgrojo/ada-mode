@@ -42,18 +42,22 @@ package WisiToken_Grammar_Runtime is
       --  Used to read the user language file; used now in '%if parser'
       --  statements.
 
-      Generate_Set : WisiToken.BNF.Generate_Set_Access;
-      --  As specified by %generate directives or command line.
-
       Phase : Action_Phase := Meta;
       --  Determines which actions Execute_Actions executes:
       --  Meta  - meta declarations, like %meta_syntax, %if, %generate
       --  Other - everything else
 
+      Generate_Set : WisiToken.BNF.Generate_Set_Access;
+      --  As specified by %generate directives or command line.
+
       EBNF_Ok : Boolean := False;
       --  Set True when don't need to translate EBNF to BNF.
 
-      Meta_Syntax          : WisiToken_Grammar_Runtime.Meta_Syntax := Unknown;
+      Meta_Syntax            : WisiToken_Grammar_Runtime.Meta_Syntax := Unknown;
+      Precedence_Map         : WisiToken.Precedence_Maps.Map;
+      Precedence_Inverse_Map : WisiToken.Precedence_Inverse_Maps.Vector;
+      Precedence_Lists       : WisiToken.Precedence_Lists_Arrays.Vector;
+
       Raw_Code             : WisiToken.BNF.Raw_Code;
       Language_Params      : WisiToken.BNF.Language_Param_Type;
       Tokens               : aliased WisiToken.BNF.Tokens;
@@ -61,9 +65,6 @@ package WisiToken_Grammar_Runtime is
       Suppress : WisiToken.BNF.String_Pair_Lists.List;
       --  Declaration name, warning label; suppress warnings.
 
-      Precedence_Map         : WisiToken.Precedence_Maps.Map;
-      Precedence_Inverse_Map : WisiToken.Precedence_Inverse_Maps.Vector;
-      Precedence_Lists       : WisiToken.Precedence_Lists_Arrays.Vector;
       Conflicts              : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover       : WisiToken.BNF.McKenzie_Recover_Param_Type;
       Max_Parallel           : SAL.Base_Peek_Type := 15;
@@ -111,7 +112,12 @@ package WisiToken_Grammar_Runtime is
       Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
      return WisiToken.Syntax_Trees.Augmented_Class_Access;
 
-   overriding procedure Reset (Data : in out User_Data_Type);
+   procedure Reset
+     (Data        : in out User_Data_Type;
+      User_Lexer  : in     WisiToken.BNF.Lexer_Type;
+      User_Parser : in     WisiToken.BNF.Generate_Algorithm;
+      Phase       : in     Action_Phase);
+   --  If Phase is Other, preserve data set in phase Meta.
 
    overriding
    procedure Initialize_Actions

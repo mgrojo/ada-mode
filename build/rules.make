@@ -10,11 +10,11 @@
 VPATH := ..
 VPATH += ../test
 
-vpath %.wy ../test/bnf ../Docs/error_correction_examples
-
-vpath %.texinfo ../Docs
-vpath %.tex ../Docs
 vpath %.bib ../Docs
+vpath %.js .
+vpath %.tex ../Docs
+vpath %.texinfo ../Docs
+vpath %.wy ../test/bnf ../Docs/error_correction_examples
 
 tests :: wisitoken_test.gpr
 tests :: wisitoken-bnf-generate.exe

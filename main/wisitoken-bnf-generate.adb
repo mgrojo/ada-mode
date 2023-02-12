@@ -355,14 +355,10 @@ begin
          use all type Ada.Containers.Count_Type;
          use all type WisiToken_Grammar_Runtime.Action_Phase;
       begin
-         Input_Data.User_Parser := Parser;
-         Input_Data.User_Lexer  := Lexer;
          --  Specifying the parser and lexer can change the parsed grammar, due
          --  to %if {parser | lexer}.
 
-         Input_Data.Reset; -- only resets Other data
-
-         Input_Data.Phase := Phase;
+         Input_Data.Reset (Lexer, Parser, Phase);
 
          case Phase is
          when Meta =>
@@ -381,9 +377,6 @@ begin
             end case;
 
          when Other =>
-            --  IMPROVEME: for now, Packrat requires a BNF tree; eventually, it
-            --  will use the EBNF tree.
-
             if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
                Translate_To_BNF;
             end if;
