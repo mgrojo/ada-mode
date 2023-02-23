@@ -263,8 +263,8 @@ rhs_element
   ;
 
 rhs_item_list
-  : rhs_element
-  | rhs_item_list rhs_element
+  : rhs_item_list rhs_element
+  | rhs_element
   ;
 
 rhs_item
@@ -300,8 +300,8 @@ rhs_multiple_item
   | LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS ;; not empty
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS  ;; not empty
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR  ;; can be empty
-  | IDENTIFIER PLUS
-  | IDENTIFIER STAR
+  | IDENTIFIER PLUS ;; not empty
+  | IDENTIFIER STAR ;; can be empty
   ;
 
 rhs_alternative_list
@@ -322,8 +322,8 @@ compilation_unit
   ;
 
 compilation_unit_list
-  : compilation_unit
-  | compilation_unit_list compilation_unit
+  : compilation_unit_list compilation_unit
+  | compilation_unit
   ;
 
 ;; end of file

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -190,7 +190,8 @@ package body Dragon_4_45_LALR_Test is
       Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
 
       Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LALR_Generate.Generate
-        (Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions);
+        (Grammar, WisiToken.Precedence_Lists_Arrays.Empty_Vector, LALR_Descriptor,
+         Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -253,7 +254,8 @@ package body Dragon_4_45_LALR_Test is
         (Parser,
          Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
-           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions),
+           (Grammar, WisiToken.Precedence_Lists_Arrays.Empty_Vector, LALR_Descriptor,
+            Grammar_File_Name => "", Error_Recover => False, Recursions => Recursions),
          WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,

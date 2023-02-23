@@ -49,7 +49,7 @@ State 1:
    Wisi_EOI             => reduce 1 tokens to name 10.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (1 name 10.0)
+   Minimal_Complete_Actions => 
 
 State 2:
      10.1:name <= attribute_reference ^
@@ -59,7 +59,7 @@ State 2:
    Wisi_EOI             => reduce 1 tokens to name 10.1
    default              => ERROR
 
-   Minimal_Complete_Actions => (1 name 10.1)
+   Minimal_Complete_Actions => 
 
 State 3:
       6.0:wisitoken_accept <= name ^ Wisi_EOI
@@ -80,7 +80,7 @@ State 4:
    Wisi_EOI             => reduce 1 tokens to name 10.2
    default              => ERROR
 
-   Minimal_Complete_Actions => (1 name 10.2)
+   Minimal_Complete_Actions => 
 
 State 5:
       8.0:attribute_reference <= name TICK ^ attribute_designator
@@ -108,7 +108,7 @@ State 6:
    name                 goto state 10
    qualified_expression goto state 4
 
-   Minimal_Complete_Actions => (IDENTIFIER 10.0)
+   Minimal_Complete_Actions => 
 
 State 7:
      11.0:qualified_expression <= name TICK aggregate ^
@@ -118,7 +118,7 @@ State 7:
    Wisi_EOI             => reduce 3 tokens to qualified_expression 11.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (3 qualified_expression 11.0)
+   Minimal_Complete_Actions => 
 
 State 8:
       8.0:attribute_reference <= name TICK attribute_designator ^
@@ -128,7 +128,7 @@ State 8:
    Wisi_EOI             => reduce 3 tokens to attribute_reference 8.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (3 attribute_reference 8.0)
+   Minimal_Complete_Actions => 
 
 State 9:
       8.0:attribute_reference <= name ^ TICK attribute_designator
@@ -141,7 +141,7 @@ State 9:
    Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (1 attribute_designator 9.0)
+   Minimal_Complete_Actions => 
 
 State 10:
       7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN
@@ -152,7 +152,7 @@ State 10:
    TICK                 => shift and goto state 5 8.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN 7.0)
+   Minimal_Complete_Actions => 
 
 State 11:
       7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^
@@ -162,10 +162,10 @@ State 11:
    Wisi_EOI             => reduce 3 tokens to aggregate 7.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (3 aggregate 7.0)
+   Minimal_Complete_Actions => 
 
-9 states with minimal_complete_actions; 9 total minimal_complete_actions.
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
 
 1 states with conflicts: 9
 
- 5 rules, 0 user actions, 1 checks, 12 states
+ 5 rules, 0 post_parse actions, 1 in_parse actions, 12 states

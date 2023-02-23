@@ -3,7 +3,7 @@
 ;; Test translate elisp wisi actions to Ada, auto token labels
 
 %code copyright_license %{
-;;  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -111,9 +111,13 @@ block
     %((wisi-match-names 1 9))%
   ;
 
-;; No automatic token labels needed; {declaration} is replaced by declaration_list.
+;; No automatic token labels needed; {declaration} is replaced by
+;; declaration_list, and no token is referenced in the action. But
+;; wisitoken doesn't examine the action to determine that, and is not
+;; smart enough to take advantage of the simple replacement, so it
+;; generates an automatic label.
 compilation_unit
-  : T1=declaration_list
+  : declaration_list
     %()%
     %((wisi-terminate-partial-parse))%
   | ;; empty
@@ -283,8 +287,8 @@ use_clause
 
 ;; end of file
 declaration_list
-  : declaration
-  | declaration_list declaration
+  : T1=declaration
+  | declaration_list T1=declaration
   | declaration_list declaration_list
   ;
 nonterminal_014

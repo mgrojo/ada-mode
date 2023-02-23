@@ -436,4 +436,4 @@ State 24:
 
 21 states with minimal_complete_actions; 23 total minimal_complete_actions.
 
- 8 rules, 0 user actions, 0 checks, 25 states
+ 8 rules, 0 post_parse actions, 0 in_parse actions, 25 states

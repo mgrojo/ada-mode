@@ -1,15 +1,5 @@
 // generated from ada_lite_ebnf.wy -*- buffer-read-only:t js-indent-level:3 -*-
 
-const reserved = regex => token(prec(2, new RegExp(regex)));
-const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
-const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
-
-module.exports = grammar({
-   name: 'Ada_Lite_Ebnf',
-
-   rules: {
-      compilation_unit_list: $ => choice($.compilation_unit, seq($.compilation_unit_list, $.compilation_unit)),
-
 // 
 // ;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 // ;;
@@ -29,6 +19,16 @@ module.exports = grammar({
 // ;;
 // ;;  You should have received a copy of the GNU General Public License
 // ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
+module.exports = grammar({
+   name: 'Ada_Lite_Ebnf',
+
+   rules: {
+      compilation_unit_list: $ => choice($.compilation_unit, seq($.compilation_unit_list, $.compilation_unit)),
+
       AND: $ => reservedInsensitive('and'),
 
       BEGIN: $ => reservedInsensitive('begin'),

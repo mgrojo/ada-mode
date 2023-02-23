@@ -48,7 +48,7 @@ State 1:
    RANGE                  => shift and goto state 3 11.0
    default                => ERROR
 
-   Minimal_Complete_Actions => (RANGE 11.0)
+   Minimal_Complete_Actions => 
 
 State 2:
      10.0:wisitoken_accept <= subtype_indication ^ Wisi_EOI
@@ -69,7 +69,7 @@ State 3:
    primary                goto state 7
    allocator              goto state 8
 
-   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+   Minimal_Complete_Actions => 
 
 State 4:
      15.0:allocator <= NEW ^ subtype_indication
@@ -79,7 +79,7 @@ State 4:
 
    subtype_indication     goto state 9
 
-   Minimal_Complete_Actions => (IDENTIFIER 11.0)
+   Minimal_Complete_Actions => 
 
 State 5:
      13.0:primary <= IDENTIFIER ^
@@ -90,7 +90,7 @@ State 5:
    Wisi_EOI               => reduce 1 tokens to primary 13.0
    default                => ERROR
 
-   Minimal_Complete_Actions => (1 primary 13.0)
+   Minimal_Complete_Actions => 
 
 State 6:
      11.0:subtype_indication <= IDENTIFIER RANGE simple_expression ^ DOT_DOT simple_expression
@@ -103,7 +103,7 @@ State 6:
 
    binary_adding_operator goto state 13
 
-   Minimal_Complete_Actions => (DOT_DOT 11.0)
+   Minimal_Complete_Actions => 
 
 State 7:
      12.0:simple_expression <= primary ^
@@ -114,7 +114,7 @@ State 7:
    Wisi_EOI               => reduce 1 tokens to simple_expression 12.0
    default                => ERROR
 
-   Minimal_Complete_Actions => (1 simple_expression 12.0)
+   Minimal_Complete_Actions => 
 
 State 8:
      13.1:primary <= allocator ^
@@ -125,7 +125,7 @@ State 8:
    Wisi_EOI               => reduce 1 tokens to primary 13.1
    default                => ERROR
 
-   Minimal_Complete_Actions => (1 primary 13.1)
+   Minimal_Complete_Actions => 
 
 State 9:
      15.0:allocator <= NEW subtype_indication ^
@@ -136,7 +136,7 @@ State 9:
    Wisi_EOI               => reduce 2 tokens to allocator 15.0
    default                => ERROR
 
-   Minimal_Complete_Actions => (2 allocator 15.0)
+   Minimal_Complete_Actions => 
 
 State 10:
      11.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT ^ simple_expression
@@ -149,7 +149,7 @@ State 10:
    primary                goto state 7
    allocator              goto state 8
 
-   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+   Minimal_Complete_Actions => 
 
 State 11:
      14.1:binary_adding_operator <= MINUS ^
@@ -158,7 +158,7 @@ State 11:
    IDENTIFIER             => reduce 1 tokens to binary_adding_operator 14.1
    default                => ERROR
 
-   Minimal_Complete_Actions => (1 binary_adding_operator 14.1)
+   Minimal_Complete_Actions => 
 
 State 12:
      14.0:binary_adding_operator <= PLUS ^
@@ -167,7 +167,7 @@ State 12:
    IDENTIFIER             => reduce 1 tokens to binary_adding_operator 14.0
    default                => ERROR
 
-   Minimal_Complete_Actions => (1 binary_adding_operator 14.0)
+   Minimal_Complete_Actions => 
 
 State 13:
      12.1:simple_expression <= simple_expression binary_adding_operator ^ primary
@@ -179,7 +179,7 @@ State 13:
    primary                goto state 15
    allocator              goto state 8
 
-   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+   Minimal_Complete_Actions => 
 
 State 14:
      11.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ^
@@ -195,7 +195,7 @@ State 14:
 
    binary_adding_operator goto state 13
 
-   Minimal_Complete_Actions => (5 subtype_indication 11.0)
+   Minimal_Complete_Actions => 
 
 State 15:
      12.1:simple_expression <= simple_expression binary_adding_operator primary ^
@@ -206,10 +206,10 @@ State 15:
    Wisi_EOI               => reduce 3 tokens to simple_expression 12.1
    default                => ERROR
 
-   Minimal_Complete_Actions => (3 simple_expression 12.1)
+   Minimal_Complete_Actions => 
 
-14 states with minimal_complete_actions; 14 total minimal_complete_actions.
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
 
 1 states with conflicts: 14
 
- 5 rules, 0 user actions, 0 checks, 16 states
+ 5 rules, 0 post_parse actions, 0 in_parse actions, 16 states

@@ -40,7 +40,7 @@ State 1:
 
    upper_c          goto state 5
 
-   Minimal_Complete_Actions => (LOWER_D 8.1)
+   Minimal_Complete_Actions => 
 
 State 2:
       8.1:upper_c <= LOWER_D ^
@@ -50,7 +50,7 @@ State 2:
    Wisi_EOI         => reduce 1 tokens to upper_c 8.1
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 upper_c 8.1)
+   Minimal_Complete_Actions => 
 
 State 3:
       6.0:wisitoken_accept <= upper_s ^ Wisi_EOI
@@ -69,7 +69,7 @@ State 4:
 
    upper_c          goto state 6
 
-   Minimal_Complete_Actions => (LOWER_D 8.1)
+   Minimal_Complete_Actions => 
 
 State 5:
       8.0:upper_c <= LOWER_C upper_c ^
@@ -79,7 +79,7 @@ State 5:
    Wisi_EOI         => reduce 2 tokens to upper_c 8.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (2 upper_c 8.0)
+   Minimal_Complete_Actions => 
 
 State 6:
       7.0:upper_s <= upper_c upper_c ^
@@ -87,8 +87,8 @@ State 6:
    Wisi_EOI         => reduce 2 tokens to upper_s 7.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (2 upper_s 7.0)
+   Minimal_Complete_Actions => 
 
-5 states with minimal_complete_actions; 5 total minimal_complete_actions.
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
 
- 2 rules, 0 user actions, 0 checks, 7 states
+ 2 rules, 0 post_parse actions, 0 in_parse actions, 7 states

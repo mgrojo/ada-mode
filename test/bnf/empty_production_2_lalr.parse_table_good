@@ -50,7 +50,7 @@ State 1:
    declarations     goto state 5
    body             goto state 4
 
-   Minimal_Complete_Actions => (0 declarations 9.1)
+   Minimal_Complete_Actions => 
 
 State 2:
       9.1:declarations <= declaration ^
@@ -60,7 +60,7 @@ State 2:
    Wisi_EOI         => reduce 1 tokens to declarations 9.1
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 declarations 9.1)
+   Minimal_Complete_Actions => 
 
 State 3:
       7.0:wisitoken_accept <= declarations ^ Wisi_EOI
@@ -85,7 +85,7 @@ State 4:
    Wisi_EOI         => reduce 1 tokens to declaration 8.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 declaration 8.0)
+   Minimal_Complete_Actions => 
 
 State 5:
       9.0:declarations <= declarations ^ declaration
@@ -100,7 +100,7 @@ State 5:
    declaration      goto state 6
    body             goto state 4
 
-   Minimal_Complete_Actions => (BEGIN 10.0)
+   Minimal_Complete_Actions => 
 
 State 6:
       9.0:declarations <= declarations declaration ^
@@ -110,7 +110,7 @@ State 6:
    Wisi_EOI         => reduce 2 tokens to declarations 9.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (2 declarations 9.0)
+   Minimal_Complete_Actions => 
 
 State 7:
      10.0:body <= IS declarations BEGIN ^ SEMICOLON
@@ -118,7 +118,7 @@ State 7:
    SEMICOLON        => shift and goto state 8 10.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON 10.0)
+   Minimal_Complete_Actions => 
 
 State 8:
      10.0:body <= IS declarations BEGIN SEMICOLON ^
@@ -128,10 +128,10 @@ State 8:
    Wisi_EOI         => reduce 4 tokens to body 10.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (4 body 10.0)
+   Minimal_Complete_Actions => 
 
-7 states with minimal_complete_actions; 7 total minimal_complete_actions.
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
 
 4 states with conflicts: 0 1 3 5
 
- 3 rules, 1 user actions, 0 checks, 9 states
+ 3 rules, 1 post_parse actions, 0 in_parse actions, 9 states

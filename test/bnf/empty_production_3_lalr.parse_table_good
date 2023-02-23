@@ -40,7 +40,7 @@ State 1:
 
    mode                    goto state 5
 
-   Minimal_Complete_Actions => (0 mode 6.1)
+   Minimal_Complete_Actions => 
 
 State 2:
       4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
@@ -58,7 +58,7 @@ State 3:
 
    parameter_specification goto state 6
 
-   Minimal_Complete_Actions => (IDENTIFIER 8.0)
+   Minimal_Complete_Actions => 
 
 State 4:
       6.0:mode <= IN ^
@@ -66,7 +66,7 @@ State 4:
    IDENTIFIER              => reduce 1 tokens to mode 6.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (1 mode 6.0)
+   Minimal_Complete_Actions => 
 
 State 5:
       8.0:parameter_specification <= IDENTIFIER mode ^ name
@@ -76,7 +76,7 @@ State 5:
 
    name                    goto state 8
 
-   Minimal_Complete_Actions => (IDENTIFIER 7.0)
+   Minimal_Complete_Actions => 
 
 State 6:
       5.0:compilation_unit <= parameter_specification parameter_specification ^
@@ -84,7 +84,7 @@ State 6:
    Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (2 compilation_unit 5.0)
+   Minimal_Complete_Actions => 
 
 State 7:
       7.0:name <= IDENTIFIER ^
@@ -93,7 +93,7 @@ State 7:
    Wisi_EOI                => reduce 1 tokens to name 7.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (1 name 7.0)
+   Minimal_Complete_Actions => 
 
 State 8:
       8.0:parameter_specification <= IDENTIFIER mode name ^
@@ -102,8 +102,8 @@ State 8:
    Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (3 parameter_specification 8.0)
+   Minimal_Complete_Actions => 
 
-7 states with minimal_complete_actions; 7 total minimal_complete_actions.
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
 
- 4 rules, 1 user actions, 1 checks, 9 states
+ 4 rules, 1 post_parse actions, 1 in_parse actions, 9 states

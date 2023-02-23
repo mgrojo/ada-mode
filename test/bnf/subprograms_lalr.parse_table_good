@@ -975,4 +975,4 @@ State 71:
 
 70 states with minimal_complete_actions; 78 total minimal_complete_actions.
 
- 12 rules, 28 user actions, 11 checks, 72 states
+ 12 rules, 28 post_parse actions, 11 in_parse actions, 72 states

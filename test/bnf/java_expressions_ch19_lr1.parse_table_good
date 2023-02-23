@@ -1487,4 +1487,4 @@ State 95:
 
 92 states with minimal_complete_actions; 104 total minimal_complete_actions.
 
- 16 rules, 0 user actions, 0 checks, 96 states
+ 16 rules, 0 post_parse actions, 0 in_parse actions, 96 states

@@ -56,8 +56,14 @@ package body BNF_WY_Test is
         (Trace'Unchecked_Access, Input_Data'Unchecked_Access);
 
       Save_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
+      Save_Debug_Mode  : constant Boolean := WisiToken.Debug_Mode;
    begin
+      if WisiToken.Trace_Tests > WisiToken.Detail then
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "get_gen_set");
+      end if;
+
       WisiToken.Trace_Parse := 0; --  user does not want to see a trace of the grammar parser.
+      WisiToken.Debug_Mode := False; -- too slow for running in every test
 
       WisiToken.Generate.Error := False;
 
@@ -113,13 +119,16 @@ package body BNF_WY_Test is
       McKenzie_Recover := Input_Data.Language_Params.Error_Recover;
 
       WisiToken.Trace_Parse := Save_Trace_Parse;
+      WisiToken.Debug_Mode := Save_Debug_Mode;
    exception
    when AUnit.Assertions.Assertion_Error =>
       WisiToken.Trace_Parse := Save_Trace_Parse;
+      WisiToken.Debug_Mode := Save_Debug_Mode;
       raise;
 
    when WisiToken.Syntax_Error =>
       WisiToken.Trace_Parse := Save_Trace_Parse;
+      WisiToken.Debug_Mode := Save_Debug_Mode;
       Grammar_Parser.Put_Errors;
       raise;
    end Get_Gen_Set;
@@ -128,6 +137,9 @@ package body BNF_WY_Test is
      (Computed : in String;
       Skip     : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
    is begin
+      if WisiToken.Trace_Tests > WisiToken.Detail then
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "diff_one " & Computed);
+      end if;
       WisiToken.Test_Util.Dos2unix (Computed);
       AUnit.Checks.Text_IO.Check_Files ("", Computed, "../test/bnf/" & Computed & "_good", Skip);
    end Diff_One;

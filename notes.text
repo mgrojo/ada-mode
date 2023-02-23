@@ -88,9 +88,14 @@ test_incremental.adb fails
             contained in
 
  tree-sitter
+user guide:
 ;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
 ;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+
 t_all
+    all pass except Multiple_Errors_On_One_Token
+
+
 
 translate %conflict_resolution to tree-sitter precedences?
     https://github.com/tree-sitter/tree-sitter/pull/939 documents named precedences.

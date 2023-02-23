@@ -192,4 +192,4 @@ State 12:
 
 10 states with minimal_complete_actions; 11 total minimal_complete_actions.
 
- 3 rules, 0 user actions, 0 checks, 13 states
+ 3 rules, 0 post_parse actions, 0 in_parse actions, 13 states

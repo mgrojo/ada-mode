@@ -536,30 +536,25 @@ package body WisiToken.Generate.Tree_Sitter is
             when wisitoken_accept_ID =>
                Find_Nodes (Tree.Child (Node, 2));
 
+            when rhs_alternative_list_ID =>
+               Find_Nodes (Tree.Child (Node, Tree.Child_Count (Node)));
+
             when compilation_unit_ID =>
                Find_Nodes (Tree.Child (Node, 1));
 
-            when compilation_unit_list_ID | rhs_alternative_list_ID | rhs_item_list_ID | rhs_list_ID =>
+            when compilation_unit_list_ID | rhs_alternative_list_1_ID | rhs_item_list_ID | rhs_list_ID =>
                declare
                   Children : constant Node_Access_Array := Tree.Children (Node);
                begin
-                  case Tree.RHS_Index (Node) is
-                  when 0 =>
-                     Find_Nodes (Children (1));
-
-                  when 1 =>
-                     Find_Nodes (Children (1));
+                  Find_Nodes (Children (1));
+                  if Tree.Child_Count (Node) > 1 then
                      Find_Nodes
                        (Children
-                          ((if To_Token_Enum (Tree.ID (Node)) in rhs_list_ID | rhs_alternative_list_ID then 3 else 2)));
-
-                  when others =>
-                     --  rhs_list can have other rhs_index, but those nodes should have been
-                     --  deleted by now.
-                     raise SAL.Programmer_Error with "Make_Optional.Find_Nodes list: rhs_index" &
-                       Tree.RHS_Index (Node)'Image & " node " & Tree.Image
-                         (Node, Node_Numbers => True);
-                  end case;
+                          (case To_Token_Enum (Tree.ID (Node)) is
+                           when compilation_unit_list_ID  | rhs_item_list_ID => 2,
+                           when rhs_alternative_list_1_ID | rhs_list_ID      => 3,
+                           when others => raise SAL.Programmer_Error));
+                  end if;
                end;
 
             when declaration_ID =>
@@ -591,10 +586,10 @@ package body WisiToken.Generate.Tree_Sitter is
                      declare
                         Child : constant Valid_Node_Access := WisiToken_Grammar_Editing.Add_RHS_Optional_Item
                           (Tree,
-                           RHS_Index => (if Tree.RHS_Index (Node) = 0 then 2 else 3),
+                           RHS_Index => 2, -- IDENTIFIER QUESTION
                            Content   => Tree.Child (Node, 1));
                      begin
-                        Tree.Set_Children (Node_Var, (+rhs_item_ID, 3), (1 => Child));
+                        Tree.Set_Children (Node_Var, (+rhs_item_ID, 2), (1 => Child));
                      end;
                   end if;
 
@@ -887,20 +882,43 @@ package body WisiToken.Generate.Tree_Sitter is
                     Node_Numbers => True)));
       end Not_Translated;
 
-      procedure Put_RHS_Alternative_List (Node : in Valid_Node_Access; First : in Boolean)
-      with Pre => Tree.ID (Node) = +rhs_alternative_list_ID
+      procedure Put_Attr_List (Attr_List : in Valid_Node_Access)
+      is
+         Prec  : constant WisiToken.Base_Precedence_ID := WisiToken_Grammar_Runtime.Get_Precedence
+           (Data, Tree, Attr_List);
+         Assoc : constant WisiToken.Associativity      := WisiToken_Grammar_Runtime.Get_Associativity
+           (Data, Tree, Attr_List);
+      begin
+         case Assoc is
+         when Left =>
+            Put ("prec.left(");
+
+         when Right =>
+            Put ("prec.right(");
+
+         when None =>
+            pragma Assert (Prec /= No_Precedence);
+            Put ("prec(");
+         end case;
+         if Prec /= No_Precedence then
+            Put ("'" & (-Data.Precedence_Inverse_Map (Prec)) & "',");
+         end if;
+      end Put_Attr_List;
+
+      procedure Put_RHS_Alternative_List_1 (Node : in Valid_Node_Access; First : in Boolean)
+      with Pre => Tree.ID (Node) = +rhs_alternative_list_1_ID
       is begin
-         case Tree.RHS_Index (Node) is
-         when 0 =>
-            --  If only alternative, don't need "choice()".
+         case To_Token_Enum (Tree.ID (Tree.Child (Node, 1))) is
+         when rhs_item_list_ID =>
+            --  Only one alternative, don't need "choice()".
             Put_RHS_Item_List (Tree.Child (Node, 1), First => True);
 
-         when 1 =>
+         when rhs_alternative_list_1_ID =>
             if First then
                Put ("choice(");
             end if;
 
-            Put_RHS_Alternative_List (Tree.Child (Node, 1), First => False);
+            Put_RHS_Alternative_List_1 (Tree.Child (Node, 1), First => False);
             Put (", ");
             Put_RHS_Item_List (Tree.Child (Node, 3), First => True);
 
@@ -909,8 +927,21 @@ package body WisiToken.Generate.Tree_Sitter is
             end if;
 
          when others =>
-            Not_Translated ("Put_RHS_Alternative_List", Node);
+            Not_Translated ("Put_RHS_Alternative_List_1", Node);
          end case;
+      end Put_RHS_Alternative_List_1;
+
+      procedure Put_RHS_Alternative_List (Node : in Valid_Node_Access)
+      with Pre => Tree.ID (Node) = +rhs_alternative_list_ID
+      is
+         RHS_Alt_List_1 : Valid_Node_Access := Tree.Child (Node, 1);
+      begin
+         if Tree.ID (Tree.Child (Node, 1)) = +attribute_list_ID then
+            Put_Attr_List (Tree.Child (Node, 1));
+            RHS_Alt_List_1 := Tree.Child (Node, 2);
+         end if;
+
+         Put_RHS_Alternative_List_1 (RHS_Alt_List_1, First => True);
       end Put_RHS_Alternative_List;
 
       procedure Put_RHS_Optional_Item (Node : in Valid_Node_Access)
@@ -920,7 +951,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          case To_Token_Enum (Tree.ID (Tree.Child (Node, 1))) is
          when LEFT_BRACKET_ID | LEFT_PAREN_ID =>
-            Put_RHS_Alternative_List (Tree.Child (Node, 2), First => True);
+            Put_RHS_Alternative_List (Tree.Child (Node, 2));
          when IDENTIFIER_ID =>
             Put ("$." & Get_Text (Tree.Child (Node, 1)));
          when STRING_LITERAL_SINGLE_ID =>
@@ -938,12 +969,12 @@ package body WisiToken.Generate.Tree_Sitter is
          case Tree.RHS_Index (Node) is
          when 0 | 3 =>
             Put ("repeat(");
-            Put_RHS_Alternative_List (Tree.Child (Node, 2), First => True);
+            Put_RHS_Alternative_List (Tree.Child (Node, 2));
             Put (")");
 
          when 1 | 2 =>
             Put ("repeat1(");
-            Put_RHS_Alternative_List (Tree.Child (Node, 2), First => True);
+            Put_RHS_Alternative_List (Tree.Child (Node, 2));
             Put (")");
 
          when 4 =>
@@ -964,7 +995,7 @@ package body WisiToken.Generate.Tree_Sitter is
       procedure Put_RHS_Group_Item (Node : in Valid_Node_Access)
       with Pre => Tree.ID (Node) = +rhs_group_item_ID
       is begin
-         Put_RHS_Alternative_List (Tree.Child (Node, 2), First => True);
+         Put_RHS_Alternative_List (Tree.Child (Node, 2));
       end Put_RHS_Group_Item;
 
       procedure Put_RHS_Item (Node : in Valid_Node_Access)
@@ -1059,29 +1090,6 @@ package body WisiToken.Generate.Tree_Sitter is
             end if;
          end if;
       end Put_RHS_Item_List;
-
-      procedure Put_Attr_List (Attr_List : in Valid_Node_Access)
-      is
-         Prec  : constant WisiToken.Base_Precedence_ID := WisiToken_Grammar_Runtime.Get_Precedence
-           (Data, Tree, Attr_List);
-         Assoc : constant WisiToken.Associativity      := WisiToken_Grammar_Runtime.Get_Associativity
-           (Data, Tree, Attr_List);
-      begin
-         case Assoc is
-         when Left =>
-            Put ("prec.left(");
-
-         when Right =>
-            Put ("prec.right(");
-
-         when None =>
-            pragma Assert (Prec /= No_Precedence);
-            Put ("prec(");
-         end case;
-         if Prec /= No_Precedence then
-            Put ("'" & (-Data.Precedence_Inverse_Map (Prec)) & "',");
-         end if;
-      end Put_Attr_List;
 
       procedure Put_RHS (Node : in Valid_Node_Access)
       with Pre => Tree.ID (Node) = +rhs_ID

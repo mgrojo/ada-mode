@@ -156,10 +156,10 @@ expression
   | expression postfix=nonterminal_060
 
 ;; attribute with more than one item following
-  | expression bop=nonterminal_061 expression
+  | <assoc=right> expression bop=nonterminal_061 expression
 
 ;; attribute with one item following
-  | expression
+  | <assoc=right> expression
   ;
 
 ;; non-trivial group item
