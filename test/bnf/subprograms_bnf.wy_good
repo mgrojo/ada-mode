@@ -117,7 +117,7 @@ block
 ;; smart enough to take advantage of the simple replacement, so it
 ;; generates an automatic label.
 compilation_unit
-  : declaration_list
+  : T1=declaration_list
     %()%
     %((wisi-terminate-partial-parse))%
   | ;; empty
@@ -287,8 +287,8 @@ use_clause
 
 ;; end of file
 declaration_list
-  : T1=declaration
-  | declaration_list T1=declaration
+  : declaration
+  | declaration_list declaration
   | declaration_list declaration_list
   ;
 nonterminal_014

@@ -164,10 +164,10 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when rhs_alternative_list_ID =>
             declare
-               RHS_Alt_List : constant Constant_List := Creators.Create_List
-                 (Tree, Node, +rhs_alternative_list_ID, +rhs_item_list_ID);
+               RHS_Alt_List_1 : constant Constant_List := Creators.Create_List
+                 (Tree, Tree.Child (Node, Tree.Child_Count (Node)), +rhs_alternative_list_1_ID, +rhs_item_list_ID);
             begin
-               for Item_List of RHS_Alt_List loop
+               for Item_List of RHS_Alt_List_1 loop
                   declare
                      Empty_Node : constant Node_Access := Can_Be_Empty (Item_List);
                   begin
@@ -417,7 +417,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                      Tree.Set_Children
                        (Node     => Item_Var,
-                        New_ID   => (+rhs_item_ID, 5),
+                        New_ID   => (+rhs_item_ID, 4),
                         Children =>
                           (1     => Optional_Item));
 
@@ -430,7 +430,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                      Tree.Set_Children
                        (Node     => Item_Var,
-                        New_ID   => (+rhs_item_ID, 5),
+                        New_ID   => (+rhs_item_ID, 4),
                         Children =>
                           (1     => Optional_Item));
 
@@ -674,12 +674,14 @@ package body WisiToken.Generate.Tree_Sitter is
 
       Data.Error_Reported.Clear;
 
-      Tree.Validate_Tree
-        (Data'Unchecked_Access, Data.Error_Reported,
-         Root              => Tree.Root,
-         Validate_Node     => WisiToken_Grammar_Editing.Validate_Node'Access,
-         Node_Index_Order  => True,
-         Line_Number_Order => False);
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data'Unchecked_Access, Data.Error_Reported,
+            Root              => Tree.Root,
+            Validate_Node     => WisiToken_Grammar_Editing.Validate_Node'Access,
+            Node_Index_Order  => True,
+            Line_Number_Order => False);
+      end if;
 
       if Trace_Generate_EBNF > Outline then
          Ada.Text_IO.Put_Line ("empty nonterms:");
@@ -700,11 +702,13 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree
-        (Data'Unchecked_Access, Data.Error_Reported,
-         Root             => Tree.Root,
-         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
-         Node_Index_Order => False); --  Implies Line_Number_Order = False
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data'Unchecked_Access, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+            Node_Index_Order => False); --  Implies Line_Number_Order = False
+      end if;
 
       for Nonterm of Empty_Nonterms loop
          Make_Optional (-Nonterm.Name);
@@ -715,11 +719,13 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree
-        (Data'Unchecked_Access, Data.Error_Reported,
-         Root             => Tree.Root,
-         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
-         Node_Index_Order => False);
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data'Unchecked_Access, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+            Node_Index_Order => False);
+      end if;
 
       declare
          use Valid_Node_Access_Lists;
@@ -758,11 +764,13 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree
-        (Data'Unchecked_Access, Data.Error_Reported,
-         Root             => Tree.Root,
-         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
-         Node_Index_Order => False);
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data'Unchecked_Access, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+            Node_Index_Order => False);
+      end if;
 
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
@@ -901,7 +909,7 @@ package body WisiToken.Generate.Tree_Sitter is
             Put ("prec(");
          end case;
          if Prec /= No_Precedence then
-            Put ("'" & (-Data.Precedence_Inverse_Map (Prec)) & "',");
+            Put ("'" & (-Data.Precedence_Inverse_Map (Prec)) & "', ");
          end if;
       end Put_Attr_List;
 
@@ -1063,11 +1071,12 @@ package body WisiToken.Generate.Tree_Sitter is
             Put_RHS_Item (Tree.Child (Node, 1));
 
          when 1 =>
-            --  Ignore the label
+            Put ("field('" & Get_Text (Tree.Child (Node, 1)) & "', ");
             Put_RHS_Item (Tree.Child (Node, 3));
+            Put (")");
 
          when others =>
-            Not_Translated ("Put_RHS_Element", Node);
+            raise SAL.Programmer_Error;
          end case;
       end Put_RHS_Element;
 
@@ -1159,7 +1168,8 @@ package body WisiToken.Generate.Tree_Sitter is
       end Put_RHS_List;
 
       function String_Regexp (Value : in Valid_Node_Access) return String
-      --  Value is a string or regular expression.
+      with Pre => To_Token_Enum (Tree.ID (Value)) in STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID | REGEXP_ID
+      --  Return a javascript expression for Value
       is
          use Ada.Strings, Ada.Strings.Fixed;
       begin
@@ -1167,7 +1177,9 @@ package body WisiToken.Generate.Tree_Sitter is
          (case To_Token_Enum (Tree.ID (Value)) is
             when STRING_LITERAL_DOUBLE_ID | STRING_LITERAL_SINGLE_ID => Get_Text (Value),
 
-            when REGEXP_ID => Trim (Get_Text (Value), Both),
+            when REGEXP_ID =>
+               --  Value must be '/.../' or 'new RegExp("...")' as needed; not checked here.
+               Trim (Get_Text (Value), Both),
 
             when others => raise SAL.Programmer_Error);
       end String_Regexp;
@@ -1383,8 +1395,6 @@ package body WisiToken.Generate.Tree_Sitter is
                Children : constant Node_Access_Array := Tree.Children (Node);
             begin
                Indent_Start (Get_Text (Children (1)) & ": $ => ");
-
-               --  IMPROVEME: check for canonical or ebnf list, use 'repeat'.
 
                if Tree.ID (Tree.Child (Node, 2)) = +attribute_list_ID then
                   Put_Attr_List (Tree.Child (Node, 2));

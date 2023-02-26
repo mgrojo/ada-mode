@@ -1,11 +1,11 @@
-;;; WisiToken grammar for Ada, generating a tree-sitter grammar
+;;; WisiToken grammar for Ada, generating a tree-sitter grammar, for testing tree-sitter generation
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Created: Sept 2012
 ;; Keywords: syntax
 ;;
-;;  Copied from emacs ada-mode grammar, modified to match
+;;  Copied from emacs ada-mode grammar, modified to closely match
 ;;  https://github.com/briot/tree-sitter-ada
 
 %meta_syntax EBNF
@@ -29,8 +29,6 @@
 
 %generate LALR        Ada_Emacs re2c Process
 %generate Tree_Sitter Ada_Emacs tree_sitter
-
-%partial_recursion ;; for generate speed; we are not actually using the result for error correction
 
 %case_insensitive
 %start compilation
@@ -147,22 +145,16 @@
 ;; literals (see test/non_ascii.ads)
 %lexer_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
 
+%if lexer = re2c
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
 ;; this (sigh). See wisitoken test character_literal.wy for rationale
 ;; behind this design.
 %token <punctuation> TICK_1 "'"
 
-%if lexer = re2c
 %token <regexp> TICK_2
     %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
   "'"
-
-%elsif lexer = tree_sitter
-%token <regexp> TICK_2
-    %[ "'"*(?!"('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'") ]%
-
-%end if
 
 tick : TICK_1 | TICK_2 ;
 
@@ -178,14 +170,27 @@ tick : TICK_1 | TICK_2 ;
 
 %non_grammar <new-line> NEW_LINE
 
+%elsif lexer = tree_sitter
+;; The lexer is context-sensitive, so this handles all the cases in
+;; character_literal.wy.
+%token <punctuation> tick "'"
+
+%token <regexp> NUMERIC_LITERAL
+    %[ /([0-9])|([0-9_]+([.][0-9]+)?([eE][0-9_-]+)?)|([0-9]+"#"[0-9a-fA-F._-]+"#")/ ]%
+  "1234567890"
+
+;; new-line, whitespace handled by default
+
+%end if
+
 ;; Ada comments
 %non_grammar <comment-new-line> COMMENT "--"
 
 ;; gnatprep preprocessor lines
-%non_grammar <comment-new-line> GNAT_PREP_IF "#if"
-%non_grammar <comment-new-line> GNAT_PREP_ELSIF "#elsif"
-%non_grammar <comment-new-line> GNAT_PREP_ELSE "#else"
-%non_grammar <comment-new-line> GNAT_PREP_END_IF "#end if"
+%keyword GNAT_PREP_IF "#if"
+%keyword GNAT_PREP_ELSIF "#elsif"
+%keyword GNAT_PREP_ELSE "#else"
+%keyword GNAT_PREP_END "#end"
 
 ;; skeleton placeholders. Also terminated by newline, EOI to avoid
 ;; accidentally commenting out multiple lines.
@@ -205,7 +210,8 @@ tick : TICK_1 | TICK_2 ;
 
 %elsif lexer = tree_sitter
 %token <symbol> IDENTIFIER
-    %[ ([$a-zA-Z\u{80}-\u{10FFFF}]|GNAT_Char_Coding)([0-9a-zA-Z_\u{80}-\u{10FFFF}|GNAT_Char_Coding])* ]%
+    %[ new RegExp("([a-zA-Z\u{80}-\u{10FFFF}]|" + GNAT_Char_Coding + ")([0-9a-zA-Z_\u{80}-\u{10FFFF}]|" + GNAT_Char_Coding + ")*", "u") ]%
+  "A_Bogus_Identifier"
 
 ;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
 ;; wisitoken-generate-tree_sitter.adb should be in user guide.)
@@ -222,127 +228,17 @@ word : IDENTIFIER ;
 
 %elsif lexer = tree_sitter
 ;; This allows newline in string, which may actually be a good thing when editing.
-%token <string> STRING_LITERAL %[ ("|[^"])* ]%
-%token <string> CHARACTER_LITERAL %[ '.' ]%
+%token <string> STRING_LITERAL %[ /"(""|[^\"])*"/u ]%
+%token <string> CHARACTER_LITERAL %[ /'.'/u ]%
 
 %end if
 
-%elisp_face font-lock-constant-face
-%elisp_face font-lock-function-name-face
-%elisp_face font-lock-type-face
-%elisp_face nil
-
-;;            function name        Ada function   arg_count token_index args
-%elisp_indent ada-indent-aggregate Ada_Indent_Aggregate   0
-%elisp_indent ada-indent-aspect    Ada_Indent_Aspect      0
-%elisp_indent ada-indent-renames   Ada_Indent_Renames_0   1 1
-%elisp_indent ada-indent-return    Ada_Indent_Return_0    2 1
-%elisp_indent ada-indent-record    Ada_Indent_Record_0    3 1 2
-%elisp_indent "ada-indent-record*" Ada_Indent_Record_1    3 2
-
-;; Set McKenzie error recovery costs.
-;;
-;; We assume the user is typing new code more often than deleting or
-;; changing old. Minimal_Complete reduces cost for insert, so the
-;; default cost is higher for insert than delete. Often insert requires
-;; push_back first, to get the parser in the right state, so push_back
-;; is cheaper.
-;;
-;; We need a balance between Minimal_Complete and other solutions; if
-;; Minimal_Complete is too cheap, it will complete the entire
-;; compilation_Unit before the error point, when doing something else
-;; at some point is better (see test/ada_mode-recover_29.adb, _15,
-;; _16, _24). On the other hand, doing lots of Minimal_Complete is
-;; very common when writing new code (see
-;; test/ada_mode-recover_10.adb, _error_during_resume_01).
-;; test/ada_mode-recover_16.adb requires default delete cost 3.
-;;
-;; test/ada_mode-recover_change_name.adb needs 'ignore check fail' cost 2
-;;
-;; Default cost for insert, delete, push_back/undo_reduce, ignore check fail.
-%mckenzie_cost_default 4 3 2 2
-%mckenzie_minimal_complete_cost_delta -3
-
-;; END is cheaper, because needing to insert it is a common case.
-%mckenzie_cost_insert END 3
-
-;; make inserting an expression or statement to finish a production
-;; cheap; see test/ada_mode-recover_41.adb
-%mckenzie_cost_insert IDENTIFIER 2
-
-;; Ada 2020 syntax caused a drastic increase in recursion, which
-;; increased the number of parse states with no Minimal_Complete
-;; action. So we reduce the cost of ';' and '=>' to compensate; see
-;; test/ada_mode-recover_partial_26.
-%mckenzie_cost_insert SEMICOLON 3
-%mckenzie_cost_insert EQUAL_GREATER 3
-
-;; Make RENAMES more expensive, since object declarations are more
-;; common than renames; ada_mode-recover_13.adb
-%mckenzie_cost_insert RENAMES 7
-
-;; This cost is applied once, independent of token count.
-;; test/ada_mode-recover_40.adb requires cost < 3, so insert 'if
-;; identifier then' is as cheap as 'delete else'.
-%mckenzie_cost_matching_begin 1
-
-;; Prefer doing more work at the current error point over moving
-;; forward to a new one; there is normally only one real error point.
-;; But not too much; test/ada_mode-recover_partial_02_lr1.adb requires
-;; cost 2.
-%mckenzie_cost_fast_forward 2
-
-;; Handle converting 'if' to 'case' (and vice-versa), since that is a
-;; common operation. See test/ada_mode-recover_29.adb. This also makes
-;; inserting 'end if;' free; that's used a lot. But this defeats
-;; Forbid_Minimal_Complete; see
-;; test/ada_mode-recover_constant_as_statement_1.adb.
-%mckenzie_cost_insert CASE 2
-%mckenzie_cost_insert IF 2
-
-;; Prefer undo_reduce over push_back; consider the code:
-;;
-;; loop
-;;    if then
-;;       statement;
-;;    -- missing 'end if;'
-;; end loop;
-;; -- ^ error here
-;;
-;; Error recovery will insert 'end if;', after push_back or
-;; undo_reduce of the handled_sequence_of_statements including
-;; 'statement'. If it uses push_back, then 'end if;' is before
-;; 'statement'; if undo_reduce, after, which is the desired result.
-%mckenzie_cost_undo_reduce handled_sequence_of_statements 0
-%mckenzie_cost_undo_reduce sequence_of_statements 0
-%mckenzie_cost_undo_reduce sequence_of_statements 0
-%mckenzie_cost_undo_reduce non_empty_declarative_part 0
-
-;; Missing or extra closing paren and comma are common; missing
-;; handled by Minimal_Complete.
-%mckenzie_cost_delete COMMA 1
-%mckenzie_cost_insert COMMA 3
-%mckenzie_cost_delete RIGHT_PAREN 1
-%mckenzie_cost_insert RIGHT_PAREN 3
-
-;; test/ada_mode-recover_partial_02_lr1.adb requires 45_000; wisitoken got 30% faster
-%mckenzie_enqueue_limit 58_000
-
-;; 4 required for test/ada_mode-recover_match_names.adb.
-%mckenzie_check_limit 4
-
-;; After finding 1 solution, only check 100 more before giving up.
-;; Reduces solution time on complex errors.
-%mckenzie_check_delta_limit 100
-
-%end_names_optional_option End_Names_Optional
-
+%if parser = LALR
 ;;; FIXME: resolve these or doc why not:
 %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
 %conflict REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
 %conflict REDUCE subtype_indication | REDUCE name on token EQUAL_GREATER
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
-%conflict SHIFT attribute_definition_clause | REDUCE label_opt on token FOR
 %conflict SHIFT dispatching_operation_set | REDUCE extended_global_aspect_element on token COMMA
 %conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
@@ -356,7 +252,6 @@ word : IDENTIFIER ;
 %conflict SHIFT null_exclusion | REDUCE mode on token NOT
 %conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
-%conflict SHIFT parallel_block_statement | REDUCE label_opt on token PARALLEL
 %conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
 %conflict SHIFT record_extension_part | REDUCE derived_type_definition on token WITH
 %conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
@@ -401,7 +296,28 @@ word : IDENTIFIER ;
 ;; tree-sitter grammar.
 %conflict_resolution SHIFT membership_choice_list | REDUCE relation on token BAR : membership_choice_list
 
+%elsif parser = Tree_Sitter
+
+%end if
+
 ;;; grammar rules
+
+;; gnatprep statements (not in the ARM)
+
+;; Distinct from gnatprep_if_statement to reduce conflicts.
+gnatprep_declarative_if_statement
+  : '#if' expression 'then' declarative_item_pragma*
+      ('#elsif' expression 'then' declarative_item_pragma+)*
+      ['#else' declarative_item_pragma* ]
+      '#end' 'if' ';'
+      ;
+
+gnatprep_if_statement
+  : '#if' expression 'then' declarative_item_pragma*
+      ('#elsif' expression 'then' declarative_item_pragma+)*
+      ['#else' declarative_item_pragma* ]
+      '#end' 'if' ';'
+  ;
 
 ;;:new; for ARM 4.5.7(7), ARM 4.5.8(4) allow "( conditional|quantified_expression )" instead of "(( ... ))"
 conditional_quantified_expression
@@ -816,6 +732,7 @@ declarative_item : basic_declarative_item | proper_body | body_stub ;
 declarative_item_pragma
   : declarative_item
   | pragma_g
+  | gnatprep_declarative_if_statement
   ;
 
 non_empty_declarative_part : declarative_item_pragma+ ;
@@ -884,13 +801,7 @@ slice
 selected_component
   ;; higher level productions should apply hanging indent to names
   ;; Not combined into one rhs to allow wisi-merge-names
-  : name '.' IDENTIFIER
-    %((wisi-face-mark-action [1 prefix 3 suffix]))%
-    %((wisi-merge-names 1 3))%
-  | name '.' STRING_LITERAL
-    %((wisi-face-mark-action [1 prefix 3 suffix]))%
-    %((wisi-merge-names 1 3))%
-  | name '.' CHARACTER_LITERAL
+  : name '.' (IDENTIFIER | STRING_LITERAL | CHARACTER_LITERAL)
     %((wisi-face-mark-action [1 prefix 3 suffix]))%
     %((wisi-merge-names 1 3))%
   ;
@@ -973,11 +884,10 @@ expression_list ;; new to support actions
   ;
 
 positional_array_aggregate
-  ;; There must be at least two items in a positional aggregate with
-  ;; parens. ARM Annex P enforces this in the syntax rules, but that
-  ;; causes too many conflicts, so we relax that here.
-  : '(' expression_list ')'
+  : '(' expression ',' expression_list ')'
     %((wisi-indent-action [nil
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           nil
                            [(wisi-anchored 1 1) (wisi-anchored 1 1)]
                            (wisi-anchored 1 0)]))%
   | '(' expression_list ',' 'others' assoc_expression ')'
@@ -1080,12 +990,8 @@ array_delta_aggregate
 ;; key_choice ::= expression | discrete_range ;; deleted; only used in container_aggregate
 
 iterated_element_association
-  : 'for' loop_parameter_specification ['use' expression] assoc_expression
-    %((wisi-indent-action [nil ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               ada-indent-broken]))%
-  | 'for' iterator_specification ['use' expression] assoc_expression
-    %((wisi-indent-action [nil ada-indent-broken ada-indent-broken
+  : 'for' (loop_parameter_specification | iterator_specification) ['use' expression] assoc_expression
+    %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
                                ada-indent-broken]))%
   ;
@@ -1141,18 +1047,8 @@ primary
   | allocator
   | parenthesized_expression
   ;
-%if parser = Tree_Sitter
-%precedence primary 2
-%end if
 
-;; These are all redundant with positional_array_aggregate, so we
-;; resolve the conflict in favor of primary.
-parenthesized_expression
-  : '(' expression ')'
-  | '(' conditional_expression ')' ;;:redundant with aggregate
-  | '(' quantified_expression ')' ;;:redundant with aggregate
-  | '(' declare_expression ')';;:redundant with aggregate
-  ;
+parenthesized_expression : '(' (expression | conditional_expression | quantified_expression | declare_expression) ')' ;
 
 ;; logical_operator ::= 'and' | 'or' | 'xor' ;;:deleted; not used in the grammar
 
@@ -1169,23 +1065,17 @@ multiplying_operator : '*' | '/' | 'mod' | 'rem' ;
 conditional_expression : if_expression | case_expression ;
 
 elsif_expression_item ;;:new for action
-  : 'elsif' condition 'then' expression
+  : 'elsif' expression 'then' expression
     %((wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil
                                (wisi-hanging* ada-indent ada-indent-broken)]))%
   ;
 
-elsif_expression_list ;;:new for action
-  : elsif_expression_item
-  | elsif_expression_list elsif_expression_item
-    %((wisi-motion-action [1 2]))%
-  ;
-
 if_expression
-  : 'if' condition 'then' expression [elsif_expression_list] ['else' expression]
+  : 'if' expression 'then' expression {elsif_expression_item} ['else' expression]
     %((wisi-statement-action [1 motion 3 motion 6 motion])
-      (wisi-motion-action [1 3 5 6])
+      (wisi-motion-action [1 3 [5 elsif] 6])
       (wisi-indent-action [nil
                            ;; test/ada_mode-conditional_expressions.adb
                            ;; K2b : Integer :=
@@ -1201,8 +1091,6 @@ if_expression
                            nil nil
                            (wisi-hanging* ada-indent ada-indent-broken)]))%
   ;
-
-condition : expression ;
 
 case_expression_alternative_list ;;:new for action
   : case_expression_alternative
@@ -1242,10 +1130,8 @@ case_expression_alternative
   ;
 
 quantified_expression
-  : 'for' quantifier loop_parameter_specification assoc_expression
-    %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken]))%
-  | 'for' quantifier iterator_specification assoc_expression
-    %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  : 'for' quantifier (loop_parameter_specification | iterator_specification) assoc_expression
+    %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
   ;
 
 quantifier : 'all' | 'some' ;
@@ -1281,10 +1167,13 @@ reduction_specification
 ;;   ;
 
 qualified_expression
-  : name tick aggregate
+  : name tick (parenthesized_expression | aggregate)
     %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face])
       ;; test/indent.ads C_S_Controls, test/ada_mode-long_paren.adb Packet := new Packet_Type'
-      (wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken) (wisi-anchored% 1 ada-indent-broken)]))%
+      (wisi-indent-action [nil
+                           (wisi-anchored% 1 ada-indent-broken)
+                           (wisi-anchored% 1 ada-indent-broken)
+                           (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
 ;; LRM 4.8 has 'subtype_indication' here, which allows a constraint.
@@ -1315,7 +1204,7 @@ subpool_specification ::= '(' name ')' ;
 
 sequence_of_statements : statement+ {label} ;
 
-statement : {label} simple_statement | {label} compound_statement ;
+statement : {label} (simple_statement | compound_statement) ;
 
 simple_statement
   : null_statement
@@ -1335,6 +1224,7 @@ simple_statement
 
 compound_statement
   : if_statement
+  | gnatprep_if_statement
   | case_statement
   | loop_statement
   | block_statement
@@ -1369,7 +1259,7 @@ assignment_statement
 target_name ::= '@' ;
 
 elsif_statement_item ;;:new for action
-  : 'elsif' condition 'then' sequence_of_statements
+  : 'elsif' expression 'then' sequence_of_statements
     %((wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil [(wisi-block ada-indent) ada-indent]]))%
@@ -1381,7 +1271,7 @@ elsif_statement_list ;;:new for action
   ;
 
 if_statement
-  : 'if' condition 'then' sequence_of_statements [elsif_statement_list] ['else' sequence_of_statements] 'end' 'if' ';'
+  : 'if' expression 'then' sequence_of_statements [elsif_statement_list] ['else' sequence_of_statements] 'end' 'if' ';'
     %((wisi-statement-action [1 statement-start 3 motion 6 motion 10 statement-end])
       (wisi-motion-action [1 3 [5 ELSIF] 6 10])
       (wisi-indent-action [nil
@@ -1417,7 +1307,7 @@ case_statement_alternative
   ;
 
 loop_statement
-  : label_opt [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
+  : [statement_identifier ':'] [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' [IDENTIFIER] ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 3 motion 8 statement-end])
       (wisi-motion-action [2 3 8])
       (wisi-indent-action [ada-indent-label nil nil [(wisi-block ada-indent) ada-indent] nil ada-indent-broken
@@ -1426,7 +1316,7 @@ loop_statement
   ;
 
 iteration_scheme
-  : 'while' condition
+  : 'while' expression
     %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
   | 'for' loop_parameter_specification
     %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
@@ -1454,14 +1344,10 @@ loop_parameter_specification
   : IDENTIFIER 'in' ['reverse'] discrete_subtype_definition [iterator_filter]
   ;
 
-iterator_filter ::= 'when' condition ;
+iterator_filter ::= 'when' expression ;
 
 iterator_specification
-  : IDENTIFIER [':' loop_parameter_subtype_indication] 'in' ['reverse'] name [iterator_filter]
-  ;; "name" here names an iterator function, not a type
-
-  | IDENTIFIER [':' loop_parameter_subtype_indication] 'of' ['reverse'] name [iterator_filter]
-  ;; "name" here names an object, not a type
+  : IDENTIFIER [':' loop_parameter_subtype_indication] ('in' | 'of') ['reverse'] name [iterator_filter]
   ;
 
 loop_parameter_subtype_indication ::= subtype_indication | access_definition ;
@@ -1488,18 +1374,9 @@ iterator_parameter_specification ::=
 ;; parameter_association_with_box ;;:redundant with expanded parameter_association
 ;; : [ selector_name '=>' ] '<>' ;
 
-identifier_opt ;;:new; split out from block_statement and other named statements for wisi-match-names
-  : [IDENTIFIER] ;
-
-label_opt ;;:new; split out from block_statement for match_names
-  : [statement_identifier ':']
-    %()%
-    %((wisi-propagate-name 1))%
-  ;
-
 block_statement
-  : label_opt ['declare' [non_empty_declarative_part]] 'begin' handled_sequence_of_statements
-    'end' identifier_opt ';'
+  : [statement_identifier ':'] ['declare' [non_empty_declarative_part]] 'begin' handled_sequence_of_statements
+    'end' [IDENTIFIER] ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 4 statement-override 8 statement-end])
       (wisi-motion-action [1 2 4 [5 WHEN] 8])
       (wisi-indent-action [ada-indent-label nil [(wisi-block ada-indent) ada-indent] nil
@@ -1521,7 +1398,7 @@ parallel_block_statement
   ;
 
 exit_statement
-  : 'exit' [name] ['when' condition] ';'
+  : 'exit' [name] ['when' expression] ';'
     %((wisi-statement-action [1 statement-start 5 statement-end])
       (wisi-indent-action [nil nil nil ada-indent-broken ada-indent-broken]))%
   ;
@@ -1795,7 +1672,7 @@ basic_declarative_item_pragma
 
 ;; replace "[[name '.' ] IDENTIFIER" with "name_opt" for consistency and for actions
 package_specification
-  : 'package' name [aspect_specification] 'is' basic_declarative_item_pragma*
+  : 'package' name=name [aspect_specification] 'is' basic_declarative_item_pragma*
     ['private' basic_declarative_item_pragma*] 'end' name_opt
     %((wisi-statement-action [1 statement-start 4 motion 6 motion])
       (wisi-name-action 2)
@@ -1812,7 +1689,7 @@ package_specification
 
 ;; replace "[[name '.' ] IDENTIFIER" with "name" for consistency and for actions
 package_body
-  : 'package' 'body' name [aspect_specification] 'is' [non_empty_declarative_part]
+  : 'package' 'body' name=name [aspect_specification] 'is' [non_empty_declarative_part]
     ['begin' handled_sequence_of_statements] 'end' name_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 7 motion 11 statement-end])
       (wisi-name-action 3)
@@ -2005,7 +1882,7 @@ task_item_list ;;:new; split out from task_definition for action
   ;
 
 task_definition
-  : task_item_list [ 'private' task_item_list] 'end' identifier_opt
+  : task_item_list [ 'private' task_item_list] 'end' [IDENTIFIER]
     %((wisi-statement-action [2 motion])
       (wisi-face-apply-action [5 nil font-lock-type-face])
       (wisi-indent-action [[ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken]))%
@@ -2016,7 +1893,7 @@ task_item : entry_declaration | aspect_clause ;
 
 task_body
   : 'task' 'body' IDENTIFIER [aspect_specification] 'is' [non_empty_declarative_part]
-    'begin' handled_sequence_of_statements 'end' identifier_opt ';'
+    'begin' handled_sequence_of_statements 'end' [IDENTIFIER] ';'
     %((wisi-statement-action [1 statement-start 5 motion 7 motion 11 statement-end])
       (wisi-name-action 3)
       (wisi-face-apply-action [3 nil font-lock-type-face 10 nil font-lock-type-face])
@@ -2083,7 +1960,7 @@ protected_operation_item_list ;;:new; split out from protected_body for actions
   ;
 
 protected_body
-  : 'protected' 'body' IDENTIFIER [aspect_specification] 'is' [protected_operation_item_list] 'end' identifier_opt ';'
+  : 'protected' 'body' IDENTIFIER [aspect_specification] 'is' [protected_operation_item_list] 'end' [IDENTIFIER] ';'
     %((wisi-statement-action [1 statement-start 5 motion 9 statement-end])
       (wisi-name-action 3)
       (wisi-motion-action [1 5 9])
@@ -2116,7 +1993,7 @@ entry_declaration
 
 accept_statement ::=
     'accept' IDENTIFIER ['(' entry_index ')'] parameter_profile
-    ['do' handled_sequence_of_statements 'end' identifier_opt] ';'
+    ['do' handled_sequence_of_statements 'end' [IDENTIFIER]] ';'
     %((wisi-statement-action [1 statement-start 7 motion 11 statement-end])
       (wisi-motion-action [1 7 [8 WHEN] 11])
       (wisi-face-apply-action [2 nil font-lock-function-name-face 10 nil font-lock-function-name-face])
@@ -2133,7 +2010,7 @@ entry_index ::= expression ;
 
 entry_body
   : 'entry' IDENTIFIER entry_body_formal_part [aspect_specification] entry_barrier 'is' [non_empty_declarative_part]
-      'begin' handled_sequence_of_statements 'end' identifier_opt ';'
+      'begin' handled_sequence_of_statements 'end' [IDENTIFIER] ';'
     %((wisi-statement-action [1 statement-start 5 motion 6 motion 8 motion 12 statement-end])
       (wisi-name-action 2)
       (wisi-motion-action [1 5 6 8 [9 WHEN] 12])
@@ -2160,7 +2037,7 @@ entry_body_formal_part
   ;
 
 entry_barrier
-  : 'when' condition
+  : 'when' expression
     %((wisi-statement-action [1 motion])
       (wisi-indent-action [nil (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
   ;
@@ -2219,7 +2096,7 @@ selective_accept
   ;
 
 guard
-  : 'when' condition '=>'
+  : 'when' expression '=>'
     %((wisi-indent-action [nil (wisi-anchored 1 ada-indent-broken) (wisi-anchored 1 ada-indent-broken)]))%
   ;
 

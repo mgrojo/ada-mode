@@ -1,4 +1,4 @@
-;;; Testing specifying precedence.
+;;; Testing specifying precedence, associativity, and tree-sitter field names.
 ;;
 ;; BNF syntax, to focus on conflict resolutions. See
 ;; prec_assoc_ebnf.wy, for handling attributes during ebnf => bnf
@@ -93,11 +93,11 @@ compilation_unit_list
 expression
   : primary
   | <prec=unary> unary_operator expression
-  | <assoc=left><prec=binary_relational> expression relational_op expression
-  | <assoc=left><prec=binary_and>        expression AND expression
-  | <assoc=left><prec=binary_or>         expression or_op expression
-  | <assoc=left><prec=binary_multiply>   expression multiply_op expression
-  | <assoc=left><prec=binary_add>        expression add_op expression
+  | <assoc=left><prec=binary_relational> expression operator=relational_op expression
+  | <assoc=left><prec=binary_and>        expression operator=AND expression
+  | <assoc=left><prec=binary_or>         expression operator=or_op expression
+  | <assoc=left><prec=binary_multiply>   expression operator=multiply_op expression
+  | <assoc=left><prec=binary_add>        expression operator=add_op expression
   ;
 
 unary_operator : NOT | PLUS | MINUS ;

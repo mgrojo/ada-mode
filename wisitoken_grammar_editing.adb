@@ -933,7 +933,23 @@ package body WisiToken_Grammar_Editing is
                            begin
                               case Tree.RHS_Index (Mult_Item) is
                               when 0 .. 3 =>
-                                 Add_Token_Labels_1 (Tree.Child (Mult_Item, 2));
+                                 --  If there is only one rhs_element in the multiple_item, it will be
+                                 --  replaced by a list nonterm; the label must be on that. See
+                                 --  subprograms.wy compilation_unit. IMPROVME: there are probably
+                                 --  other cases like this.
+                                 declare
+                                    RHS_Alt_List   : constant Valid_Node_Access := Tree.Child (Mult_Item, 2);
+                                    RHS_Alt_List_1 : constant Valid_Node_Access := Tree.Child
+                                      (RHS_Alt_List, Tree.Child_Count (RHS_Alt_List));
+                                    Content_List   : constant Constant_List     := Creators.Create_List
+                                      (Tree, RHS_Alt_List_1, +rhs_alternative_list_1_ID, +rhs_item_list_ID);
+                                 begin
+                                    if Content_List.Count = 1 then
+                                       Add_Token_Label (Element);
+                                    else
+                                       Add_Token_Labels_1 (Tree.Child (Mult_Item, 2));
+                                    end if;
+                                 end;
 
                               when 4 .. 5 =>
                                  Add_Token_Label (Element);

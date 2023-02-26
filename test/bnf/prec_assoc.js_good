@@ -84,17 +84,17 @@ module.exports = grammar({
 
       compilation_unit: $ => seq($.expression, $.SEMICOLON),
 
-      expression: $ => choice($.primary, prec('unary',seq($.unary_operator, $.expression)), prec.left('binary_relational',seq($.expression, $.relational_op, $.expression)), prec.left('binary_and',seq($.expression, $.AND, $.expression)), prec.left('binary_or',seq($.expression, $.or_op, $.expression)), prec.left('binary_multiply',seq($.expression, $.multiply_op, $.expression)), prec.left('binary_add',seq($.expression, $.add_op, $.expression))),
+      expression: $ => choice($.primary, prec('unary', seq($.unary_operator, $.expression)), prec.left('binary_relational', seq($.expression, field('operator', $.relational_op), $.expression)), prec.left('binary_and', seq($.expression, field('operator', $.AND), $.expression)), prec.left('binary_or', seq($.expression, field('operator', $.or_op), $.expression)), prec.left('binary_multiply', seq($.expression, field('operator', $.multiply_op), $.expression)), prec.left('binary_add', seq($.expression, field('operator', $.add_op), $.expression))),
 
       unary_operator: $ => choice($.NOT, $.PLUS, $.MINUS),
 
-      relational_op: $ => prec('binary_relational',choice($.EQUAL, $.SLASH_EQUAL, $.LESS, $.LESS_EQUAL, $.GREATER, $.GREATER_EQUAL)),
+      relational_op: $ => prec('binary_relational', choice($.EQUAL, $.SLASH_EQUAL, $.LESS, $.LESS_EQUAL, $.GREATER, $.GREATER_EQUAL)),
 
-      or_op: $ => prec('binary_or',choice($.OR, $.XOR)),
+      or_op: $ => prec('binary_or', choice($.OR, $.XOR)),
 
-      multiply_op: $ => prec('binary_multiply',choice($.STAR, $.SLASH)),
+      multiply_op: $ => prec('binary_multiply', choice($.STAR, $.SLASH)),
 
-      add_op: $ => prec('binary_add',choice($.PLUS, $.MINUS)),
+      add_op: $ => prec('binary_add', choice($.PLUS, $.MINUS)),
 
       primary: $ => choice($.NUMERIC_LITERAL, $.IDENTIFIER, seq($.LEFT_PAREN, $.expression, $.RIGHT_PAREN)),
 
