@@ -106,11 +106,8 @@ edit ada_full.js_good to match wisi generator order, briot changes
     make one
 
 
-    comment on primary:
-      // _primary might resolve as an '_aggregate',which might resolve as
-      // a 'position_array_aggregate',so an expression like
-      //     case ( .. )
-      // is ambiguous. So we raise the priority here.
+
+extract tree_sitter conflict reporting code that finds an example token sequence, add to wisitoken generate
 
 in ada_annex_p.wy, label_opt, identifier_opt are possibly empty
     forbidden in tree-sitter
@@ -192,7 +189,14 @@ consider https://github.com/briot/tree-sitter-ada
             locals.scm:8:(subprogram_declaration) @scope
                 abstract_subprogram_declaration is _not_ a scope
 
+        comment on primary:
+          // _primary might resolve as an '_aggregate',which might resolve as
+          // a 'position_array_aggregate',so an expression like
+          //     case ( .. )
+          // is ambiguous. So we raise the priority here.
 
+            for "case", reducing to non-aggregate is ok, but not other
+            cases of this conflict; they might require an aggregate.
 
     briot says "extension_aggregate allows (parent with value)"
         if extension is a single component?

@@ -19,6 +19,7 @@
 ;; - When a query in https://github.com/briot/tree-sitter-ada uses a name.
 ;;
 ;; Precedence or associativity is declared as needed by tree-sitter.
+;; WisiToken LR generator assumes left associativity for lists.
 
 %meta_syntax EBNF
 
@@ -246,26 +247,19 @@ word : IDENTIFIER ;
 %conflict REDUCE defining_identifier_list | REDUCE name_not_function_call on token COMMA
 %conflict REDUCE discrete_choice | REDUCE component_choice_list on token EQUAL_GREATER
 %conflict REDUCE discriminant_association | REDUCE parenthesized_expression_1 on token RIGHT_PAREN
-%conflict REDUCE name_not_function_call | REDUCE name_for_component_choice on token BAR
-%conflict REDUCE name_not_function_call | REDUCE name_for_component_choice on token EQUAL_GREATER
 %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
-%conflict REDUCE record_component_association | REDUCE parenthesized_expression_1 on token RIGHT_PAREN
 %conflict REDUCE subtype_indication | REDUCE name on token AND
-%conflict REDUCE subtype_indication | REDUCE name on token BAR
 %conflict REDUCE subtype_indication | REDUCE name on token COMMA
 %conflict REDUCE subtype_indication | REDUCE name on token EQUAL_GREATER
 %conflict REDUCE subtype_indication | REDUCE name on token IN
 %conflict REDUCE subtype_indication | REDUCE name on token OR
 %conflict REDUCE subtype_indication | REDUCE name on token RIGHT_PAREN
 %conflict REDUCE subtype_indication | REDUCE name on token WITH
-%conflict SHIFT at_clause | REDUCE name_not_function_call on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
 %conflict SHIFT dispatching_operation_set | REDUCE extended_global_aspect_element on token COMMA
 %conflict SHIFT dispatching_operation_specifier | REDUCE primary on token RIGHT_PAREN
-%conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
 %conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
-%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token FUNCTION
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PACKAGE
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PROCEDURE
@@ -277,12 +271,9 @@ word : IDENTIFIER ;
 %conflict SHIFT name_not_function_call | REDUCE in_of on token CHARACTER_LITERAL
 %conflict SHIFT name_not_function_call | REDUCE in_of on token IDENTIFIER
 %conflict SHIFT name_not_function_call | REDUCE in_of on token STRING_LITERAL
-%conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
 %conflict SHIFT package_body_stub | REDUCE name_not_function_call on token IS
-%conflict SHIFT positional_array_aggregate | REDUCE expression_list on token COMMA
 %conflict SHIFT positional_array_aggregate | REDUCE in_of on token LEFT_SQUARE_BRACKET
-%conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_list on token COMMA
 %conflict SHIFT pragma_g | REDUCE sequence_of_statements on token PRAGMA
 %conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
 %conflict SHIFT range_constraint | REDUCE name on token RANGE
@@ -310,7 +301,85 @@ word : IDENTIFIER ;
 
 %elsif parser = Tree_Sitter
 
+;; case expression is  => case record_aggregate is
+;;                     => case ( record_component_association ... ) is
+;;                     => case ( component_choice_list => ... ) is
+;;                     => case ( others => ... ) is
+;; case expression is  => case array_aggregate is
+;;                     => case ( array_component_association ... ) is
+;;                     => case ( discrete_choice_list => ... ) is
+;;                     => case ( others => ... ) is
+%conflict discrete_choice component_choice_list
 %end if
+
+;;; Documented but not resolved conflicts
+
+;; subprogram_body => procedure_specification is null
+;; subprogram_body => procedure_specification is begin
+;; We need to look at the tokens after 'is' to resolve the conflict
+%conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
+
+;; expression_function_declaration => function_specification is aggregate
+;; subprogram_body => function_specification is begin
+;; We need to look at the tokens after 'is' to resolve the conflict
+%conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
+
+;; attribute_definition_clause => for name use expression
+;; enumeration_representation_clause => for name use array_aggregate
+;; record_representation_clause => for name use record
+;; at_clause => for IDENTIFIER use at
+;; We need to look at the tokens after 'use' to resolve the conflict
+%conflict SHIFT at_clause | REDUCE name_not_function_call on token USE
+
+;; generic_instantiation => procedure name is new
+;; subprogram_body => procedure_specification is begin
+;; We need to look at the tokens after 'is' to resolve the conflict
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+
+;; case_expression => case expression is ...
+;;                 => case record_aggregate is ...
+;;                 => case ( record_component_association_list ) is ...
+;;                 => case ( name_for_component_choice | name_for_component_choice => ... ) is ...
+;;                 => case ( IDENTIFIER | ...) is ...
+;;
+;; case_expression => case expression is ...
+;;                 => case array_aggregate is ...
+;;                 => case ( array_component_association_list ) is ...
+;;                 => case ( discrete_choice | discrete_choice => ... ) is ...
+;;                 => case ( expression | discrete_choice => ... ) is ...
+;;                 => case ( name_not_function_call | discrete_choice => ... ) is ...
+;;                 => case ( IDENTIFIER | ...) is ...
+;;
+;; At a higher level, aggregates are illegal as case expressions, but
+;; that's in the grammar. WisiToken does both in parallel until we get
+;; to 'case expression', then eliminates one due to duplicate state.
+;; FIXME: what does tree_sitter do?
+%conflict REDUCE name_not_function_call | REDUCE name_for_component_choice on token BAR
+%conflict REDUCE name_not_function_call | REDUCE name_for_component_choice on token EQUAL_GREATER
+
+;; case_expression => case expression is ...
+;;                 => case array_aggregate is ...
+;;                 => case ( array_component_association_list ) is ...
+;;                 => case ( discrete_choice | discrete_choice => ... ) is ...
+;;                 => case ( subtype_indication | discrete_choice => ... ) is ...
+;;                 => case ( name_not_function_call | discrete_choice => ... ) is ...
+;;
+;; case_expression => case expression is ...
+;;                 => case array_aggregate is ...
+;;                 => case ( array_component_association_list ) is ...
+;;                 => case ( discrete_choice | discrete_choice => ... ) is ...
+;;                 => case ( expression | discrete_choice => ... ) is ...
+;;                 => case ( name | discrete_choice => ... ) is ...
+;;                 => case ( name_not_function_call | discrete_choice => ... ) is ...
+;; WisiToken parser reduces to duplicate state.
+;; FIXME: what does tree_sitter do?
+%conflict REDUCE subtype_indication | REDUCE name on token BAR
+
+;; Similarly, WisiToken parser reduces these to duplicate state.
+;; FIXME: what does tree_sitter do?
+%conflict REDUCE record_component_association | REDUCE parenthesized_expression_1 on token RIGHT_PAREN
+%conflict SHIFT positional_array_aggregate | REDUCE expression_list on token COMMA
+%conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_list on token COMMA
 
 %if parser in LALR | LR1
 %elisp_face font-lock-constant-face
@@ -875,6 +944,12 @@ record_aggregate
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   ;
 
+;; If we allow a position aggregate to have only one element, (Foo) is
+;; always parsed as a record aggregate, array aggregate, and
+;; parenthesized expression. Requiring it to have two or more elements
+;; while also allowing named association to follow position causes
+;; other conflicts (with expression_list, for example), so we just
+;; live with it.
 record_component_association_list
   : record_component_association {',' record_component_association}
   | 'null' 'record'
@@ -908,6 +983,9 @@ extension_aggregate
 
 ;; ancestor_part ::= expression | name ;; inlined to 'expression'
 
+;; Unlike record_aggregate, array_aggregate is either all named or all
+;; positional (possibly followed by 'others => '). So it is easier to
+;; require two elements in positional.
 array_aggregate ::= positional_array_aggregate | null_array_aggregate | named_array_aggregate ;
 
 expression_list ;; new to support actions
@@ -1038,12 +1116,6 @@ expression
   ;
 
 ;; choice_expression ;;:deleted; mostly redundant with expression, delete to reduce conflicts
-  ;; : choice_relation ;; new to reduce conflicts
-  ;; | choice_relation {'and' choice_relation}-        ;; extra -
-  ;; | choice_relation {'or' choice_relation}-         ;; extra -
-  ;; | choice_relation {'xor' choice_relation}-        ;; extra -
-  ;; | choice_relation {'and' 'then' choice_relation}- ;; extra -
-  ;; | choice_relation {'or' 'else' choice_relation}-  ;; extra -
 
 relation
   : simple_expression [relational_operator simple_expression]
@@ -2353,7 +2425,7 @@ generic_package_declaration
       (wisi-indent-action [[nil ada-indent] nil ada-indent-broken]))%
   ;
 
-generic_formal_part
+generic_formal_part <assoc=left>
   : 'generic' {generic_formal_parameter_declaration}
     %((wisi-statement-action [1 statement-start])
       (wisi-indent-action [nil (wisi-block ada-indent)]))%
