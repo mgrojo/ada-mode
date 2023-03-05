@@ -36,15 +36,15 @@ Tokens:
 Productions:
 23.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
 24.0: compilation_unit <= expression SEMICOLON
-25.0: compilation_unit_list <= compilation_unit_list compilation_unit ; (1 => Direct_Left)
+25.0: compilation_unit_list <= compilation_unit_list compilation_unit
 25.1: compilation_unit_list <= compilation_unit
-26.0: expression <= primary ; (1 => Other_Left)
-26.1: expression <= <1> unary_operator expression ; (2 => Direct_Right)
-26.2: expression <= <LEFT> <2> expression relational_op expression ; (1 => Direct_Left, 3 => Direct_Right)
-26.3: expression <= <LEFT> <3> expression AND expression ; (1 => Direct_Left, 3 => Direct_Right)
-26.4: expression <= <LEFT> <4> expression or_op expression ; (1 => Direct_Left, 3 => Direct_Right)
-26.5: expression <= <LEFT> <5> expression multiply_op expression ; (1 => Direct_Left, 3 => Direct_Right)
-26.6: expression <= <LEFT> <6> expression add_op expression ; (1 => Direct_Left, 3 => Direct_Right)
+26.0: expression <= primary
+26.1: expression <= <1> unary_operator expression
+26.2: expression <= <LEFT> <2> expression relational_op expression
+26.3: expression <= <LEFT> <3> expression AND expression
+26.4: expression <= <LEFT> <4> expression or_op expression
+26.5: expression <= <LEFT> <5> expression multiply_op expression
+26.6: expression <= <LEFT> <6> expression add_op expression
 27.0: unary_operator <= NOT
 27.1: unary_operator <= PLUS
 27.2: unary_operator <= MINUS
@@ -62,12 +62,7 @@ Productions:
 < 6> 31.1: add_op <= MINUS
 32.0: primary <= NUMERIC_LITERAL
 32.1: primary <= IDENTIFIER
-32.2: primary <= LEFT_PAREN expression RIGHT_PAREN ; (2 => Other)
-
-Recursions:
-1 => (25 (0.1) -> )
-2 => (26 (1.2, 2.1, 2.3, 3.1, 3.3, 4.1, 4.3, 5.1, 5.3, 6.1, 6.3) -> )
-3 => (26 (0.1) -> 32 (2.2) -> )
+32.2: primary <= LEFT_PAREN expression RIGHT_PAREN
 
 LALR Parse Table:
 State 0:

@@ -1902,13 +1902,14 @@ package body WisiToken_Grammar_Editing is
             declare
                --  Target List_Nonterm is:
                --
-               --  list_nonterm
+               --  list_nonterm [<attr>]
                --     : element
                --     | list_nonterm separator? element
-               --     | list_nonterm list_nonterm
+               --     [| list_nonterm list_nonterm]
                --
                --  nonterminal: N
                --  | IDENTIFIER : Name_Node
+               --  [| attr_list : Attr_List]
                --  | COLON
                --  | rhs_list: RHS_List
                --  | | rhs_list:
@@ -1918,8 +1919,14 @@ package body WisiToken_Grammar_Editing is
                --  | | rhs: ... list_nonterm separator? list_element
 
                Name_Node : constant Node_Access    := Tree.Child (N, 1);
+               Attr_List : constant Node_Access :=
+                 (if Tree.ID (Tree.Child (N, 2)) = +attribute_list_ID
+                  then Tree.Child (N, 2)
+                  else Invalid_Node_Access);
                RHS_List  : constant Constant_List := Creators.Create_List
-                 (Tree, Tree.Child (N, 3), +rhs_list_ID, +rhs_ID);
+                 (Tree,
+                  Tree.Child (N, (if Attr_List = Invalid_Node_Access then 3 else 4)),
+                  +rhs_list_ID, +rhs_ID);
                Iter : constant Constant_Iterator := RHS_List.Iterate_Constant;
             begin
                if RHS_List.Count in 2 | 3 then
@@ -2542,9 +2549,7 @@ package body WisiToken_Grammar_Editing is
                return;
             end if;
 
-            if (RHS_List.Count = 1 and
-                  Tree.ID (RHS) = +rhs_ID and
-                  Tree.ID (Tree.Child (RHS, Tree.Child_Count (RHS))) /= +ACTION_ID) and then
+            if (RHS_List.Count = 1 and Tree.ID (RHS) = +rhs_ID) and then
               ((RHS_Item_List_List.Count = 1 and
                   (B_Alt_List_List.Is_Invalid or else B_Alt_List_Item_List.Count = 1)) or
                  (RHS_Item_List_List.Count = 2 and Element_2 = RHS_Item_List_List.Last))

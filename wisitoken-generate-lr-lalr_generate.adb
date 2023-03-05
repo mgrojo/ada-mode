@@ -521,7 +521,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
 
    begin
-      if not Use_Cached_Recursions or Recursions = Empty_Recursions then
+      if Error_Recover and then (not Use_Cached_Recursions or Recursions = Empty_Recursions) then
          case Recursion_Strategy is
          when None =>
             null;

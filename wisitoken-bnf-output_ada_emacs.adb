@@ -1371,6 +1371,12 @@ is
             Put_Error
               (Error_Message
                  (Grammar_File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
+
+         when E : others =>
+            Put_Error
+              (Error_Message
+                 (Grammar_File_Name, RHS.Source_Line, "Sexp: '" & Sexp & "': " & Ada.Exceptions.Exception_Message (E)));
+            raise;
          end;
       end loop;
 

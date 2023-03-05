@@ -22,7 +22,7 @@ const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word)
 const GNAT_Char_Coding = ("[\""[0-9A-Fa-f]+"\"]");
 module.exports = grammar({
    name: 'Ada_Full',
-   
+
    precedences: () => [
      [
        'membership_choice_list',
@@ -84,7 +84,7 @@ module.exports = grammar({
       EXIT: $ => reservedInsensitive('exit'),
 
       FOR: $ => reservedInsensitive('for'),
-      
+
       FUNCTION: $ => reservedInsensitive('function'),
 
       GENERIC: $ => reservedInsensitive('generic'),
@@ -243,13 +243,13 @@ module.exports = grammar({
 
       COMMENT: $ => token(seq("--", /.*/)),
 
-      GNAT_PREP_IF: $ => token(seq("#if", /.*/)),
+      GNAT_PREP_IF: $ => reservedInsensitive("#if"),
 
-      GNAT_PREP_ELSIF: $ => token(seq("#elsif", /.*/)),
+      GNAT_PREP_ELSIF: $ => reservedInsensitive("#elsif"),
 
-      GNAT_PREP_ELSE: $ => token(seq("#else", /.*/)),
+      GNAT_PREP_ELSE: $ => reservedInsensitive("#else"),
 
-      GNAT_PREP_END_IF: $ => token(seq("#end if", /.*/)),
+      GNAT_PREP_END: $ => reservedInsensitive("#end"),
 
       CONFLICT_MARK_A: $ => token(seq("<<<<<<<", /.*/)),
 
@@ -262,13 +262,13 @@ module.exports = grammar({
       word: $ => $.IDENTIFIER,
 
       STRING_LITERAL: $ => /"(""|[^\"])*"/u,
-                     
+
       CHARACTER_LITERAL: $ => /'.'/u,
 
-      gnatprep_declarative_if_statement: $ => seq(reserved('#if'), $.expression, $.THEN, repeat($.declarative_item_pragma), repeat(seq(reserved('#elsif'), $.expression, $.THEN, repeat($.declarative_item_pragma),)), optional(seq(reserved('#else'), repeat($.declarative_item_pragma),)), reserved('#end'), $.IF, ';'),
-   
-      gnatprep_if_statement: $ => seq(reserved('#if'), $.expression, $.THEN, repeat($.statement), repeat(seq(reserved('#elsif'), $.expression, $.THEN, repeat($.statement))), optional(seq(reserved('#else'), repeat($.statement))), reserved('#end'), $.IF, ';'),
-   
+      gnatprep_declarative_if_statement: $ => seq($.GNAT_PREP_IF, $.expression, $.THEN, repeat($.declarative_item_pragma), repeat(seq($.GNAT_PREP_ELSIF, $.expression, $.THEN, repeat1($.declarative_item_pragma))), optional(seq($.GNAT_PREP_ELSE, repeat($.declarative_item_pragma))), $.GNAT_PREP_END, $.IF, ';'),
+
+      gnatprep_if_statement: $ => seq($.GNAT_PREP_IF, $.expression, $.THEN, repeat($.declarative_item_pragma), repeat(seq($.GNAT_PREP_ELSIF, $.expression, $.THEN, repeat1($.declarative_item_pragma))), optional(seq($.GNAT_PREP_ELSE, repeat($.declarative_item_pragma))), $.GNAT_PREP_END, $.IF, ';'),
+
       conditional_quantified_expression: $ => choice($.if_expression, $.case_expression, $.quantified_expression),
 
       pragma_argument_association_list: $ => choice($.pragma_argument_association, seq($.pragma_argument_association_list, ',', $.pragma_argument_association)),
@@ -281,13 +281,13 @@ module.exports = grammar({
 
       type_declaration: $ => choice($.full_type_declaration, $.incomplete_type_declaration, $.private_type_declaration, $.private_extension_declaration),
 
-      full_type_declaration: $ => choice(seq($.TYPE, $.IDENTIFIER, optional($.known_discriminant_part), $.IS, $.type_definition, optional($.aspect_specification), ';'), $.task_type_declaration, $.protected_type_declaration),
+      full_type_declaration: $ => choice(seq($.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.known_discriminant_part), $.IS, $.type_definition, optional($.aspect_specification), ';'), $.task_type_declaration, $.protected_type_declaration),
 
       type_definition: $ => choice($.enumeration_type_definition, $.integer_type_definition, $.real_type_definition, $.array_type_definition, $.record_type_definition, $.access_type_definition, $.derived_type_definition, $.interface_type_definition),
 
-      subtype_declaration: $ => seq($.SUBTYPE, $.IDENTIFIER, $.IS, $.subtype_indication, optional($.aspect_specification), ';'),
+      subtype_declaration: $ => seq($.SUBTYPE, field('subtype_defining_identifier', $.IDENTIFIER), $.IS, $.subtype_indication, optional($.aspect_specification), ';'),
 
-   subtype_indication: $ => seq(optional($.null_exclusion), $.name_not_function_call, optional($.constraint)),
+      subtype_indication: $ => seq(optional($.null_exclusion), field('subtype_mark', $.name_not_function_call), optional($.constraint)),
 
       constraint: $ => choice($.scalar_constraint, $.index_constraint, $.discriminant_constraint),
 
@@ -297,11 +297,11 @@ module.exports = grammar({
 
       object_declaration: $ => choice(seq($.defining_identifier_list, ':', optional($.ALIASED), optional($.CONSTANT), choice($.subtype_indication, $.access_definition, $.array_type_definition), optional($.assign_value), optional($.aspect_specification), ';'), $.single_task_declaration, $.single_protected_declaration),
 
-      defining_identifier_list: $ => choice($.IDENTIFIER, seq($.defining_identifier_list, ',', $.IDENTIFIER)),
+      defining_identifier_list: $ => choice(field('defining_identifier', $.IDENTIFIER), seq($.defining_identifier_list, ',', field('defining_identifier', $.IDENTIFIER))),
 
       number_declaration: $ => seq($.defining_identifier_list, ':', $.CONSTANT, $.assign_value, ';'),
 
-      derived_type_definition: $ => seq(optional($.ABSTRACT), optional($.LIMITED), $.NEW, $.subtype_indication, optional(seq(optional(seq($.AND, $.interface_list)), $.record_extension_part))),
+      derived_type_definition: $ => seq(optional($.ABSTRACT), optional($.LIMITED), $.NEW, field('parent_subtype_indication', $.subtype_indication), optional(seq(optional(seq($.AND, $.interface_list)), $.record_extension_part))),
 
       range_constraint: $ => seq($.RANGE, $.range_g),
 
@@ -311,43 +311,43 @@ module.exports = grammar({
 
       enumeration_type_definition: $ => seq('(', $.enumeration_literal_list, ')'),
 
-      enumeration_literal_specification: $ => choice($.IDENTIFIER, $.CHARACTER_LITERAL),
+      enumeration_literal_specification: $ => choice(field('defining_identifier', $.IDENTIFIER), field('defining_character_literal', $.CHARACTER_LITERAL)),
 
       integer_type_definition: $ => choice($.signed_integer_type_definition, $.modular_type_definition),
 
-      signed_integer_type_definition: $ => seq($.RANGE, $.simple_expression, '..', $.simple_expression),
+      signed_integer_type_definition: $ => seq($.RANGE, field('static_simple_expression', $.simple_expression), '..', field('static_simple_expression', $.simple_expression)),
 
-      modular_type_definition: $ => seq($.MOD, $.expression),
+      modular_type_definition: $ => seq($.MOD, field('static_expression', $.expression)),
 
       real_type_definition: $ => choice($.floating_point_definition, $.fixed_point_definition),
 
       floating_point_definition: $ => seq($.DIGITS, $.expression, optional($.real_range_specification)),
 
-      real_range_specification: $ => seq($.RANGE, $.simple_expression, '..', $.simple_expression),
+      real_range_specification: $ => seq($.RANGE, field('static_simple_expression', $.simple_expression), '..', field('static_simple_expression', $.simple_expression)),
 
       fixed_point_definition: $ => choice($.ordinary_fixed_point_definition, $.decimal_fixed_point_definition),
 
-      ordinary_fixed_point_definition: $ => seq($.DELTA, $.expression, $.real_range_specification),
+      ordinary_fixed_point_definition: $ => seq($.DELTA, field('static_expression', $.expression), $.real_range_specification),
 
-      decimal_fixed_point_definition: $ => seq($.DELTA, $.expression, $.DIGITS, $.expression, optional($.real_range_specification)),
+      decimal_fixed_point_definition: $ => seq($.DELTA, field('static_expression', $.expression), $.DIGITS, field('static_expression', $.expression), optional($.real_range_specification)),
 
-      digits_constraint: $ => seq($.DIGITS, $.simple_expression, optional($.range_constraint)),
+      digits_constraint: $ => seq($.DIGITS, field('static_simple_expression', $.simple_expression), optional($.range_constraint)),
 
       array_type_definition: $ => choice(seq($.ARRAY, '(', $.index_subtype_definition_list, ')', $.OF, $.component_definition), seq($.ARRAY, '(', $.discrete_subtype_definition_list, ')', $.OF, $.component_definition)),
 
       index_subtype_definition_list: $ => seq($.index_subtype_definition, repeat(seq(',', $.index_subtype_definition))),
 
-      index_subtype_definition: $ => seq($.name, $.RANGE, '<>'),
+      index_subtype_definition: $ => seq(field('subtype_mark', $.name), $.RANGE, '<>'),
 
       discrete_subtype_definition_list: $ => seq($.discrete_subtype_definition, repeat(seq(',', $.discrete_subtype_definition))),
 
-      discrete_subtype_definition: $ => choice($.subtype_indication, $.range_g),
+      discrete_subtype_definition: $ => choice(field('discrete_subtype_indication', $.subtype_indication), $.range_g),
 
       component_definition: $ => choice(seq(optional($.ALIASED), $.subtype_indication), seq(optional($.ALIASED), $.access_definition)),
 
       index_constraint: $ => seq('(', $.discrete_range, repeat(seq(',', $.discrete_range)), ')'),
 
-      discrete_range: $ => choice($.subtype_indication, $.range_g),
+      discrete_range: $ => choice(field('discrete_subtype_indication', $.subtype_indication), $.range_g),
 
       discriminant_part: $ => choice($.unknown_discriminant_part, $.known_discriminant_part),
 
@@ -357,7 +357,7 @@ module.exports = grammar({
 
       known_discriminant_part: $ => seq('(', $.discriminant_specification_list, ')'),
 
-      discriminant_specification: $ => choice(seq($.defining_identifier_list, ':', optional($.null_exclusion), $.name, optional($.assign_value)), seq($.defining_identifier_list, ':', $.access_definition, optional($.assign_value))),
+      discriminant_specification: $ => choice(seq($.defining_identifier_list, ':', optional($.null_exclusion), field('subtype_mark', $.name), optional($.assign_value)), seq($.defining_identifier_list, ':', $.access_definition, optional($.assign_value))),
 
       discriminant_constraint: $ => choice($.parenthesized_expression, seq('(', $.discriminant_association, repeat(seq(',', $.discriminant_association)), ')')),
 
@@ -397,17 +397,17 @@ module.exports = grammar({
 
       general_access_modifier: $ => choice($.ALL, $.CONSTANT),
 
-      access_to_subprogram_definition: $ => choice(seq($.ACCESS, optional($.PROTECTED), $.PROCEDURE, optional($.parameter_profile)), seq($.ACCESS, optional($.PROTECTED), $.FUNCTION, $.parameter_and_result_profile)),
+      access_to_subprogram_definition: $ => choice(seq($.ACCESS, optional($.PROTECTED), $.PROCEDURE, optional($.formal_part)), seq($.ACCESS, optional($.PROTECTED), $.FUNCTION, $.parameter_and_result_profile)),
 
       null_exclusion: $ => seq($.NOT, $.NULL),
 
-      access_definition: $ => choice(seq(optional($.null_exclusion), $.ACCESS, optional($.CONSTANT), $.name), seq(optional($.null_exclusion), $.ACCESS, optional($.PROTECTED), $.PROCEDURE, optional($.parameter_profile)), seq(optional($.null_exclusion), $.ACCESS, optional($.PROTECTED), $.FUNCTION, $.parameter_and_result_profile)),
+      access_definition: $ => choice(seq(optional($.null_exclusion), $.ACCESS, optional($.CONSTANT), $.name), seq(optional($.null_exclusion), $.ACCESS, optional($.PROTECTED), $.PROCEDURE, optional($.formal_part)), seq(optional($.null_exclusion), $.ACCESS, optional($.PROTECTED), $.FUNCTION, $.parameter_and_result_profile)),
 
-      incomplete_type_declaration: $ => seq($.TYPE, $.IDENTIFIER, optional($.discriminant_part), optional(seq($.IS, $.TAGGED)), ';'),
+      incomplete_type_declaration: $ => seq($.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.discriminant_part), optional(seq($.IS, $.TAGGED)), ';'),
 
       declarative_item: $ => choice($.basic_declarative_item, $.proper_body, $.body_stub),
 
-      declarative_item_pragma: $ => choice($.declarative_item, $.pragma_g),
+      declarative_item_pragma: $ => choice($.declarative_item, $.pragma_g, $.gnatprep_declarative_if_statement),
 
       non_empty_declarative_part: $ => repeat1($.declarative_item_pragma),
 
@@ -423,7 +423,7 @@ module.exports = grammar({
 
       slice: $ => seq($.name, '(', $.discrete_range, ')'),
 
-      selected_component: $ => seq($.name, '.', choice($.IDENTIFIER, $.STRING_LITERAL, $.CHARACTER_LITERAL)),
+      selected_component: $ => choice(seq($.name, '.', $.IDENTIFIER), seq($.name, '.', $.STRING_LITERAL), seq($.name, '.', $.CHARACTER_LITERAL)),
 
       attribute_reference: $ => choice(seq($.name, $.tick, $.attribute_designator), $.reduction_attribute_reference),
 
@@ -481,10 +481,12 @@ module.exports = grammar({
 
       factor: $ => choice(seq($.primary, optional(seq('**', $.primary))), seq($.ABS, $.primary), seq($.NOT, $.primary)),
 
-     primary: $ => choice($.NUMERIC_LITERAL, $.NULL, $.aggregate, $.name, $.allocator, $.parenthesized_expression),
+      primary: $ => choice($.NUMERIC_LITERAL, $.NULL, $.aggregate, $.name, $.allocator, $.parenthesized_expression),
 
-      parenthesized_expression: $ => seq('(', choice($.expression, $.conditional_expression, $.quantified_expression, $.declare_expression), ')'),
-      
+      parenthesized_expression_1: $ => choice($.expression, $.conditional_expression, $.quantified_expression, $.declare_expression),
+
+      parenthesized_expression: $ => seq('(', $.parenthesized_expression_1, ')'),
+
       relational_operator: $ => choice('=', '/=', '<', '<=', '>', '>='),
 
       binary_adding_operator: $ => choice('+', '-', '&'),
@@ -495,13 +497,9 @@ module.exports = grammar({
 
       conditional_expression: $ => choice($.if_expression, $.case_expression),
 
-      elsif_expression_item: $ => seq($.ELSIF, $.condition, $.THEN, $.expression),
+      elsif_expression_item: $ => seq($.ELSIF, field('condition', $.expression), $.THEN, $.expression),
 
-      elsif_expression_list: $ => choice($.elsif_expression_item, seq($.elsif_expression_list, $.elsif_expression_item)),
-
-      if_expression: $ => seq($.IF, $.condition, $.THEN, $.expression, repeat($.elsif_expression_item), optional(seq($.ELSE, $.expression))),
-
-      condition: $ => $.expression,
+      if_expression: $ => seq($.IF, field('condition', $.expression), $.THEN, $.expression, repeat($.elsif_expression_item), optional(seq($.ELSE, $.expression))),
 
       case_expression_alternative_list: $ => choice($.case_expression_alternative, seq($.case_expression_alternative_list, ',', $.case_expression_alternative)),
 
@@ -532,7 +530,7 @@ module.exports = grammar({
       subtype_indication_paren_constraint: $ => choice(seq(optional($.null_exclusion), $.name), seq(optional($.null_exclusion), $.name, $.index_constraint)),
 
       subpool_specification: $ => seq('(', $.name, ')'),
-   
+
       sequence_of_statements: $ => seq(repeat1($.statement), repeat($.label)),
 
       statement: $ => seq(repeat($.label), choice($.simple_statement, $.compound_statement)),
@@ -551,11 +549,11 @@ module.exports = grammar({
 
       target_name: $ => '@',
 
-      elsif_statement_item: $ => seq($.ELSIF, $.condition, $.THEN, $.sequence_of_statements),
+      elsif_statement_item: $ => seq($.ELSIF, $.expression, $.THEN, $.sequence_of_statements),
 
       elsif_statement_list: $ => choice($.elsif_statement_item, seq($.elsif_statement_list, $.elsif_statement_item)),
 
-      if_statement: $ => seq($.IF, $.condition, $.THEN, $.sequence_of_statements, optional($.elsif_statement_list), optional(seq($.ELSE, $.sequence_of_statements)), $.END, $.IF, ';'),
+      if_statement: $ => seq($.IF, field('condition', $.expression), $.THEN, $.sequence_of_statements, optional($.elsif_statement_list), optional(seq($.ELSE, $.sequence_of_statements)), $.END, $.IF, ';'),
 
       case_statement_alternative_list: $ => choice($.case_statement_alternative, seq($.case_statement_alternative_list, $.case_statement_alternative)),
 
@@ -565,15 +563,17 @@ module.exports = grammar({
 
       loop_statement: $ => seq(optional(seq($.statement_identifier, ':')), optional($.iteration_scheme), $.LOOP, $.sequence_of_statements, $.END, $.LOOP, optional($.IDENTIFIER), ';'),
 
-      iteration_scheme: $ => choice(seq($.WHILE, $.condition), seq($.FOR, $.loop_parameter_specification), seq($.FOR, $.iterator_specification), seq(optional($.PARALLEL), $.FOR, $.procedural_iterator), seq($.PARALLEL, optional(seq('(', $.chunk_specification, ')')), $.FOR, $.loop_parameter_specification), seq($.PARALLEL, optional(seq('(', $.chunk_specification, ')')), $.FOR, $.iterator_specification)),
+      iteration_scheme: $ => choice(seq($.WHILE, field('condition', $.expression)), seq($.FOR, $.loop_parameter_specification), seq($.FOR, $.iterator_specification), seq(optional($.PARALLEL), $.FOR, $.procedural_iterator), seq($.PARALLEL, optional(seq('(', $.chunk_specification, ')')), $.FOR, $.loop_parameter_specification), seq($.PARALLEL, optional(seq('(', $.chunk_specification, ')')), $.FOR, $.iterator_specification)),
 
-      chunk_specification: $ => choice($.simple_expression, seq($.IDENTIFIER, $.IN, $.discrete_subtype_definition)),
+      chunk_specification: $ => choice(field('integer_simple_expression', $.simple_expression), seq(field('defining_identifier', $.IDENTIFIER), $.IN, $.discrete_subtype_definition)),
 
-      loop_parameter_specification: $ => seq($.IDENTIFIER, $.IN, optional($.REVERSE), $.discrete_subtype_definition, optional($.iterator_filter)),
+      loop_parameter_specification: $ => seq(field('defining_identifier', $.IDENTIFIER), $.IN, optional($.REVERSE), $.discrete_subtype_definition, optional($.iterator_filter)),
 
-      iterator_filter: $ => seq($.WHEN, $.condition),
-      
-      iterator_specification: $ => seq($.IDENTIFIER, optional(seq(':', $.loop_parameter_subtype_indication,)), choice($.IN, $.OF), optional($.REVERSE), $.name, optional($.iterator_filter)),
+      iterator_filter: $ => seq($.WHEN, field('condition', $.expression)),
+
+      in_of: $ => choice($.IN, $.OF),
+
+      iterator_specification: $ => seq(field('defining_identifier', $.IDENTIFIER), optional(seq(':', $.loop_parameter_subtype_indication)), $.in_of, optional($.REVERSE), $.name, optional($.iterator_filter)),
 
       loop_parameter_subtype_indication: $ => choice($.subtype_indication, $.access_definition),
 
@@ -587,7 +587,7 @@ module.exports = grammar({
 
       parallel_block_statement: $ => seq($.PARALLEL, $.DO, $.handled_sequence_of_statements, $.AND, $.statement_AND_list, $.END, $.DO, ';'),
 
-      exit_statement: $ => seq($.EXIT, optional($.name), optional(seq($.WHEN, $.condition)), ';'),
+      exit_statement: $ => seq($.EXIT, optional($.name), optional(seq($.WHEN, field('condition', $.expression))), ';'),
 
       goto_statement: $ => seq($.GOTO, $.name, ';'),
 
@@ -599,1190 +599,293 @@ module.exports = grammar({
 
       function_specification: $ => seq($.FUNCTION, $.name, $.parameter_and_result_profile),
 
+      result_profile: $ => choice(seq($.RETURN, optional($.null_exclusion), $.name), seq($.RETURN, $.access_definition)),
 
-_name_list: $ => prec.left(comma_separated_list_of($.name)),
+      parameter_and_result_profile: $ => seq(optional($.formal_part), $.result_profile),
 
-      _discrete_subtype_definition: $ => choice(
-         $.subtype_indication,
-         $.range_g,
-      ),
-      compilation_unit: $ => choice(
-         $.with_clause,
-         seq(
-            optional(reserved('private')),
-            $.declarative_item,
-         ),
-         $.statement,
-         $.subunit,
-         $.entry_declaration,
-      ),
-      _package_declaration: $ => seq(
-         $.package_specification,
-         ';',
-      ),
+      parameter_specification_list: $ => seq($.parameter_specification, repeat(seq(';', $.parameter_specification))),
+
+      formal_part: $ => seq('(', $.parameter_specification_list, ')'),
+
+      parameter_specification: $ => choice(seq($.defining_identifier_list, ':', optional($.ALIASED), optional($.non_empty_mode), optional($.null_exclusion), $.name, optional($.assign_value)), seq($.defining_identifier_list, ':', $.access_definition, optional($.assign_value))),
+
+      non_empty_mode: $ => choice($.IN, seq($.IN, $.OUT), $.OUT),
+
+      global_aspect_definition: $ => choice(seq($.global_mode, $.global_designator), seq('(', $.global_aspect_element, repeat(seq(',', $.global_aspect_element)), ')'), $.extended_global_aspect_definition),
+
+      global_aspect_element: $ => choice(seq($.global_mode, $.name_list), $.extended_global_aspect_element),
+
+      global_mode: $ => choice($.non_empty_mode, $.extended_global_mode),
+
+      global_designator: $ => choice($.ALL, $.SYNCHRONIZED, $.name),
+
+      subprogram_body: $ => seq(optional($.overriding_indicator), $.subprogram_specification, optional($.aspect_specification), $.IS, optional($.non_empty_declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.name), ';'),
+
+      procedure_call_statement: $ => choice(seq(field('name', $.name_not_function_call), ';'), seq($.function_call, ';')),
+
+      function_call: $ => seq(field('name', $.name), $.actual_parameter_part),
+
+      parameter_association_list: $ => choice($.parameter_association, seq($.parameter_association_list, ',', $.parameter_association)),
+
+      actual_parameter_part: $ => choice(seq('(', $.parameter_association_list, ')'), seq('(', $.conditional_expression, ')'), seq('(', $.quantified_expression, ')'), seq('(', $.declare_expression, ')')),
+
+      assoc_expression: $ => choice(seq('=>', $.expression), seq('=>', '<>')),
+
+      parameter_association: $ => choice(seq($.component_choice_list, $.assoc_expression), $.expression, '<>'),
+
+      simple_return_statement: $ => seq($.RETURN, optional($.expression), ';'),
+
+      extended_return_object_declaration: $ => seq(field('defining_identifier', $.IDENTIFIER), ':', optional($.ALIASED), optional($.CONSTANT), $.return_subtype_indication, optional($.assign_value)),
+
+      extended_return_statement: $ => seq($.RETURN, $.extended_return_object_declaration, optional(seq($.DO, $.handled_sequence_of_statements, $.END, $.RETURN)), ';'),
+
+      return_subtype_indication: $ => choice($.subtype_indication, $.access_definition),
+
+      null_procedure_declaration: $ => seq(optional($.overriding_indicator), $.procedure_specification, $.IS, $.NULL, optional($.aspect_specification), ';'),
+
+      expression_function_declaration: $ => seq(optional($.overriding_indicator), $.function_specification, $.IS, choice($.aggregate, $.parenthesized_expression), optional($.aspect_specification), ';'),
+
+      package_declaration: $ => seq($.package_specification, ';'),
+
       basic_declarative_item_pragma: $ => choice($.basic_declarative_item, $.pragma_g),
 
-      package_specification: $ => seq(
-         reserved('package'),
-         field('name',$.name),
-         optional($.aspect_specification),
-         $.IS,
-         repeat($.basic_declarative_item_pragma),
-         optional(seq(
-             reserved('private'),
-             repeat($.basic_declarative_item_pragma),
-         )),
-         $.END,
-         field('endname',optional($.name)),
-      ),
-      with_clause: $ => seq(                 // ARM 10.1.2
-         field('is_limited',optional(reserved('limited'))),
-         field('is_private',optional(reserved('private'))),
-         $.WITH,
-         $.name_list,
-         ';',
-      ),
-      use_clause: $ => seq(                 // ARM 8.4
-         $.USE,
-         optional(seq(
-            field('is_all',optional($.ALL)),
-            field('is_type',reserved('type')),
-         )),
-         $.name_list,
-         ';',
-      ),
-      subunit: $ => seq(   //  10.1.3
-         reserved('separate'),
-         '(',
-         field('parent_unit_name',$.name),
-         ')',
-         $.proper_body,
-      ),
-      subprogram_body: $ => seq(      // ARM 6.3
-         optional($.overriding_indicator),
-         $.subprogram_specification,
-         optional($.aspect_specification),
-         $.IS,
-         optional($.non_empty_declarative_part),
-         $.BEGIN,
-         $.handled_sequence_of_statements,
-         $.END,
-         optional(field('endname',$.name)),
-         ';'
-      ),
-      package_body: $ => seq(
-         reserved('package'),
-         reserved('body'),
-         field('name',$.name),
-         optional($.aspect_specification),
-         $.IS,
-         optional($.non_empty_declarative_part),
-         optional(seq(
-            $.BEGIN,
-            $.handled_sequence_of_statements,
-         )),
-         $.END,
-         optional(field('endname',$.name)),
-         ';',
-      ),
-      expression: $ => choice(
-         list_of(seq($.AND,optional($.THEN)),
-                 $.relation),
-         list_of(seq($.OR,optional($.ELSE)),
-                 $.relation),
-         list_of($.XOR,$.relation),
-      ),
-      relation_membership: $ => seq(   //  Split from _relation RM 4.4
-         $.simple_expression,
-         optional(reserved('not')),
-         $.IN,
-         $.membership_choice_list,
-      ),
+      package_specification: $ => seq($.PACKAGE, field('name', $.name), optional($.aspect_specification), $.IS, repeat($.basic_declarative_item_pragma), optional(seq($.PRIVATE, repeat($.basic_declarative_item_pragma))), $.END, optional($.name)),
 
-      raise_expression: $ => prec.right(1,seq(        // ARM 11.3
-         reserved('raise'),
-         field('exception_name',$.name),
-         optional(seq(
-            $.WITH,
-            $.simple_expression,
-         )),
-      )),
+      package_body: $ => seq($.PACKAGE, $.BODY, field('name', $.name), optional($.aspect_specification), $.IS, optional($.non_empty_declarative_part), optional(seq($.BEGIN, $.handled_sequence_of_statements)), $.END, optional($.name), ';'),
 
-      actual_parameter_part: $ => seq(    // ARM 6.4
-         '(',
-         choice(
-            comma_separated_list_of($.parameter_association),
+      private_type_declaration: $ => seq($.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.discriminant_part), $.IS, optional(seq(optional($.ABSTRACT), $.TAGGED)), optional($.LIMITED), $.PRIVATE, optional($.aspect_specification), ';'),
 
-            // Those are not in the ARM,but added here for generic
-            // instantiations,which get the actual parameter part via $.name
-            // and its $.function_call
-            // ????
-            $.conditional_expression,
-            $.quantified_expression,
-            $.declare_expression,
-         ),
-         ')',
-      ),
+      private_extension_declaration: $ => seq($.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.discriminant_part), $.IS, optional($.ABSTRACT), optional(choice($.LIMITED, $.SYNCHRONIZED)), $.NEW, $.subtype_indication, optional(seq($.AND, $.interface_list)), $.WITH, $.PRIVATE, optional($.aspect_specification), ';'),
 
-      // RM 6.4,but this one also handles parameters for generic
-      // instantiations.
-      parameter_association: $ => choice(
-         seq(
-            $.component_choice_list,
-            '=>',
-            choice(
-               $.expression,
-               '<>',
-            ),
-         ),
-         $.expression,
-         '<>',
-       ),
-      extension_aggregate: $ => seq(
-         '(',
-         $.expression,
-         $.WITH,
-         $.record_component_association_list_or_expression,
-         ')',
-      ),
+      overriding_indicator: $ => seq(optional($.NOT), $.OVERRIDING),
 
+      use_clause: $ => choice($.use_package_clause, $.use_type_clause),
 
-      // We have modified record_component_association_list to accept a
-      // minimum of two positional expressions. However,in extension
-      // aggregates it is valid to have just "(parent with value)"
-      _record_component_association_list_or_expression: $ => choice(
-         $.record_component_association_list,
-         $.expression,
-      ),
+      name_list: $ => seq($.name, repeat(seq(',', $.name))),
 
-      _named_record_component_association: $ => seq(  // adapted from ARM 4.3.1
-         $.component_choice_list,
-         '=>',
-         choice(
-            $.expression,
-            '<>',
-         ),
-      ),
-      delta_constraint: $ => seq(
-         $.DELTA,
-         $.simple_expression,
-         optional($.range_constraint),
-      ),
-      private_type_declaration: $ => seq(
-         reserved('type'),
-         $.identifier,
-         optional($.discriminant_part),
-         $.IS,
-         optional(seq(
-            optional($.ABSTRACT),
-            reserved('tagged'),
-         )),
-         optional(reserved('limited')),
-         reserved('private'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      private_extension_declaration: $ => seq(
-         reserved('type'),
-         $.identifier,
-         optional($.discriminant_part),
-         $.IS,
-         optional($.ABSTRACT),
-         optional(choice(
-            reserved('limited'),
-            reserved('synchronized'),
-         )),
-         $.NEW,
-         $.subtype_indication,
-         optional(seq(
-            $.AND,
-            $.interface_list,
-         )),
-         $.WITH,
-         reserved('private'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      index_subtype_definition: $ => seq(             // ARM 3.6
-         field('subtype_mark',$.name),
-         reserved('range'),
-         '<>',
-      ),
-      interface_type_definition: $ => seq(
-         optional(choice(
-            reserved('limited'),
-            reserved('task'),
-            reserved('protected'),
-            reserved('synchronized'),
-         )),
-         reserved('interface'),
-         optional(seq(
-            $.AND,
-            $.interface_list,
-         )),
-      ),
-      null_array_aggregate: $ => seq(
-         '[',
-         ']',
-      ),
-      aspect_association: $ => seq(
-         $.aspect_mark,
-         optional(seq(
-            '=>',
-            $.aspect_definition,
-         )),
-      ),
-      _aspect_clause: $ => choice(
-         $.attribute_definition_clause,
-         $.enumeration_representation_clause,
-         $.record_representation_clause,
-         $.at_clause,
-      ),
-      _aspect_definition: $ => choice(
-         $.expression,
-         $.global_aspect_definition,
-      ),
-      _aspect_mark: $ => seq(   // ARM 13.1.1
-         $.identifier,
-         optional(seq(
-            $.tick,
-            reserved('Class'),
-         )),
-      ),
-      aspect_mark_list: $ => comma_separated_list_of($.aspect_association),
-      aspect_specification: $ => seq(
-         $.WITH,
-         $.aspect_mark_list,
-      ),
-      at_clause: $ => seq(
-         $.FOR,
-         $.identifier,
-         $.USE,
-         reserved('at'),
-         $.expression,
-         ';',
-      ),
-      attribute_definition_clause: $ => seq(      // ARM 13.3
-         $.FOR,
-         field('local_name',$.name),
-         $.tick,
-         $.attribute_designator,
-         $.USE,
-         $.expression,
-         ';',
-      ),
-      body_stub: $ => choice(
-         $.subprogram_body_stub,
-         $.package_body_stub,
-         $.task_body_stub,
-         $.protected_body_stub,
-      ),
-      subprogram_body_stub: $ => seq(
-         optional($.overriding_indicator),
-         $.subprogram_specification,
-         $.IS,
-         reserved('separate'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      package_body_stub: $ => seq(
-         reserved('package'),
-         reserved('body'),
-         $.identifier,
-         $.IS,
-         reserved('separate'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      task_body: $ => seq(
-         reserved('task'),
-         reserved('body'),
-         $.identifier,
-         optional($.aspect_specification),
-         $.IS,
-         optional($.non_empty_declarative_part),
-         $.BEGIN,
-         $.handled_sequence_of_statements,
-         $.END,
-         optional($.identifier),
-         ';',
-      ),
-      task_body_stub: $ => seq(
-         reserved('task'),
-         reserved('body'),
-         $.identifier,
-         $.IS,
-         reserved('separate'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      _protected_operation_declaration: $ => choice(
-         $.subprogram_declaration,
-         $.pragma_g,
-         $.entry_declaration,
-         $.aspect_clause,
-      ),
-      _protected_element_declaration: $ => choice(
-         $.protected_operation_declaration,
-         $.component_declaration,
-      ),
-      _protected_operation_item: $ => choice(
-         $.subprogram_declaration,
-         $.subprogram_body,
-         $.null_procedure_declaration,
-         $.expression_function_declaration,
-         $.entry_body,
-         $.aspect_clause,
-      ),
-      protected_definition: $ => seq(
-         repeat($.protected_operation_declaration),
-         optional(seq(
-            reserved('private'),
-            repeat($.protected_element_declaration),
-         )),
-         $.END,
-         optional($.identifier),
-      ),
-      protected_type_declaration: $ => seq(
-         reserved('protected'),
-         reserved('type'),
-         $.identifier,
-         optional($.known_discriminant_part),
-         optional($.aspect_specification),
-         $.IS,
-         optional(seq(
-            $.NEW,
-            $.interface_list,
-            $.WITH,
-         )),
-         $.protected_definition,
-         ';',
-      ),
-      single_protected_declaration: $ => seq(
-         reserved('protected'),
-         $.identifier,
-         optional($.aspect_specification),
-         $.IS,
-         optional(seq(
-            $.NEW,
-            $.interface_list,
-            $.WITH,
-         )),
-         $.protected_definition,
-         ';',
-      ),
-      protected_body: $ => seq(
-         reserved('protected'),
-         reserved('body'),
-         $.identifier,
-         optional($.aspect_specification),
-         $.IS,
-         repeat($.protected_operation_item),
-         $.END,
-         optional($.identifier),
-         ';',
-      ),
-      protected_body_stub: $ => seq(
-         reserved('protected'),
-         reserved('body'),
-         $.identifier,
-         $.IS,
-         reserved('separate'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      choice_parameter_specification: $ => $.identifier, // ??? inline
-      component_clause: $ => seq(             // ARM 13.5.1
-         field('local_name',$.name),
-         reserved('at'),
-         field('position',$.expression),
-         reserved('range'),
-         field('first_bit',$.simple_expression),
-         '..',
-         field('last_bit',$.simple_expression),
-         ';',
-      ),
-      entry_declaration: $ => seq(
-         optional($.overriding_indicator),
-         reserved('entry'),
-         field('entry_name',$.identifier),
-         optional(seq(
-            '(',
-            $.discrete_subtype_definition,
-            ')',
-         )),
-         optional($.formal_part),
-         optional($.aspect_specification),
-         ';',
-      ),
-      entry_body: $ => seq(
-         reserved('entry'),
-         $.identifier,
-         optional($.non_empty_entry_body_formal_part),
-         optional($.aspect_specification),
-         $.entry_barrier,
-         $.IS,
-         optional($.non_empty_declarative_part),
-         $.BEGIN,
-         $.handled_sequence_of_statements,
-         $.END,
-         optional($.identifier),
-         ';',
-      ),
-      entry_barrier: $ => seq(
-         $.WHEN,
-         field('condition',$.expression),
-      ),
-      entry_index_specification: $ => seq(
-         $.FOR,
-         $.identifier,
-         $.IN,
-         $.discrete_subtype_definition,
-      ),
-      enumeration_aggregate: $ => $.array_aggregate, //  ??? inline  ARM 13.4
-      enumeration_representation_clause: $ => seq(    // ARM 13.4
-         $.FOR,
-         field('local_name',$.name),
-         $.USE,
-         $.enumeration_aggregate,
-         ';',
-      ),
-      exception_choice_list: $ => list_of('|',$.exception_choice),
-      exception_choice: $ => choice(    // ARM 11.2
-         field('exception_name',$.name),
-         reserved('others'),
-      ),
-      exception_declaration: $ => seq(
-         $.defining_identifier_list,
-         ':',
-         reserved('exception'),
-         optional($.aspect_specification),
-         ';',
-      ),
-      exception_handler: $ => seq(  // RM 11.2
-         $.WHEN,
-         optional(seq(
-            $.choice_parameter_specification,
-            ':',
-         )),
-         $.exception_choice_list,
-         '=>',
-         $.sequence_of_statements,
-      ),
-      formal_part: $ => seq(    // ARM 6.1
-         '(',
-         $.parameter_specification_list,
-         ')',
-      ),
-      _generic_declaration: $ => choice(
-         $.generic_subprogram_declaration,
-         $.generic_package_declaration,
-      ),
-      generic_formal_part: $ => seq(
-         reserved('generic'),
-         repeat($.generic_formal_parameter_declaration),
-      ),
-      _generic_formal_parameter_declaration: $ => choice(
-         $.formal_object_declaration,
-         $.formal_type_declaration,
-         $.formal_subprogram_declaration,
-         $.formal_package_declaration,
-         $.use_clause,
-         $.pragma_g,
-      ),
-      generic_subprogram_declaration: $ => seq(
-         $.generic_formal_part,
-         $.subprogram_specification,
-         optional($.aspect_specification),
-         ';',
-      ),
-      generic_package_declaration: $ => seq(
-         $.generic_formal_part,
-         $.package_specification,
-         ';',
-      ),
-      generic_instantiation: $ => seq(     // ARM 12.3
-         choice(
-            seq(
-               reserved('package'),
-               field('name',$.name),
-            ),
-            seq(
-               optional($.overriding_indicator),
-               choice(
-                  seq(
-                     $.PROCEDURE,
-                     field('name',$.name),
-                  ),
-                  seq(
-                     $.FUNCTION,
-                     field('name',$.name),
-                  ),
-               ),
-            ),
-         ),
-         $.IS,
-         $.NEW,
-         field('generic_name',$.name),  //  includes the generic_actual_part (via the function call)
-         optional($.aspect_specification),
-         ';',
-      ),
-      formal_object_declaration: $ => choice(   // ARM 12.4
-         seq(
-            field('name',$.defining_identifier_list),
-            ':',
-            optional($.non_empty_mode),
-            optional($.null_exclusion),
-            field('subtype_mark',$.name),
-            optional($.assign_value),
-            optional($.aspect_specification),
-            ';',
-         ),
-         seq(
-            $.defining_identifier_list,
-            ':',
-            optional($.non_empty_mode),
-            $.access_definition,
-            optional($.assign_value),
-            optional($.aspect_specification),
-            ';',
-         ),
-      ),
-      _formal_type_declaration: $ => choice(
-         $.formal_complete_type_declaration,
-         $.formal_incomplete_type_declaration,
-      ),
-      formal_complete_type_declaration: $ => seq(    // ARM 12.5
-         reserved('type'),
-         $.identifier,
-         optional($.discriminant_part),
-         $.IS,
-         $.formal_type_definition,
-         optional(seq(
-            $.OR,
-            $.USE,
-            field('default_subtype_mark',$.name),
-         )),
-         optional($.aspect_specification),
-         ';',
-      ),
-      formal_incomplete_type_declaration: $ => seq(
-         reserved('type'),
-         $.identifier,
-         optional($.discriminant_part),
-         optional(seq(
-            $.IS,
-            reserved('tagged'),
-         )),
-         optional(seq(
-            $.OR,
-            $.USE,
-            field('default_subtype_mark',$.name),
-         )),
-         ';',
-      ),
-      _formal_type_definition: $ => choice(
-         $.formal_private_type_definition,
-         $.formal_derived_type_definition,
-         $.formal_discrete_type_definition,
-         $.formal_signed_integer_type_definition,
-         $.formal_modular_type_definition,
-         $.formal_floating_point_definition,
-         $.formal_ordinary_fixed_point_definition,
-         $.formal_decimal_fixed_point_definition,
-         $.formal_array_type_definition,
-         $.formal_access_type_definition,
-         $.formal_interface_type_definition,
-      ),
-      formal_private_type_definition: $ => seq(
-         optional(seq(
-            optional($.ABSTRACT),
-            reserved('tagged'),
-         )),
-         optional(reserved('limited')),
-         reserved('private'),
-      ),
-      formal_derived_type_definition: $ => seq(     // ARM 12.5.1
-         optional($.ABSTRACT),
-         optional(choice(
-            reserved('limited'),
-            reserved('synchronized'),
-         )),
-         $.NEW,
-         field('subtype_mark',$.name),
-         optional(seq(
-            optional(seq(
-               $.AND,
-               $.interface_list,
-            )),
-            $.WITH,
-            reserved('private'),
-         )),
-      ),
-      formal_discrete_type_definition: $ => seq(
-         '(',
-         '<>',
-         ')',
-      ),
-      formal_signed_integer_type_definition: $ => seq(
-         reserved('range'),
-         '<>',
-      ),
-      formal_modular_type_definition: $ => seq(
-         reserved('mod'),
-         '<>',
-      ),
-      formal_floating_point_definition: $ => seq(
-         reserved('digits'),
-         '<>',
-      ),
-      formal_ordinary_fixed_point_definition: $ => seq(
-         $.DELTA,
-         '<>',
-      ),
-      formal_decimal_fixed_point_definition: $ => seq(
-         $.DELTA,
-         '<>',
-         reserved('digits'),
-         '<>',
-      ),
+      use_package_clause: $ => seq($.USE, $.name_list, ';'),
+
+      use_type_clause: $ => seq($.USE, optional($.ALL), $.TYPE, $.name_list, ';'),
+
+      renaming_declaration: $ => choice($.object_renaming_declaration, $.exception_renaming_declaration, $.package_renaming_declaration, $.subprogram_renaming_declaration, $.generic_renaming_declaration),
+
+      object_renaming_declaration: $ => choice(seq(field('defining_identifier', $.IDENTIFIER), optional(seq(':', optional($.null_exclusion), $.name)), $.RENAMES, $.name, optional($.aspect_specification), ';'), seq(field('defining_identifier', $.IDENTIFIER), ':', $.access_definition, $.RENAMES, $.name, optional($.aspect_specification), ';')),
+
+      exception_renaming_declaration: $ => seq(field('defining_identifier', $.IDENTIFIER), ':', $.EXCEPTION, $.RENAMES, $.name, optional($.aspect_specification), ';'),
+
+      package_renaming_declaration: $ => seq($.PACKAGE, $.name, $.RENAMES, $.name, optional($.aspect_specification), ';'),
+
+      subprogram_renaming_declaration: $ => seq(optional($.overriding_indicator), $.subprogram_specification, $.RENAMES, $.name, optional($.aspect_specification), ';'),
+
+      generic_renaming_declaration: $ => choice(seq($.GENERIC, $.PACKAGE, $.name, $.RENAMES, $.name, optional($.aspect_specification), ';'), seq($.GENERIC, $.PROCEDURE, $.name, $.RENAMES, $.name, optional($.aspect_specification), ';'), seq($.GENERIC, $.FUNCTION, $.name, $.RENAMES, $.name, optional($.aspect_specification), ';')),
+
+      task_type_declaration: $ => seq($.TASK, $.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.known_discriminant_part), optional($.aspect_specification), optional(seq($.IS, optional(seq($.NEW, $.interface_list, $.WITH)), $.task_definition)), ';'),
+
+      single_task_declaration: $ => seq($.TASK, $.IDENTIFIER, optional($.aspect_specification), optional(seq($.IS, optional(seq($.NEW, $.interface_list, $.WITH)), $.task_definition)), ';'),
+
+      task_item_list: $ => repeat1($.task_item),
+
+      task_definition: $ => seq($.task_item_list, optional(seq($.PRIVATE, $.task_item_list)), $.END, optional($.IDENTIFIER)),
+
+      task_item: $ => choice($.entry_declaration, $.aspect_clause, $.pragma_g),
+
+      task_body: $ => seq($.TASK, $.BODY, $.IDENTIFIER, optional($.aspect_specification), $.IS, optional($.non_empty_declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.IDENTIFIER), ';'),
+
+      protected_type_declaration: $ => seq($.PROTECTED, $.TYPE, $.IDENTIFIER, optional($.known_discriminant_part), optional($.aspect_specification), $.IS, optional(seq($.NEW, $.interface_list, $.WITH)), $.protected_definition, ';'),
+
+      single_protected_declaration: $ => seq($.PROTECTED, $.IDENTIFIER, optional($.aspect_specification), $.IS, optional(seq($.NEW, $.interface_list, $.WITH)), $.protected_definition, ';'),
+
+      protected_operation_declaration_list: $ => repeat1($.protected_operation_declaration),
+
+      protected_element_declaration_list: $ => repeat1($.protected_element_declaration),
+
+      protected_definition: $ => seq(optional($.protected_operation_declaration_list), optional(seq($.PRIVATE, optional($.protected_element_declaration_list))), $.END, optional($.IDENTIFIER)),
+
+      protected_operation_declaration: $ => choice($.subprogram_declaration, $.pragma_g, $.entry_declaration, $.aspect_clause),
+
+      protected_element_declaration: $ => choice($.protected_operation_declaration, $.component_declaration),
+
+      protected_operation_item_list: $ => repeat1($.protected_operation_item),
+
+      protected_body: $ => seq($.PROTECTED, $.BODY, $.IDENTIFIER, optional($.aspect_specification), $.IS, optional($.protected_operation_item_list), $.END, optional($.IDENTIFIER), ';'),
+
+      protected_operation_item: $ => choice($.subprogram_declaration, $.subprogram_body, $.null_procedure_declaration, $.expression_function_declaration, $.entry_body, $.aspect_clause),
+
+      entry_declaration: $ => seq(optional($.overriding_indicator), $.ENTRY, $.IDENTIFIER, optional(seq('(', $.discrete_subtype_definition, ')')), optional($.formal_part), optional($.aspect_specification), ';'),
+
+      accept_statement: $ => seq($.ACCEPT, $.IDENTIFIER, optional(seq('(', field('entry_index', $.expression), ')')), optional($.formal_part), optional(seq($.DO, $.handled_sequence_of_statements, $.END, optional($.IDENTIFIER))), ';'),
+
+      entry_body: $ => seq($.ENTRY, $.IDENTIFIER, optional($.non_empty_entry_body_formal_part), optional($.aspect_specification), $.entry_barrier, $.IS, optional($.non_empty_declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.IDENTIFIER), ';'),
+
+      non_empty_entry_body_formal_part: $ => seq(optional(seq('(', $.entry_index_specification, ')')), field('parameter_profile', $.formal_part)),
+
+      entry_barrier: $ => seq($.WHEN, field('condition', $.expression)),
+
+      entry_index_specification: $ => seq($.FOR, $.IDENTIFIER, $.IN, $.discrete_subtype_definition),
+
+      requeue_statement: $ => seq($.REQUEUE, field('name', $.name), optional(seq($.WITH, $.ABORT)), ';'),
+
+      delay_statement: $ => choice($.delay_until_statement, $.delay_relative_statement),
+
+      delay_until_statement: $ => seq($.DELAY, $.UNTIL, $.expression, ';'),
+
+      delay_relative_statement: $ => seq($.DELAY, $.expression, ';'),
+
+      select_statement: $ => choice($.selective_accept, $.timed_entry_call, $.conditional_entry_call, $.asynchronous_select),
+
+      guard_select: $ => choice(seq($.guard, $.select_alternative), $.select_alternative),
+
+      select_alternative_list: $ => seq($.guard_select, repeat(seq($.OR, $.guard_select))),
+
+      selective_accept: $ => seq($.SELECT, $.select_alternative_list, optional(seq($.ELSE, $.sequence_of_statements)), $.END, $.SELECT, ';'),
+
+      guard: $ => seq($.WHEN, field('condition', $.expression), '=>'),
+
+      select_alternative: $ => choice($.accept_alternative, $.delay_alternative, $.terminate_alternative),
+
+      accept_alternative: $ => seq($.accept_statement, optional($.sequence_of_statements)),
+
+      delay_alternative: $ => seq($.delay_statement, optional($.sequence_of_statements)),
+
+      terminate_alternative: $ => seq($.TERMINATE, ';'),
+
+      timed_entry_call: $ => seq($.SELECT, $.entry_call_alternative, $.OR, $.delay_alternative, $.END, $.SELECT, ';'),
+
+      entry_call_alternative: $ => seq($.procedure_call_statement, optional($.sequence_of_statements)),
+
+      conditional_entry_call: $ => seq($.SELECT, $.entry_call_alternative, $.ELSE, $.sequence_of_statements, $.END, $.SELECT, ';'),
+
+      asynchronous_select: $ => seq($.SELECT, $.triggering_alternative, $.THEN, $.ABORT, field('abortable_part', $.sequence_of_statements), $.END, $.SELECT, ';'),
+
+      triggering_alternative: $ => choice(seq($.procedure_call_statement, optional($.sequence_of_statements)), seq($.delay_statement, optional($.sequence_of_statements))),
+
+      abort_statement: $ => seq($.ABORT, $.name_list, ';'),
+
+      compilation_unit: $ => choice($.with_clause, seq(optional($.PRIVATE), $.declarative_item), $.statement, $.subunit, $.entry_declaration),
+
+      with_clause: $ => seq(optional($.LIMITED), optional($.PRIVATE), $.WITH, $.name_list, ';'),
+
+      body_stub: $ => choice($.subprogram_body_stub, $.package_body_stub, $.task_body_stub, $.protected_body_stub),
+
+      subprogram_body_stub: $ => seq(optional($.overriding_indicator), $.subprogram_specification, $.IS, $.SEPARATE, optional($.aspect_specification), ';'),
+
+      package_body_stub: $ => seq($.PACKAGE, $.BODY, $.IDENTIFIER, $.IS, $.SEPARATE, optional($.aspect_specification), ';'),
+
+      task_body_stub: $ => seq($.TASK, $.BODY, $.IDENTIFIER, $.IS, $.SEPARATE, optional($.aspect_specification), ';'),
+
+      protected_body_stub: $ => seq($.PROTECTED, $.BODY, $.IDENTIFIER, $.IS, $.SEPARATE, optional($.aspect_specification), ';'),
+
+      subunit: $ => seq($.SEPARATE, '(', field('parent_unit_name', $.name), ')', $.proper_body),
+
+      exception_declaration: $ => seq($.defining_identifier_list, ':', $.EXCEPTION, optional($.aspect_specification), ';'),
+
+      handled_sequence_of_statements: $ => seq($.sequence_of_statements, optional(seq($.EXCEPTION, repeat1($.exception_handler)))),
+
+      exception_choice_list: $ => seq($.exception_choice, repeat(seq('|', $.exception_choice))),
+
+      exception_handler: $ => choice(seq($.WHEN, optional(seq(field('choice_parameter_specification', $.IDENTIFIER), ':')), $.exception_choice_list, '=>', $.sequence_of_statements), $.pragma_g),
+
+      exception_choice: $ => choice(field('exception_name', $.name), $.OTHERS),
+
+      raise_statement: $ => choice(seq($.RAISE, ';'), seq($.RAISE, $.name, optional(seq($.WITH, field('string_expression', $.expression))), ';')),
+
+      raise_expression: $ => seq($.RAISE, $.name, optional(seq($.WITH, field('string_simple_expression', $.simple_expression)))),
+
+      generic_declaration: $ => choice($.generic_subprogram_declaration, $.generic_package_declaration),
+
+      generic_subprogram_declaration: $ => seq($.generic_formal_part, $.subprogram_specification, optional($.aspect_specification), ';'),
+
+      generic_package_declaration: $ => seq($.generic_formal_part, $.package_specification, ';'),
+
+      generic_formal_part: $ => seq($.GENERIC, repeat($.generic_formal_parameter_declaration)),
+
+      generic_formal_parameter_declaration: $ => choice($.formal_object_declaration, $.formal_type_declaration, $.formal_subprogram_declaration, $.formal_package_declaration, $.use_clause, $.pragma_g),
+
+      generic_instantiation: $ => choice(seq($.PACKAGE, field('name', $.name), $.IS, $.NEW, field('generic_package_name', $.name), optional($.aspect_specification), ';'), seq(optional($.overriding_indicator), $.PROCEDURE, field('name', $.name), $.IS, $.NEW, field('generic_procedure_name', $.name), optional($.aspect_specification), ';'), seq(optional($.overriding_indicator), $.FUNCTION, field('name', $.name), $.IS, $.NEW, field('generic_function_name', $.name), optional($.aspect_specification), ';')),
+
+      formal_object_declaration: $ => choice(seq(field('name', $.defining_identifier_list), ':', optional($.non_empty_mode), optional($.null_exclusion), field('subtype_mark', $.name), optional($.assign_value), optional($.aspect_specification), ';'), seq($.defining_identifier_list, ':', optional($.non_empty_mode), $.access_definition, optional($.assign_value), optional($.aspect_specification), ';')),
+
+      formal_type_declaration: $ => choice($.formal_complete_type_declaration, $.formal_incomplete_type_declaration),
+
+      formal_complete_type_declaration: $ => seq($.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.discriminant_part), $.IS, $.formal_type_definition, optional(seq($.OR, $.USE, field('default_subtype_mark', $.name))), optional($.aspect_specification), ';'),
+
+      formal_incomplete_type_declaration: $ => seq($.TYPE, field('defining_identifier', $.IDENTIFIER), optional($.discriminant_part), optional(seq($.IS, $.TAGGED)), optional(seq($.OR, $.USE, field('default_subtype_mark', $.name))), ';'),
+
+      formal_type_definition: $ => choice($.formal_private_type_definition, $.formal_derived_type_definition, $.formal_discrete_type_definition, $.formal_signed_integer_type_definition, $.formal_modular_type_definition, $.formal_floating_point_definition, $.formal_ordinary_fixed_point_definition, $.formal_decimal_fixed_point_definition, $.formal_array_type_definition, $.formal_access_type_definition, $.formal_interface_type_definition),
+
+      formal_private_type_definition: $ => seq(optional(seq(optional($.ABSTRACT), $.TAGGED)), optional($.LIMITED), $.PRIVATE),
+
+      formal_derived_type_definition: $ => seq(optional($.ABSTRACT), optional(choice($.LIMITED, $.SYNCHRONIZED)), $.NEW, field('subtype_mark', $.name), optional(seq(optional(seq($.AND, $.interface_list)), $.WITH, $.PRIVATE))),
+
+      formal_discrete_type_definition: $ => seq('(', '<>', ')'),
+
+      formal_signed_integer_type_definition: $ => seq($.RANGE, '<>'),
+
+      formal_modular_type_definition: $ => seq($.MOD, '<>'),
+
+      formal_floating_point_definition: $ => seq($.DIGITS, '<>'),
+
+      formal_ordinary_fixed_point_definition: $ => seq($.DELTA, '<>'),
+
+      formal_decimal_fixed_point_definition: $ => seq($.DELTA, '<>', $.DIGITS, '<>'),
+
       formal_array_type_definition: $ => $.array_type_definition,
-      formal_access_type_definition: $ => $.access_type_definition,
-      formal_interface_type_definition: $ => $.interface_type_definition,
-      formal_subprogram_declaration: $ => choice(
-         $.formal_concrete_subprogram_declaration,
-         $.formal_abstract_subprogram_declaration,
-      ),
-      formal_concrete_subprogram_declaration: $ => seq(
-         $.WITH,
-         $.subprogram_specification,
-         optional(seq(
-            $.IS,
-            $.subprogram_default,
-         )),
-         optional($.aspect_specification),
-         ';',
-      ),
-      formal_abstract_subprogram_declaration: $ => seq(
-         $.WITH,
-         $.subprogram_specification,
-         $.IS,
-         $.ABSTRACT,
-         optional($.subprogram_default),
-         optional($.aspect_specification),
-         ';',
-      ),
-      subprogram_default: $ => choice(
-         field('default_name',$.name),
-         '<>',
-         $.NULL,
-      ),
-      formal_package_declaration: $ => seq(     // ARM 12.7
-         $.WITH,
-         reserved('package'),
-         $.identifier,
-         $.IS,
-         $.NEW,
-         field('generic_package_name',$.name),
-         optional($.aspect_specification),
-         ';',
-      ),
-      formal_group_designator: $ => choice(
-         'null',
-         'all',
-      ),
-      //      extended_global_aspect_definition: $ => choice(
-      //         seq(
-      //            $.USE,
-      //            field('formal_parameter_designator',choice(
-      //               $.formal_group_designator,
-      //               field('name',$.name),
-      //            )),
-      //         ),
-      //         seq(
-      //            reserved('do'),
-      //            $.dispatching_operation_specifier,
-      //         ),
-      //      ),
-//      dispatching_operation_specifier: $ => seq(
-//         $.name,
-//         '(',
-//         $.name,
-//         ')',
-//      ),
-      extended_global_aspect_element: $ => choice(
-         seq(
-            $.USE,
-            field('formal_parameter_set',choice(
-               $.formal_group_designator,
-               comma_separated_list_of($.name),
-            )),
-         ),
-//         seq(
-//            reserved('do'),
-//            comma_separated_list_of($.dispatching_operation_specifier),
-//         ),
-      ),
-      global_aspect_definition: $ => choice(     // ARM 6.1.2
-         seq(
-            $.global_mode,
-//            $.global_designator,
-         ),
-//         $.extended_global_aspect_definition,
-         seq(
-            '(',
-            comma_separated_list_of($.global_aspect_element),
-            ')',
-         ),
-      ),
-      global_aspect_element: $ => choice(
-         seq(
-            $.global_mode,
-            field('global_set',$.name_list),
-         ),
-//         $.extended_global_aspect_definition,
-      ),
-      global_mode: $ => choice(
-         $.non_empty_mode,
-         reserved('overriding'),
-      ),
-      handled_sequence_of_statements: $ => seq(
-         $.sequence_of_statements,
-         optional(seq(
-            reserved('exception'),
-            repeat1($.exception_handler),
-         )),
-      ),
-      loop_label: $ => seq(    // matches label_opt in ada-mode grammar
-         field('statement_identifier',$.identifier),
-         ':',
-      ),
-      mod_clause: $ => seq(
-         reserved('at'),
-         reserved('mod'),
-         $.expression,
-         ';',
-      ),
-      non_empty_mode: $ => choice(   // ARM 6.1
-         $.IN,
-         seq(
-            $.IN,
-            reserved('out'),
-         ),
-         reserved('out'),
-      ),
-      null_procedure_declaration: $ => seq(
-         optional($.overriding_indicator),
-         $.procedure_specification,
-         $.IS,
-         $.NULL,
-         optional($.aspect_specification),
-         ';',
-      ),
-      single_task_declaration: $ => seq(
-         reserved('task'),
-         $.identifier,
-         optional($.aspect_specification),
-         optional(seq(
-            $.IS,
-            optional(seq(
-               $.NEW,
-               $.interface_list,
-               $.WITH,
-            )),
-            $.task_definition,
-         )),
-         ';',
-      ),
-      task_type_declaration: $ => seq(     // RM 9.1
-         reserved('task'),
-         reserved('type'),
-         $.identifier,
-         optional($.known_discriminant_part),
-         optional($.aspect_specification),
-         optional(seq(
-            $.IS,
-            optional(seq(
-               $.NEW,
-               $.interface_list,
-               $.WITH,
-            )),
-            $.task_definition,
-         )),
-         ';',
-      ),
-      non_empty_entry_body_formal_part: $ => seq(
-         optional(seq(
-            '(',
-            $.entry_index_specification,
-            ')',
-         )),
-         field('parameter_profile',$.formal_part),
-      ),
-      entry_declaration: $ => seq(
-         optional($.overriding_indicator),
-         reserved('entry'),
-         $.identifier,
-         optional(seq(
-            '(',
-            $.discrete_subtype_definition,
-            ')',
-         )),
-         field('parameter_profile',optional($.formal_part)),
-         optional($.aspect_specification),
-         ';',
-      ),
-      _task_item: $ => choice(
-         $.entry_declaration,
-         $.aspect_clause,
-         $.pragma_g,
-      ),
-      task_definition: $ => seq(   //  RM 9.1
-         repeat($.task_item),
-         optional(seq(
-            reserved('private'),
-            repeat($.task_item),
-         )),
-         $.END,
-         field('endname',optional($.identifier)),
-      ),
-      overriding_indicator: $ => seq(
-         optional(reserved('not')),
-         reserved('overriding'),
-      ),
-      _parameter_and_result_profile: $ => seq(
-         optional($.formal_part),
-         $.result_profile,
-      ),
-      parameter_specification: $ => seq(     // ARM 6.1
-         $.defining_identifier_list,
-         ':',
-         choice(
-            seq(
-               optional(reserved('aliased')),
-               optional($.non_empty_mode),
-               optional($.null_exclusion),
-               field('subtype_mark',$.name),
-            ),
-            $.access_definition,
-         ),
-         optional($.assign_value),
-         optional($.aspect_specification),
-      ),
-      _parameter_specification_list: $ => list_of(
-         ';',
-         $.parameter_specification,
-      ),
-      record_representation_clause: $ => prec.left(seq(    // ARM 13.5.1
-         $.FOR,
-         field('local_name',$.name),
-         $.USE,
-         reserved('record'),
-         optional($.mod_clause),
-         repeat($.component_clause),
-         $.END,
-         reserved('record'),
-         optional(field('end_local_name',$.name)),
-         ';',
-      )),
-      _renaming_declaration: $ => choice(
-         $.object_renaming_declaration,
-         $.exception_renaming_declaration,
-         $.package_renaming_declaration,
-         $.subprogram_renaming_declaration,
-         $.generic_renaming_declaration,
-      ),
-      object_renaming_declaration: $ => choice(    // ARM 8.5.1
-         seq(
-            $.identifier,
-            optional(seq(
-               ':',
-               optional($.null_exclusion),
-               field('subtype_mark',$.name),
-            )),
-            reserved('renames'),
-            field('object_name',$.name),
-            optional($.aspect_specification),
-            ';',
-         ),
-         seq(
-            $.identifier,
-            ':',
-            $.access_definition,
-            reserved('renames'),
-            field('object_name',$.name),
-            optional($.aspect_specification),
-            ';',
-         ),
-      ),
-      exception_renaming_declaration: $ => seq(    // ARM 8.5.2
-         $.identifier,
-         ':',
-         reserved('exception'),
-         reserved('renames'),
-         field('exception_name',$.name),
-         optional($.aspect_specification),
-         ';',
-      ),
-      package_renaming_declaration: $ => seq(
-         reserved('package'),
-         field('name',$.name),
-         reserved('renames'),
-         field('package_name',$.name),
-         optional($.aspect_specification),
-         ';',
-      ),
-      subprogram_renaming_declaration: $ => seq(
-         optional($.overriding_indicator),
-         $.subprogram_specification,
-         reserved('renames'),
-         field('callable_entity_name',$.name),
-         optional($.aspect_specification),
-         ';',
-      ),
-      generic_renaming_declaration: $ => choice(
-         seq(
-            reserved('generic'),
-            reserved('package'),
-            field('defining_program_unit_name',$.name),
-            reserved('renames'),
-            field('generic_package_name',$.name),
-            optional($.aspect_specification),
-            ';',
-         ),
-         seq(
-            reserved('generic'),
-            $.PROCEDURE,
-            field('defining_program_unit_name',$.name),
-            reserved('renames'),
-            field('generic_procedure_name',$.name),
-            optional($.aspect_specification),
-            ';',
-         ),
-         seq(
-            reserved('generic'),
-            $.FUNCTION,
-            field('defining_program_unit_name',$.name),
-            reserved('renames'),
-            field('generic_function_name',$.name),
-            optional($.aspect_specification),
-            ';',
-         ),
-      ),
-      result_profile: $ => seq(
-         reserved('return'),
-         choice(
-            seq(
-               optional($.null_exclusion),
-               field('subtype_mark',$.name),
-            ),
-            $.access_definition,
-         ),
-      ),
-      _select_statement: $ => choice(
-         $.selective_accept,
-         $.timed_entry_call,
-         $.conditional_entry_call,
-         $.asynchronous_select,
-      ),
-      entry_call_alternative: $ => seq(
-         $.procedure_call_statement,
-         optional($.sequence_of_statements),
-      ),
-      asynchronous_select: $ => seq(
-         reserved('select'),
-         $.triggering_alternative,
-         $.THEN,
-         reserved('abort'),
-         field('abortable_part',$.sequence_of_statements),
-         $.END,
-         reserved('select'),
-         ';',
-      ),
-      triggering_alternative: $ => choice(
-         seq(
-            $.procedure_call_statement,
-            optional($.sequence_of_statements),
-         ),
-         seq(
-            $.delay_statement,
-            optional($.sequence_of_statements),
-         ),
-      ),
-      conditional_entry_call: $ => seq(
-         reserved('select'),
-         $.entry_call_alternative,
-         $.ELSE,
-         $.sequence_of_statements,
-         $.END,
-         reserved('select'),
-         ';',
-      ),
-      delay_alternative: $ => seq(
-         $.delay_statement,
-         optional($.sequence_of_statements)
-      ),
-      timed_entry_call: $ => seq(
-         reserved('select'),
-         $.entry_call_alternative,
-         $.OR,
-         $.delay_alternative,
-         $.END,
-         reserved('select'),
-         ';',
-      ),
-      guard: $ => seq(
-         $.WHEN,
-         field('condition',$.expression),
-         '=>',
-      ),
-      select_alternative: $ => choice(    // ARM 9.7.1
-         $.accept_alternative,
-         $.delay_alternative,
-         $.terminate_alternative,
-      ),
-      accept_alternative: $ => seq(  // ARM 9.7.1
-         $.accept_statement,
-         optional($.sequence_of_statements),
-      ),
-      delay_alternative: $ => seq(   // ARM 9.7.1
-         $.delay_statement,
-         optional($.sequence_of_statements),
-      ),
-      terminate_alternative: $ => seq(  // ARM 9.7.1
-         reserved("terminate"),
-         ';',
-      ),
-      selective_accept: $ => seq(    // ARM 9.7.1
-         reserved('select'),
-         list_of($.OR,seq(
-            optional($.guard),
-            $.select_alternative,
-         )),
-         optional(seq(
-            $.ELSE,
-            $.sequence_of_statements,
-         )),
-         $.END,
-         reserved('select'),
-         ';',
-      ),
-      abort_statement: $ => seq(
-         reserved('abort'),
-         comma_separated_list_of($.name),
-         ';',
-      ),
-      requeue_statement: $ => seq(   // ARM 9.5.4
-         reserved('requeue'),
-         field('name',$.name),
-         optional(seq(
-            $.WITH,
-            reserved('abort'),
-         )),
-         ';',
-      ),
-      accept_statement: $ => seq(   //  ARM 9.5.2
-         reserved('accept'),
-         field('entry_direct_name',$.identifier),
-         optional(seq(
-            '(',
-            field('entry_index',$.expression),
-            ')',
-         )),
-         optional(field('parameter_profile',$.formal_part)),
-         optional(seq(
-            reserved('do'),
-            $.handled_sequence_of_statements,
-            $.END,
-            optional(field('entry_identifier',$.identifier)),
-         )),
-         ';',
-      ),
-      _delay_statement: $ => choice(
-         $.delay_until_statement,
-         $.delay_relative_statement,
-      ),
-      delay_until_statement: $ => seq(
-         reserved('delay'),
-         reserved('until'),
-         $.expression,
-         ';',
-      ),
-      delay_relative_statement: $ => seq(
-         reserved('delay'),
-         $.expression,
-         ';',
-      ),
-      simple_return_statement: $ => seq(
-         reserved('return'),
-         optional($.expression),
-         ';',
-      ),
-      extended_return_statement: $ => seq(
-         reserved('return'),
-         $.extended_return_object_declaration,
-         optional(seq(
-            reserved('do'),
-            $.handled_sequence_of_statements,
-            $.END,
-            reserved('return'),
-         )),
-         ';',
-      ),
-      extended_return_object_declaration: $ => seq(
-         $.identifier,
-         ':',
-         optional(reserved('aliased')),
-         optional(reserved('constant')),
-         $.return_subtype_indication,
-         optional($.assign_value),
-      ),
-      _return_subtype_indication: $ => choice(
-         $.subtype_indication,
-         $.access_definition,
-      ),
-      procedure_call_statement: $ => choice(    // ARM 6.4
-         seq(
-            field('name',$.name_not_function_call),
-            ';',
-         ),
-         seq(
-            field('name',$.name),  // includes function_call
-            $.actual_parameter_part,
-            ';',
-         ),
-      ),
-      function_call: $ => seq(             // ARM 6.4
-         field('name',$.name),  // itself includes a function_call
-         $.actual_parameter_part, // should be optional,but covered by _name
-      ),
-      raise_statement: $ => seq(
-         reserved('raise'),
-         optional(seq(
-            field('name',$.name),
-            optional(seq(
-               $.WITH,
-               $.expression, // ada-mode allows "raise CE with raise with ..."
-            )),
-         )),
-         ';',
-      ),
-      expression_function_declaration: $ => seq(           // RM 6.8
-         optional($.overriding_indicator),
-         $.function_specification,
-         $.IS,
-         choice(
-            $.aggregate,                                  // Ada 20x
 
-            // In the RM grammar,this is a simple '(expression)',but
-            // conditional expression would require a second nested pair of
-            // parenthesis,whereas this is not mandatory anymore in the
-            // text of the RM.
-            $.parenthesized_expression,
-         ),
-         optional($.aspect_specification),
-         ';',
-      ),
+      formal_access_type_definition: $ => $.access_type_definition,
+
+      formal_interface_type_definition: $ => $.interface_type_definition,
+
+      formal_subprogram_declaration: $ => choice($.formal_concrete_subprogram_declaration, $.formal_abstract_subprogram_declaration),
+
+      formal_concrete_subprogram_declaration: $ => seq($.WITH, $.subprogram_specification, optional(seq($.IS, $.subprogram_default)), optional($.aspect_specification), ';'),
+
+      formal_abstract_subprogram_declaration: $ => seq($.WITH, $.subprogram_specification, $.IS, $.ABSTRACT, optional($.subprogram_default), optional($.aspect_specification), ';'),
+
+      subprogram_default: $ => choice(field('default_name', $.name), '<>', $.NULL),
+
+      formal_package_declaration: $ => seq($.WITH, $.PACKAGE, $.IDENTIFIER, $.IS, $.NEW, field('generic_package_name', $.name), optional($.aspect_specification), ';'),
+
+      aspect_clause: $ => choice($.attribute_definition_clause, $.enumeration_representation_clause, $.record_representation_clause, $.at_clause),
+
+      aspect_association: $ => seq($.aspect_mark, optional(seq('=>', $.aspect_definition))),
+
+      aspect_mark_list: $ => seq($.aspect_association, repeat(seq(',', $.aspect_association))),
+
+      aspect_specification: $ => seq($.WITH, $.aspect_mark_list),
+
+      CLASS: $ => reservedInsensitive('class'),
+
+      aspect_mark: $ => seq(field('aspect_identifier', $.IDENTIFIER), optional(seq($.tick, $.CLASS))),
+
+      aspect_definition: $ => choice($.expression, $.global_aspect_definition),
+
+      attribute_definition_clause: $ => seq($.FOR, field('local_name', $.name), $.tick, $.attribute_designator, $.USE, $.expression, ';'),
+
+      enumeration_representation_clause: $ => seq($.FOR, field('first_subtype_local_name', $.name), $.USE, field('enumeration_aggregate', $.array_aggregate), ';'),
+
+      record_representation_clause: $ => seq($.FOR, field('first_subtype_local_name', $.name), $.USE, $.RECORD, optional($.mod_clause), repeat($.component_clause), $.END, $.RECORD, optional(field('local_name', $.name)), ';'),
+
+      component_clause: $ => seq(field('component_local_name', $.name), $.AT, field('position', $.expression), $.RANGE, field('first_bit', $.simple_expression), '..', field('last_bit', $.simple_expression), ';'),
+
+      extended_global_aspect_definition: $ => choice(seq($.USE, choice($.formal_group_designator, field('formal_parameter_name', $.name))), seq($.DO, $.dispatching_operation_specifier)),
+
+      extended_global_aspect_element: $ => choice(seq($.USE, $.formal_parameter_set), seq($.DO, $.dispatching_operation_set)),
+
+      extended_global_mode: $ => seq($.OVERRIDING, $.non_empty_mode),
+
+      formal_parameter_set: $ => choice($.formal_group_designator, field('formal_parameter_name', $.name_list)),
+
+      formal_group_designator: $ => choice($.NULL, $.ALL),
+
+      dispatching_operation_set: $ => seq($.dispatching_operation_specifier, repeat(seq(',', $.dispatching_operation_specifier))),
+
+      dispatching_operation_specifier: $ => seq(field('dispatching_operation_name', $.name), '(', field('object_name', $.name), ')'),
+
+      delta_constraint: $ => seq($.DELTA, field('static_simple_expression', $.simple_expression), optional($.range_constraint)),
+
+      at_clause: $ => seq($.FOR, field('direct_name', $.IDENTIFIER), $.USE, $.AT, $.expression, ';'),
+
+      mod_clause: $ => seq($.AT, $.MOD, $.expression, ';')
    },
    conflicts: $ => [
       // ??? Maybe we can merge these
@@ -1853,7 +956,10 @@ _name_list: $ => prec.left(comma_separated_list_of($.name)),
       [$.discriminant_association,$.parenthesized_expression],
    ],
    extras: $ => [
+      $.COMMENT,
+      $.CONFLICT_MARK_A,
+      $.CONFLICT_MARK_B,
+      $.CONFLICT_MARK_END,
       /\s|\\\r?\n/,
-      $.comment,
    ],
 });

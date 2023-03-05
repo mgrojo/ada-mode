@@ -715,8 +715,9 @@ message. The supported warnings are:
 @end itemize
 
 @item %lexer_regexp <name> <value>
-Declare a named regular expression with name and current lexer
-syntax. The name may then occur in another lexer regular expression.
+Declare a named regular expression (or fragment) with name and current
+lexer syntax. The name may then occur in another lexer regular
+expression.
 @end table
 
 @node Nonterminals

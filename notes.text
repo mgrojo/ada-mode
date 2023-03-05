@@ -88,13 +88,22 @@ test_incremental.adb fails
             contained in
 
  tree-sitter
-edit ada_full.js_good to match wisi generator order, briot changes
-    make one
+add attribute to suppress node name in tree-sitter?
+    ie _membership_choice
+    https://tree-sitter.github.io/tree-sitter/creating-parsers#hiding-rules
+    what exactly is the consequence on the run-time
+        it can't actually leave the node out of the tree; incremental edit would not work?
+        it's left out of "print tree"?
+        it's skipped by tree iterators?
 
-    added name= label in package_body
-        confuses action?
-            generating lalr
-                don't compute recursion!
+    test with ada_lite_ebnf
+
+edit ada_full.js_good to match wisi generator order, briot changes
+    go thru annex P, add missing token labels to ada_full.wy
+        done to default_expression
+            add that in assign_value?
+
+    make one
 
 
     comment on primary:
@@ -108,8 +117,6 @@ in ada_annex_p.wy, label_opt, identifier_opt are possibly empty
     comment says split out for match_names
     improve match_names instead
 
-add attribute to suppress node name in tree-sitter?
-    ie _membership_choice
 
 see fixme on %conflict component_list in c:/Projects/org.emacs.ada-mode.stephe-4/ada_annex_p.wy
     not needed if use canonical list pattern?
@@ -137,7 +144,7 @@ consider https://github.com/briot/tree-sitter-ada
             component_choice_list does not have prec
 
         name_not_function_call
-            does not reduce conflicts?
+            does not reduce conflicts
             missing explicit_dereference
 
         selected_component does not need prec.left?
@@ -146,6 +153,7 @@ consider https://github.com/briot/tree-sitter-ada
 
         record_component_association_list
             don't need to enforce two positional expressions at this level
+            does it reduce conflicts?
 
         array_type_definition expanded for actions
         slice: why do we care if Proc (Arr (1 .. 2)); is parsed as slice, subtype_indeciation instead of function_call, slice?

@@ -2083,7 +2083,7 @@ package body WisiToken.Generate.LR is
          end if;
       end;
 
-      if Include_Extra then
+      if Include_Extra and Recursions.Recursions.Length > 0 then
          New_Line;
          Put_Line ((if Recursions.Full then "Recursions:" else "Partial recursions:"));
          for I in Recursions.Recursions.First_Index .. Recursions.Recursions.Last_Index loop
