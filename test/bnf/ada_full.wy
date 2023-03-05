@@ -259,12 +259,10 @@ word : IDENTIFIER ;
 %conflict SHIFT dispatching_operation_set | REDUCE extended_global_aspect_element on token COMMA
 %conflict SHIFT dispatching_operation_specifier | REDUCE primary on token RIGHT_PAREN
 %conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
-%conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token FUNCTION
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PACKAGE
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PROCEDURE
 %conflict SHIFT index_constraint | REDUCE name on token LEFT_PAREN
-%conflict SHIFT loop_parameter_specification | REDUCE in_of on token REVERSE
 %conflict SHIFT loop_statement | REDUCE defining_identifier_list on token COLON
 %conflict SHIFT name_list | REDUCE formal_parameter_set on token COMMA
 %conflict SHIFT name_list | REDUCE global_aspect_element on token COMMA
@@ -272,17 +270,14 @@ word : IDENTIFIER ;
 %conflict SHIFT name_not_function_call | REDUCE in_of on token IDENTIFIER
 %conflict SHIFT name_not_function_call | REDUCE in_of on token STRING_LITERAL
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
-%conflict SHIFT package_body_stub | REDUCE name_not_function_call on token IS
 %conflict SHIFT positional_array_aggregate | REDUCE in_of on token LEFT_SQUARE_BRACKET
 %conflict SHIFT pragma_g | REDUCE sequence_of_statements on token PRAGMA
-%conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
 %conflict SHIFT range_constraint | REDUCE name on token RANGE
 %conflict SHIFT record_extension_part | REDUCE derived_type_definition on token WITH
 %conflict SHIFT slice | REDUCE discrete_range_COMMA_list on token RIGHT_PAREN
 %conflict SHIFT target_name | REDUCE in_of on token AT_SIGN
 %conflict SHIFT tick | REDUCE name_not_function_call on token TICK_1
 %conflict SHIFT tick | REDUCE name_not_function_call on token TICK_2
-%conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
 
 ;;; Resolved conflicts
 
@@ -312,7 +307,8 @@ word : IDENTIFIER ;
 %conflict discrete_choice component_choice_list
 %end if
 
-;;; Documented but not resolved conflicts
+;;; Documented but not resolved conflicts. Listed in the order they
+;;; were reported by tree-sitter.
 
 ;; subprogram_body => procedure_specification is null
 ;; subprogram_body => procedure_specification is begin
@@ -380,6 +376,66 @@ word : IDENTIFIER ;
 %conflict REDUCE record_component_association | REDUCE parenthesized_expression_1 on token RIGHT_PAREN
 %conflict SHIFT positional_array_aggregate | REDUCE expression_list on token COMMA
 %conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_list on token COMMA
+
+;; case_expression => case expression is
+;;                 => case array_aggregate is
+;;                 => case [ array_component_association_list ]
+;;                 => case [ array_component_association ]
+;;                 => case [ iterated_element_association ]
+;;
+;; case_expression => case expression is
+;;                 => case name_not_function_call is
+;;                 => case attribute_reference is
+;;                 => case reduction_attribute_reference is
+;;                 => case value_sequence ' ... is
+;;                 => case [ iterated_element_association ] ' ... is
+;; We have to look at the token following ']' to resolve the conflict
+%conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
+
+;; iteration_scheme => for loop_parameter_specification
+;;                  => for IDENTIFIER in reverse
+;;
+;; iteration_scheme => for iterator_specification
+;;                  => for IDENTIFIER in_of reverse
+;;                  => for IDENTIFIER in reverse
+;; WisiToken parser reduces these to duplicate state.
+;; FIXME: what does tree_sitter do?
+%conflict SHIFT loop_parameter_specification | REDUCE in_of on token REVERSE
+
+;; package_body => package body name is ... begin
+;;              => package body name_not_function_call is ... begin
+;;              => package body IDENTIFIER is ... begin
+;;
+;; package_body_stub => package body IDENTIFIER is separate
+;; We need to look at the tokens after 'is' to resolve the conflict.
+%conflict SHIFT package_body_stub | REDUCE name_not_function_call on token IS
+
+;; full_type_declaration => type IDENTIFIER known_discriminant_part is type_definition ;
+;;
+;; incomplete_type_declaration => type IDENTIFIER discriminant_part is tagged ;
+;;                             => type IDENTIFIER known discriminant_part is tagged ;
+;; We need to look at the tokens after 'is' to resolve the conflict.
+%conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
+
+;; case_expression => case expression is ...
+;;                 => case aggregate is ...
+;;                 => case record_array_aggregate is
+;;                 => case ( expression ) is
+;;                 => case ( raise_expression with simple_expression ) is
+;;                 => case ( raise name with ... ) is
+;;
+;; case_expression => case expression is ...
+;;                 => case aggregate is ...
+;;                 => case extension_aggregate is
+;;                 => case ( expression with record_component_association_list ) is
+;;                 => case ( raise_expression with record_component_association_list ) is
+;;                 => case ( raise name with record_component_association_list ) is
+;;
+;; WisiToken parser reduces these to duplicate state.
+;; FIXME: what does tree_sitter do?
+%conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
+
+;;; end of conflicts
 
 %if parser in LALR | LR1
 %elisp_face font-lock-constant-face
