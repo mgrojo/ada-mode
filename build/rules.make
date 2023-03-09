@@ -47,14 +47,17 @@ endif
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
-%.re2c : %.wy $(WISITOKEN_GENERATE)
-	cd ./$(<D); $(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --verbosity "time=1" --output_bnf $(<F)
+%.re2c %.js : %.wy $(WISITOKEN_GENERATE)
+	cd ./$(<D); $(WISITOKEN_GENERATE) $(GENERATE_ARGS) --verbosity "time=1" --output_bnf $(<F)
 	cd ./$(<D); dos2unix -q $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
 	if [ -f $(*F)_parse_table.txt ] ; then mkdir -p bin; mv -f $(*F)_parse_table.txt bin; fi
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	cd ./$(<D); dos2unix -q $(*F)_re2c.c
+
+%_tree_sitter.c : %.js
+	cd ./$(<D); tree-sitter generate $(<F)
 
 followed-by : ARGS := ../ada_annex_p.wy term_list REM 1
 followed-by : $(WISITOKEN)/build/wisitoken-followed_by.exe

@@ -10,7 +10,7 @@ o.e.a.stephe-2 (o.s_l.sal.s-1, o.w.s-1, o.e.w.s-1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (o.s_l.sal.s-1 o.w.s-1 o.e.w.s-4): integrate tree-sitter
 o.e.a.stephe-5 (?): libadalang backend; dead
-o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead
+o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat error correction via lr; dead?
 o.e.a.stephe-7 (): available
 
 (dvc-state-multiple
@@ -58,7 +58,17 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-in .texi, need both title and top version numbers?
+use tree-sitter as parser for wisi
+    make three
+SAL.PROGRAMMER_ERROR: unhandled exception ADA.ASSERTIONS.ASSERTION_ERROR: failed precondition from wisitoken-syntax_trees.ads:2469: -6687:rhs_multiple_item
+[C:\Projects\org.wisitoken.stephe-3\build\wisitoken-bnf-generate.exe]
+0x91af05 Wisitoken.Syntax_Trees.Lr_Utils.Raise_Programmer_Error at wisitoken-syntax_trees-lr_utils.adb:33
+0x97af49 Wisitoken_Grammar_Editing.Translate_Ebnf_To_Bnf.Process_Node at wisitoken_grammar_editing.adb:3149
+0x9605ec Wisitoken_Grammar_Editing.Translate_Ebnf_To_Bnf at wisitoken_grammar_editing.adb:3302
+0x40bc8e Wisitoken.Bnf.Generate.B_13.Translate_To_Bnf at wisitoken-bnf-generate.adb:325
+0x40c540 Wisitoken.Bnf.Generate.B_13.Parse_Check at wisitoken-bnf-generate.adb:381
+
+    need wisi backends to access tree-sitter syntax tree
 
 Add ALIRE_BUILD_ARGS ?= --release to Alire.make
 
@@ -1745,7 +1755,6 @@ bump versions
         ada-mode-version
 
     ada-mode.texi
-        @title
         @node top
 
     README

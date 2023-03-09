@@ -2,7 +2,7 @@
 --
 --
 --
---  Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2023 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -100,7 +100,7 @@ begin
                when ALIASED_ID =>
                   Param.Aliased_P := True;
 
-               when mode_ID =>
+               when non_empty_mode_ID =>
                   if Tree.Is_Empty_Nonterm (Children (I)) then
                      Param.In_P  := False;
                      Param.Out_P := False;

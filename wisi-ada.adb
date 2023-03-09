@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -186,7 +186,7 @@ package body Wisi.Ada is
       when qualified_expression_ID =>
          raise SAL.Not_Implemented; -- need use case
 
-      when direct_name_ID =>
+      when IDENTIFIER_ID =>
          Method := Tree.Child (Method, 1);
 
       when others =>
