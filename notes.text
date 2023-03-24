@@ -32,7 +32,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-3"        . "../org.wisitoken")))
 
  current work
-test_incremental.adb fails
+new test case:
+    test_mckenzie missing_name_1 with end_name_optional true
+        hangs in tree.current_error
+
+
+test_mckenzie, test_incremental fail on Multiple_Errors_On_One_Token_*
     Multiple_Errors_On_One_Token_1
         recover_insert_delete node 1 not in tree
     inserted node was on a stream that is now deleted.
@@ -88,6 +93,20 @@ test_incremental.adb fails
             contained in
 
  tree-sitter
+propagate to main
+
+need to translate between tree_sitter nonterm token_id, rhs_id and wisitoken production_ids to lookup actions.
+    lookup action relies on production_id stored in nonterm
+        set by parser reduce using production_id stored in action in parse table
+        maybe tree_sitter actually stores something equivalent in its parse tree?
+    tree-sitter generate doesn't output productions in any form.
+    generated C code has list of tokens, and parse table
+    compute productions from table?
+
+
+    how does Emacs ts map actions to production rhs_id?
+
+
 add attribute to suppress node name in tree-sitter?
     ie _membership_choice
     https://tree-sitter.github.io/tree-sitter/creating-parsers#hiding-rules
@@ -102,10 +121,6 @@ edit ada_full.js_good to match wisi generator order, briot changes
     go thru annex P, add missing token labels to ada_full.wy
         done to default_expression
             add that in assign_value?
-
-    make one
-
-
 
 extract tree_sitter conflict reporting code that finds an example token sequence, add to wisitoken generate
 
@@ -141,7 +156,7 @@ consider https://github.com/briot/tree-sitter-ada
             component_choice_list does not have prec
 
         name_not_function_call
-            does not reduce conflicts
+            use in subprogram_specification, generic_instantiation, generic_renaming => reduces conflicts
             missing explicit_dereference
 
         selected_component does not need prec.left?

@@ -39,15 +39,16 @@ with WisiToken.BNF.Output_Elisp_Common; use WisiToken.BNF.Output_Elisp_Common;
 with WisiToken.Generate.Packrat;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada_Emacs
-  (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_File_Name     :         in String;
-   Output_File_Name_Root :         in String;
-   Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
-   Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
-   Tuple                 :         in Generate_Tuple;
-   Test_Main             :         in Boolean;
-   Multiple_Tuples       :         in Boolean;
-   Language_Name         :         in String)
+  (Input_Data                   :         in WisiToken_Grammar_Runtime.User_Data_Type;
+   Grammar_File_Name            :         in String;
+   Output_File_Name_Root        :         in String;
+   Generate_Data                : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
+   Packrat_Data                 :         in WisiToken.Generate.Packrat.Data_Access;
+   Tuple                        :         in Generate_Tuple;
+   Test_Main                    :         in Boolean;
+   Multiple_Tuples              :         in Boolean;
+   Need_Gen_Alg_In_Actions_Name :         in Boolean;
+   Language_Name                :         in String)
 is
    use all type Ada.Containers.Count_Type;
 
@@ -56,8 +57,8 @@ is
    Blank_Set : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ");
    Numeric   : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set ("0123456789");
 
-   Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
-     (Input_Data, Tuple, Grammar_File_Name, Output_File_Name_Root, Check_Interface => True);
+   Common_Data : constant Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
+     (Input_Data, Tuple, Grammar_File_Name, Check_Interface => True);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
@@ -1544,11 +1545,7 @@ is
       use Generate_Utils;
       use WisiToken.Generate;
 
-      File_Name : constant String := Output_File_Name_Root &
-        (case Common_Data.Interface_Kind is
-         when Process => "_process_actions",
-         when Module  => "_module_actions") &
-        ".adb";
+      File_Name : constant String := To_Lower (Package_Name) & ".adb";
 
       Motion_Actions : constant Boolean := Any_Motion_Actions;
 
@@ -1659,10 +1656,9 @@ is
       use WisiToken.Generate;
       use Generate_Utils;
 
-      File_Name : constant String := To_Lower (Main_Package_Name) & ".adb";
       Body_File : File_Type;
    begin
-      Create (Body_File, Out_File, File_Name);
+      Create (Body_File, Out_File, To_Lower (Main_Package_Name) & ".adb");
       Set_Output (Body_File);
       Indent := 1;
 
@@ -1718,13 +1714,13 @@ is
          LR_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data);
 
       when Packrat_Gen =>
-         WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
+         WisiToken.BNF.Generate_Packrat (Packrat_Data.all, Generate_Data);
          Create_Create_Productions (Generate_Data);
-         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data.all);
 
       when Packrat_Proc =>
          Create_Create_Productions (Generate_Data);
-         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data.all);
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);
@@ -1806,24 +1802,32 @@ is
 
       File : File_Type;
 
+      File_Name_Root : constant String := Output_File_Name_Root &
+        "-process" &
+        (if Need_Gen_Alg_In_Actions_Name
+         then "-" & To_Lower (Tuple.Gen_Alg'Image)
+         else "");
+
+      File_Name : constant String := File_Name_Root & ".el";
+
       Paren_1_Done : Boolean := False;
    begin
-      Create (File, Out_File, Output_File_Name_Root & "-process.el");
+      Create (File, Out_File, File_Name);
+
       Set_Output (File);
       Indent := 1;
 
       --  We can't use Put_File_Header here because it does not output the
       --  file name.
       Put_Line
-        (";;; " & Output_File_Name_Root &
-           "-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-");
+        (";;; " & File_Name & " --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-");
       Put_Command_Line (Elisp_Comment & "  ", Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
       Put_Line ("(require 'wisi-process-parse)");
       New_Line;
 
-      Indent_Line  ("(defconst " & Output_File_Name_Root & "-process-token-table");
+      Indent_Line  ("(defconst " & File_Name_Root & "-token-table");
       Indent_Start ("  [");
       Indent := Indent + 3;
       for Cursor in All_Tokens (Generate_Data).Iterate loop
@@ -1839,15 +1843,14 @@ is
       Indent := Indent - 3;
       New_Line;
 
-      Output_Elisp_Common.Indent_Name_Table
-        (Output_File_Name_Root, "process-face-table", Input_Data.Tokens.Faces);
+      Output_Elisp_Common.Indent_Name_Table (File_Name_Root, "face-table", Input_Data.Tokens.Faces);
 
       --  We need -repair-image for wisi-repair-error
       New_Line;
-      Output_Elisp_Common.Indent_Repair_Image (Output_File_Name_Root, "process", Input_Data.Tokens);
+      Output_Elisp_Common.Indent_Repair_Image (File_Name_Root, "", Input_Data.Tokens);
 
       New_Line;
-      Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
+      Put_Line ("(provide '" & File_Name_Root & ")");
       Set_Output (Standard_Output);
       Close (File);
 
@@ -1858,8 +1861,6 @@ is
       use Ada.Strings.Unbounded;
       use Generate_Utils;
       use WisiToken.Generate;
-
-      Lower_Package_Name_Root : constant String := To_Lower (File_Name_To_Ada (Output_File_Name_Root));
 
       function To_ID_Image (Name : in Ada.Strings.Unbounded.Unbounded_String) return String
       is begin
@@ -1904,30 +1905,30 @@ is
       New_Line;
 
       Indent_Line
-        ("(cl-defstruct (" & Lower_Package_Name_Root &
+        ("(cl-defstruct (" & Output_File_Name_Root &
            "-wisi-module-parser (:include wisi-parser)))");
       New_Line;
-      Indent_Line ("(defun " & Lower_Package_Name_Root & "-wisi-module-parser-make (dll-name)");
+      Indent_Line ("(defun " & Output_File_Name_Root & "-wisi-module-parser-make (dll-name)");
       Indent_Line ("  (module-load dll-name)");
-      Indent_Line ("  (make-" & Lower_Package_Name_Root & "-wisi-module-parser))");
+      Indent_Line ("  (make-" & Output_File_Name_Root & "-wisi-module-parser))");
       New_Line;
 
-      Indent_Line ("(defvar " & Lower_Package_Name_Root & "-module-lexer nil)");
+      Indent_Line ("(defvar " & Output_File_Name_Root & "-module-lexer nil)");
       Indent_Line
         ("(declare-function " &
-           Lower_Package_Name_Root &
+           Output_File_Name_Root &
            "-wisi-module-parse """ &
-           Lower_Package_Name_Root &
+           Output_File_Name_Root &
            "-wisi-module-parse.c"")");
       New_Line;
 
       Indent_Line
         ("(cl-defmethod wisi-parse-current ((parser " &
-           Lower_Package_Name_Root &
+           Output_File_Name_Root &
            "-wisi-module-parser))");
       Indent := Indent + 2;
-      Indent_Line ("(let* ((wisi-lexer " & Lower_Package_Name_Root & "-module-lexer)");
-      Indent_Line ("       (result (" & Lower_Package_Name_Root & "-wisi-module-parse)))");
+      Indent_Line ("(let* ((wisi-lexer " & Output_File_Name_Root & "-module-lexer)");
+      Indent_Line ("       (result (" & Output_File_Name_Root & "-wisi-module-parse)))");
       --  Result is nil for no errors, a string for some error.
       --  Ada code has already added line:column, but not file name
       Indent_Line ("  (when result");
@@ -1945,8 +1946,7 @@ is
    is
       use WisiToken.Generate;
 
-      Package_Name_Root       : constant String := File_Name_To_Ada (Output_File_Name_Root);
-      Lower_Package_Name_Root : constant String := To_Lower (Package_Name_Root);
+      Package_Name_Root : constant String := File_Name_To_Ada (Output_File_Name_Root);
 
       File : File_Type;
    begin
@@ -1970,13 +1970,13 @@ is
       Indent_Line ("""emacs_module_h.ads"",");
       Indent_Line ("""fasttoken-lexer-wisi_elisp.adb"",");
       Indent_Line ("""fasttoken-lexer-wisi_elisp.ads"",");
-      Indent_Line ("""" & Lower_Package_Name_Root & "_module.adb"",");
-      Indent_Line ("""" & Lower_Package_Name_Root & "_module.ads""");
+      Indent_Line ("""" & Output_File_Name_Root & "_module.adb"",");
+      Indent_Line ("""" & Output_File_Name_Root & "_module.ads""");
       Indent := Indent - 3;
       Indent_Line ("  );");
       New_Line;
       Indent_Line ("for Object_Dir use ""libobjsjlj"";");
-      Indent_Line ("for Library_Name use """ & Lower_Package_Name_Root & "_wisi_module_parse"";");
+      Indent_Line ("for Library_Name use """ & Output_File_Name_Root & "_wisi_module_parse"";");
       Indent_Line ("for Library_Dir use ""libsjlj"";");
       --  This library is linked with *_wisi_module_parse_wrapper.c to
       --  make a dynamic library
@@ -1992,12 +1992,12 @@ is
       --  'Wisi_Module_Parse_Common.Compiler'Default_Switches' includes 'gnatn', but that hangs
       Indent_Line ("case Wisi_Module_Parse_Common.Build is");
       Indent_Line ("when ""Debug"" =>");
-      Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
+      Indent_Line ("   for Switches (""" & Output_File_Name_Root & "_module.adb"") use");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
       Indent_Line ("     (""-O0"");");
       Indent_Line ("when ""Normal"" =>");
-      Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
+      Indent_Line ("   for Switches (""" & Output_File_Name_Root & "_module.adb"") use");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
       Indent_Line ("     (""-O2"");");
@@ -2023,7 +2023,7 @@ is
       Put_Command_Line ("-- ", Use_Tuple => True, Tuple => Tuple);
       Indent_Line ("aggregate project " & Package_Name_Root & "_Wisi_Module_Parse_Agg is");
       Indent_Line ("   for Project_Path use (external (""WISI_FASTTOKEN""));");
-      Indent_Line ("   for Project_files use (""" & Lower_Package_Name_Root & "_wisi_module_parse.gpr"");");
+      Indent_Line ("   for Project_files use (""" & Output_File_Name_Root & "_wisi_module_parse.gpr"");");
       Indent_Line ("end " & Package_Name_Root & "_Wisi_Module_Parse_Agg;");
       Set_Output (Standard_Output);
       Close (File);
@@ -2038,22 +2038,22 @@ is
       Indent_Line ("#include <emacs_module.h>");
       Indent_Line ("int plugin_is_GPL_compatible;");
       Indent_Line ("extern void adainit(void);");
-      Indent_Line ("extern int " & Lower_Package_Name_Root & "_wisi_module_parse_init (emacs_env *env);");
+      Indent_Line ("extern int " & Output_File_Name_Root & "_wisi_module_parse_init (emacs_env *env);");
       Indent_Line ("/* Parse current buffer, using parser in current module. */");
-      Indent_Line ("extern emacs_value " & Lower_Package_Name_Root & "_wisi_module_parse (emacs_env *env);");
+      Indent_Line ("extern emacs_value " & Output_File_Name_Root & "_wisi_module_parse (emacs_env *env);");
       Indent_Line ("static emacs_value Fparse (emacs_env *env, int nargs, emacs_value args[])");
       Indent_Line ("{");
-      Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse (env);");
+      Indent_Line ("  return " & Output_File_Name_Root & "_wisi_module_parse (env);");
       Indent_Line ("}");
       New_Line;
       Indent_Line ("int emacs_module_init (struct emacs_runtime *ert)");
       Indent_Line ("{");
       Indent_Line ("  emacs_env *env = ert->get_environment (ert);");
       Indent_Line
-        ("  env->bind_function (env, """ & Lower_Package_Name_Root &
+        ("  env->bind_function (env, """ & Output_File_Name_Root &
            "-wisi-module-parse"", env->make_function (env, 1, 1, Fparse));");
       Indent_Line ("  adainit();");
-      Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse_init (env);");
+      Indent_Line ("  return " & Output_File_Name_Root & "_wisi_module_parse_init (env);");
       Indent_Line ("}");
       Set_Output (Standard_Output);
       Close (File);
@@ -2063,8 +2063,12 @@ begin
    declare
       Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         (case Common_Data.Interface_Kind is
-         when Process => "_Process_Actions",
-         when Module  => "_Module_Actions");
+         when Process => "_Process",
+         when Module  => "_Module") &
+        (if Need_Gen_Alg_In_Actions_Name
+         then "_" & Generate_Algorithm_Image (Tuple.Gen_Alg).all
+         else "") &
+        "_Actions";
 
       Main_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         (case Common_Data.Interface_Kind is
@@ -2080,14 +2084,10 @@ begin
       end if;
 
       Create_Ada_Actions_Spec
-        (Output_File_Name => Output_File_Name_Root &
-           (case Common_Data.Interface_Kind is
-            when Process  => "_process_actions.ads",
-            when Module   => "_module_actions.ads"),
-         Package_Name     => Actions_Package_Name,
-         Input_Data       => Input_Data,
-         Common_Data      => Common_Data,
-         Generate_Data    => Generate_Data);
+        (Package_Name  => Actions_Package_Name,
+         Input_Data    => Input_Data,
+         Common_Data   => Common_Data,
+         Generate_Data => Generate_Data);
 
       if Tuple.Gen_Alg = External then
          Create_External_Main_Spec (Main_Package_Name, Tuple, Input_Data);
@@ -2097,13 +2097,13 @@ begin
          Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
 
          Create_Ada_Main_Spec
-           (Output_File_Name  => Output_File_Name_Root & "_" &
-              To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
-              To_Lower (Gen_Alg_Name) & "_main.ads",
-            Main_Package_Name => Main_Package_Name,
+           (Main_Package_Name => Main_Package_Name,
             Common_Data       => Common_Data,
             Input_Data        => Input_Data);
       end if;
+
+      --  We can't create a test_main here, because we don't have the wisi
+      --  package for the actions.
    end;
 
    case Common_Data.Interface_Kind is

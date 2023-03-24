@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -2502,7 +2502,7 @@ package body WisiToken.Syntax_Trees is
          --  terminal of a nonterm.
          --
          --  So we assume the worst case, and use first/last terminal
-         --  sequential_index to guide the search when descenting a subtree.
+         --  sequential_index to guide the search when descending a subtree.
 
          Result.Ref.Ref := (Stream, (Cur => Parse_Stream.Stack_Top), Element (Parse_Stream.Stack_Top).Node);
          Last_Terminal  := Result.Ref;
@@ -8225,7 +8225,8 @@ package body WisiToken.Syntax_Trees is
      (Tree         : in Syntax_Trees.Tree;
       Root         : in Node_Access := Invalid_Node_Access;
       Line_Numbers : in Boolean     := False;
-      Non_Grammar  : in Boolean     := False)
+      Non_Grammar  : in Boolean     := False;
+      Safe_Only    : in Boolean     := False)
    is
       procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
       is begin
@@ -8233,9 +8234,14 @@ package body WisiToken.Syntax_Trees is
             Tree.Lexer.Trace.Put ("| ", Prefix => False);
          end loop;
          Tree.Lexer.Trace.Put
-           (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
-                   Line_Numbers => Line_Numbers, Non_Grammar => Non_Grammar),
-            Prefix => False);
+           (Image (Tree, Node,
+                   Children     => False,
+                   RHS_Index    => True,
+                   Node_Numbers => True,
+                   Line_Numbers => Line_Numbers,
+                   Non_Grammar  => Non_Grammar,
+                   Safe_Only    => Safe_Only),
+            Prefix              => False);
 
          if Node.Augmented /= null then
             Tree.Lexer.Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
@@ -9788,7 +9794,8 @@ package body WisiToken.Syntax_Trees is
                     (Node,
                      Image (Tree, Node,
                             Children     => False,
-                            Node_Numbers => True)));
+                            Node_Numbers => True,
+                            Safe_Only    => True)));
 
                Node_Image_Output := True;
             end if;

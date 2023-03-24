@@ -17,13 +17,10 @@ Productions:
 8.0: wisitoken_accept <= compilation_unit Wisi_EOI
 9.0: compilation_unit <= BEGIN sequence_of_statements END SEMICOLON
 10.0: statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON
-11.0: sequence_of_statements <= sequence_of_statements statement ; (1 => Direct_Left)
+11.0: sequence_of_statements <= sequence_of_statements statement
 11.1: sequence_of_statements <= statement
 12.0: label_opt <= IDENTIFIER COLON
 12.1: label_opt <=
-
-Recursions:
-1 => (11 (0.1) -> )
 
 LALR Parse Table:
 State 0:

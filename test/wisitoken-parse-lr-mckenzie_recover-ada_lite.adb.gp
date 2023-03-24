@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2022 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2023 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,15 +19,15 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 #if ADA_LITE = "Ada_Lite" then
-with Ada_Lite_Actions;
+with Ada_Lite_LALR_Actions; -- Same as ada_lite_lr1_actions; see note in ada_lite.wy
 #elsif ADA_LITE = "Ada_Lite_Ebnf" then
-with Ada_Lite_Ebnf_Actions;
+with Ada_Lite_Ebnf_LALR_Actions;
 #end if;
 package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 #if ADA_LITE = "Ada_Lite" then
-   package Actions renames Ada_Lite_Actions;
+   package Actions renames Ada_Lite_LALR_Actions;
 #elsif ADA_LITE = "Ada_Lite_Ebnf" then
-   package Actions renames Ada_Lite_Ebnf_Actions;
+   package Actions renames Ada_Lite_Ebnf_LALR_Actions;
 #end if;
 
    use all type Actions.Token_Enum_ID; -- token names

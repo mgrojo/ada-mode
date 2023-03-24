@@ -27,19 +27,21 @@ with WisiToken.BNF.Generate_Packrat;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.BNF.Output_Ada_Common; use WisiToken.BNF.Output_Ada_Common;
 with WisiToken.Generate.Packrat;
+with WisiToken.Generate.Tree_Sitter;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada
-  (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_File_Name     :         in String;
-   Output_File_Name_Root :         in String;
-   Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
-   Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
-   Tuple                 :         in Generate_Tuple;
-   Test_Main             :         in Boolean;
-   Multiple_Tuples       :         in Boolean)
+  (Input_Data                   :         in WisiToken_Grammar_Runtime.User_Data_Type;
+   Grammar_File_Name            :         in String;
+   Output_File_Name_Root        :         in String;
+   Generate_Data                : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
+   Packrat_Data                 :         in WisiToken.Generate.Packrat.Data_Access;
+   Tuple                        :         in Generate_Tuple;
+   Test_Main                    :         in Boolean;
+   Multiple_Tuples              :         in Boolean;
+   Need_Gen_Alg_In_Actions_Name :         in Boolean)
 is
-   Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
-     (Input_Data, Tuple, Grammar_File_Name, Output_File_Name_Root, Check_Interface => False);
+   Common_Data : constant Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
+     (Input_Data, Tuple, Grammar_File_Name, Check_Interface => False);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
@@ -67,15 +69,14 @@ is
       use Generate_Utils;
       use WisiToken.Generate;
 
-      File_Name : constant String := Output_File_Name_Root & "_actions.adb";
-
       User_Data_Regexp : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive => False);
       Tree_Regexp      : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive      => False);
       Nonterm_Regexp   : constant Regexp := Compile (Symbol_Regexp ("Nonterm"), Case_Sensitive   => False);
 
       Body_File : File_Type;
    begin
-      Create (Body_File, Out_File, File_Name);
+      Create (Body_File, Out_File, To_Lower (Package_Name) & ".adb");
+
       Set_Output (Body_File);
       Indent := 1;
       Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
@@ -287,12 +288,12 @@ is
    is
       use WisiToken.Generate;
 
-      File_Name         : constant String := To_Lower (Main_Package_Name) & ".adb";
-      re2c_Package_Name : constant String := -Common_Data.Lower_File_Name_Root & "_re2c_c";
+      --  This is lowercase to match the C name.
+      re2c_Package_Name : constant String := Output_File_Name_Root & "_re2c_c";
 
       Body_File : File_Type;
    begin
-      Create (Body_File, Out_File, File_Name);
+      Create (Body_File, Out_File, To_Lower (Main_Package_Name) & ".adb");
       Set_Output (Body_File);
       Indent := 1;
 
@@ -348,13 +349,13 @@ is
          LR_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data);
 
       when Packrat_Gen =>
-         WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
+         WisiToken.BNF.Generate_Packrat (Packrat_Data.all, Generate_Data);
          Create_Create_Productions (Generate_Data);
-         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data.all);
 
       when Packrat_Proc =>
          Create_Create_Productions (Generate_Data);
-         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data.all);
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);
@@ -368,7 +369,7 @@ is
       Set_Output (Standard_Output);
    end Create_Ada_Main_Body;
 
-   procedure Create_Ada_Test_Main (Main_Package_Name : in String)
+   procedure Create_LR_Test_Main (Main_Package_Name : in String)
    is
       use WisiToken.Generate;
 
@@ -394,11 +395,9 @@ is
       Default_Language_Runtime_Package : constant String := "WisiToken.Parse.LR.McKenzie_Recover." & File_Name_To_Ada
         (Output_File_Name_Root);
 
-      File_Name : constant String := To_Lower (Unit_Name) & ".ads";
-
       File : File_Type;
    begin
-      Create (File, Out_File, File_Name);
+      Create (File, Out_File, To_Lower (Unit_Name) & ".ads");
       Set_Output (File);
       Indent := 1;
 
@@ -409,7 +408,7 @@ is
       Put_Line ("with " & Main_Package_Name & ";");
 
       if Common_Data.Generate_Algorithm in LR_Generate_Algorithm and
-          Input_Data.Language_Params.Error_Recover and
+        Input_Data.Language_Params.Error_Recover and
         Input_Data.Language_Params.Use_Language_Runtime
       then
          declare
@@ -425,6 +424,9 @@ is
       end if;
 
       Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);
+      --  Just "Put" would be nicer here, but then we'd have to worry about
+      --  not outputing the leading spaces in the following. It's just a
+      --  test main.
       Put_Line ("  (");
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
@@ -450,7 +452,7 @@ is
       end case;
       Close (File);
       Set_Output (Standard_Output);
-   end Create_Ada_Test_Main;
+   end Create_LR_Test_Main;
 
 begin
    case Tuple.Interface_Kind is
@@ -464,7 +466,11 @@ begin
 
    declare
       Main_Package_Name    : constant String := File_Name_To_Ada (Output_File_Name_Root & Gen_Alg_Name) & "_Main";
-      Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) & "_Actions";
+      Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
+        (if Need_Gen_Alg_In_Actions_Name
+         then "_" & Generate_Algorithm_Image (Tuple.Gen_Alg).all
+         else "") &
+        "_Actions";
    begin
       if Input_Data.Post_Parse_Action_Count > 0 or Input_Data.In_Parse_Action_Count > 0 then
          --  Some WisiToken tests have no post_parse or in_parse actions.
@@ -473,21 +479,30 @@ begin
             Actions_Package_Name);
       end if;
 
-      Create_Ada_Actions_Spec
-        (Output_File_Name_Root & "_actions.ads", Actions_Package_Name, Input_Data, Common_Data, Generate_Data);
+      Create_Ada_Actions_Spec (Actions_Package_Name, Input_Data, Common_Data, Generate_Data);
 
-      if Tuple.Gen_Alg = External then
+      case Tuple.Gen_Alg is
+      when None =>
+         null;
+
+      when External =>
          Create_External_Main_Spec (Main_Package_Name, Tuple, Input_Data);
          Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name, Input_Data);
-      else
+
+      when LR_Generate_Algorithm | Packrat_Generate_Algorithm =>
          Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name, Input_Data);
 
-         Create_Ada_Main_Spec (To_Lower (Main_Package_Name) & ".ads", Main_Package_Name, Input_Data, Common_Data);
+         Create_Ada_Main_Spec (Main_Package_Name, Input_Data, Common_Data);
 
          if Test_Main then
-            Create_Ada_Test_Main (Main_Package_Name);
+            Create_LR_Test_Main (Main_Package_Name);
          end if;
-      end if;
+
+      when Tree_Sitter =>
+         --  FIXME: generate *_tree_sitter_main
+         WisiToken.Generate.Tree_Sitter.Create_Test_Main (Output_File_Name_Root);
+
+      end case;
    end;
 
 exception

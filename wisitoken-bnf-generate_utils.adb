@@ -301,9 +301,11 @@ package body WisiToken.BNF.Generate_Utils is
          To_Grammar (Result, Grammar_File_Name, -Input_Data.Language_Params.Start_Token);
          Result.Ignore_Conflicts := Ignore_Conflicts;
 
-         Result.Conflicts := To_Conflicts
-           ((Result.Tokens, Descriptor_Access_Constant (Result.Descriptor)), Ignore_Conflicts, Input_Data.Conflicts,
-            Grammar_File_Name);
+         if Input_Data.User_Parser in LR_Generate_Algorithm then
+            Result.Conflicts := To_Conflicts
+              ((Result.Tokens, Descriptor_Access_Constant (Result.Descriptor)), Ignore_Conflicts, Input_Data.Conflicts,
+               Grammar_File_Name);
+         end if;
 
          if WisiToken.Generate.Error then
             raise WisiToken.Grammar_Error with "errors during initializing grammar: aborting";

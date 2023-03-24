@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 - 2022 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2023 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with Ada_Lite_Actions; use Ada_Lite_Actions;
+with Ada_Lite_LALR_Actions; use Ada_Lite_LALR_Actions;
 with Ada_Lite_LALR_Main;
 with GNATCOLL.Mmap;
 with WisiToken.AUnit;

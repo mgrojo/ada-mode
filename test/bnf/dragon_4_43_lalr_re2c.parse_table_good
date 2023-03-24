@@ -12,11 +12,8 @@ Tokens:
 Productions:
 6.0: wisitoken_accept <= upper_s Wisi_EOI
 7.0: upper_s <= upper_c upper_c
-8.0: upper_c <= LOWER_C upper_c ; (2 => Direct_Right)
+8.0: upper_c <= LOWER_C upper_c
 8.1: upper_c <= LOWER_D
-
-Recursions:
-1 => (8 (0.2) -> )
 
 LALR Parse Table:
 State 0:

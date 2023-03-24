@@ -21,25 +21,20 @@ Tokens:
 Productions:
 9.0: wisitoken_accept <= compilation Wisi_EOI
 10.0: association <= selector_name EQUAL_GREATER name
-11.0: association_list <= association_list COMMA association ; (1 => Direct_Left)
+11.0: association_list <= association_list COMMA association
 11.1: association_list <= association
 12.0: compilation <= compilation_unit compilation_unit compilation_unit
 13.0: compilation_unit <= identifier_list
 13.1: compilation_unit <= name_list
 13.2: compilation_unit <= LEFT_PAREN association_list RIGHT_PAREN
-14.0: identifier_list <= identifier_list COMMA IDENTIFIER ; (1 => Direct_Left)
+14.0: identifier_list <= identifier_list COMMA IDENTIFIER
 14.1: identifier_list <= IDENTIFIER
 15.0: name <= IDENTIFIER
 15.1: name <= STRING_LITERAL
-16.0: name_list <= name_list COMMA name ; (1 => Direct_Left)
+16.0: name_list <= name_list COMMA name
 16.1: name_list <= name
 17.0: selector_name <= IDENTIFIER
 17.1: selector_name <= STRING_LITERAL
-
-Recursions:
-1 => (11 (0.1) -> )
-2 => (14 (0.1) -> )
-3 => (16 (0.1) -> )
 
 LALR Parse Table:
 State 0:

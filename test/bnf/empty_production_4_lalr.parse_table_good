@@ -21,8 +21,6 @@ Productions:
 11.0: other_indicator <= OTHER
 11.1: other_indicator <=
 
-Recursions:
-
 LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI

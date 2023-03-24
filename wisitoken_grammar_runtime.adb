@@ -461,7 +461,7 @@ package body WisiToken_Grammar_Runtime is
                         end if;
                         for I in 3 .. SAL.Base_Peek_Type (Children'Length) loop
                            declare
-                              Text : constant String := Get_Text (Data, Tree, Children (I));
+                              Text : constant String := WisiToken.BNF.To_Lower (Get_Text (Data, Tree, Children (I)));
                            begin
                               if Text = "text_rep" then
                                  Tuple.Text_Rep := True;

@@ -1,0 +1,94 @@
+// generated from subprograms.wy -*- buffer-read-only:t js-indent-level:3 -*-
+
+// 
+// ;;  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
+// 
+// ;;  This program is free software; you can redistribute it and/or
+// ;;  modify it under the terms of the GNU General Public License as
+// ;;  published by the Free Software Foundation; either version 3, or (at
+// ;;  your option) any later version.
+// ;;
+// ;;  This software is distributed in the hope that it will be useful,
+// ;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+// ;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// ;;  General Public License for more details.
+// ;;
+// ;;  You should have received a copy of the GNU General Public License
+// ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
+module.exports = grammar({
+   name: 'Subprograms',
+
+   rules: {
+      compilation_unit: $ => repeat1($.declaration),
+
+      BEGIN: $ => reserved("begin"),
+
+      END: $ => reserved("end"),
+
+      EXCEPTION: $ => reserved("exception"),
+
+      FOR: $ => reserved("for"),
+
+      FUNCTION: $ => reserved("function"),
+
+      IN: $ => reserved("in"),
+
+      LOOP: $ => reserved("loop"),
+
+      PROCEDURE: $ => reserved("procedure"),
+
+      WHEN: $ => reserved("when"),
+
+      USE: $ => reserved("use"),
+
+      LEFT_PAREN: $ => "(",
+
+      RIGHT_PAREN: $ => ")",
+
+      COLON: $ => ":",
+
+      COMMA: $ => ",",
+
+      DOT: $ => ".",
+
+      SEMICOLON: $ => ";",
+
+      SYMBOL: $ => /[a-zA-Z][0-9a-zA-Z_]*/,
+
+      COMMENT_1: $ => token(seq("--", /.*/)),
+
+      COMMENT_2: $ => token(seq("//", /.*/)),
+
+      block: $ => seq(optional(seq($.SYMBOL, $.COLON)), $.BEGIN, $.loop_statement, optional(seq($.EXCEPTION, $.WHEN, $.name)), $.END, optional($.SYMBOL)),
+
+      declaration: $ => choice($.subprogram, $.use_clause),
+
+      loop_statement: $ => seq($.FOR, $.SYMBOL, $.IN, field('nam', $.subtype), $.LOOP, $.SEMICOLON),
+
+      name: $ => seq(optional(seq(field('pre', $.name), $.DOT)), field('suf', $.SYMBOL)),
+
+      name_list: $ => choice($.name, seq($.name_list, $.COMMA, $.name)),
+
+      parameter_list: $ => seq($.LEFT_PAREN, optional($.SYMBOL), $.RIGHT_PAREN),
+
+      subprogram: $ => choice(seq(field('fun', $.FUNCTION), field('nam', optional($.name)), field('par', optional($.parameter_list)), field('blo', optional($.block)), field('sem', $.SEMICOLON)), seq($.PROCEDURE, $.name, $.parameter_list, $.END, $.name, $.SEMICOLON), seq($.FUNCTION, $.name, $.parameter_list, optional($.block), $.SEMICOLON)),
+
+      subtype: $ => $.name,
+
+      use_clause: $ => seq($.USE, $.name_list, $.SEMICOLON),
+
+  },
+  conflicts: $ => [
+      [$.subprogram, ],
+  ],
+  extras: $ => [
+      $.COMMENT_1,
+      $.COMMENT_2,
+      /\s|\\\r?\n/,
+  ],
+}
+);

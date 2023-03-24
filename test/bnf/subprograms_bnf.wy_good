@@ -22,12 +22,16 @@
 %meta_syntax BNF
 
 %generate LALR Ada_Emacs re2c Process
+%generate Tree_Sitter Ada_Emacs Tree_Sitter Process
 ;; We don't do packrat here; that would require too many changes to
 ;; the grammar, breaking what this is testing.
 
 %start compilation_unit
 
+%if parser = LALR
 %max_parallel 10
+
+%end if
 
 %keyword BEGIN "begin"
 %keyword END "end"
@@ -48,18 +52,29 @@
 %token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
 
+%if lexer = re2c
 %token <symbol> SYMBOL %[ [a-zA-Z][0-9a-zA-Z_]* ]% "bogus_symbol"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment-new-line> COMMENT_1 %[ "--" ]%
-%non_grammar <comment-new-line> COMMENT_2 %[ "//" ]%
 
+%elsif lexer = Tree_Sitter
+%token <symbol> SYMBOL %[ /[a-zA-Z][0-9a-zA-Z_]*/ ]% "bogus_symbol"
+
+
+%end if
+
+%non_grammar <comment-new-line> COMMENT_1 "--"
+%non_grammar <comment-new-line> COMMENT_2 "//"
+
+%if parser = LALR
 %mckenzie_check_limit 3
 %mckenzie_zombie_limit 3
 %mckenzie_check_delta_limit 200
 %mckenzie_enqueue_limit 10_000
 %mckenzie_cost_default 4 4 4 4
+
+%end if
 
 ;; elisp names in face actions
 %elisp_face font-lock-keyword-face
@@ -111,16 +126,19 @@ block
     %((wisi-match-names 1 9))%
   ;
 
-;; No automatic token labels needed; {declaration} is replaced by
-;; declaration_list, and no token is referenced in the action. But
+;; No automatic token labels are needed; declaration+ is expanded in
+;; this nonterm, and no token is referenced in the action. But
 ;; wisitoken doesn't examine the action to determine that, and is not
-;; smart enough to take advantage of the simple replacement, so it
+;; smart enough to take advantage of the simple expansion, so it
 ;; generates an automatic label.
 compilation_unit
-  : T1=declaration_list
+  : G4=declaration
     %()%
     %((wisi-terminate-partial-parse))%
-  | ;; empty
+  | G4=compilation_unit declaration
+    %()%
+    %((wisi-terminate-partial-parse))%
+  | G4=compilation_unit G4=compilation_unit
   ;
 
 declaration
@@ -273,6 +291,12 @@ subprogram
                            nil]))%
   ;
 
+%if parser = Tree_Sitter
+;; It's not at all clear why tree-sitter reports this conflict.
+;; IMPROVEME; post an issue on tree-sitter github.
+%conflict subprogram
+%end if
+
 subtype
   : name
     %((wisi-face-apply-action [1 font-lock-type-face font-lock-function-name-face]))%
@@ -280,17 +304,12 @@ subtype
 
 use_clause
 ;; simple group item to test auto token labels
-  : T1=USE G4=nonterminal_014 T3=SEMICOLON
+  : T1=USE T2=nonterminal_014 T3=SEMICOLON
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%
   ;
 
 ;; end of file
-declaration_list
-  : declaration
-  | declaration_list declaration
-  | declaration_list declaration_list
-  ;
 nonterminal_014
-  : T2=name_list
+  : name_list
   ;

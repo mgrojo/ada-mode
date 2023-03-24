@@ -136,6 +136,8 @@ package WisiToken_Grammar_Editing is
                (In_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Access or else
                   Tree.ID (In_Parse_Action) = +ACTION_ID),
      Post => Tree.ID (Add_RHS'Result) = +rhs_ID;
+   --  If Post_, In_Parse_Action are non-null, they are moved to the new
+   --  RHS, not copied.
 
    function Find_Declaration
      (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;

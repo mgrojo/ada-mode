@@ -13,16 +13,13 @@ Tokens:
 
 Productions:
 6.0: wisitoken_accept <= object_declaration_list Wisi_EOI
-7.0: object_declaration_list <= object_declaration_list object_declaration ; (1 => Direct_Left)
+7.0: object_declaration_list <= object_declaration_list object_declaration
 7.1: object_declaration_list <= object_declaration
 8.0: object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON
 9.0: aliased_opt <= ALIASED
 9.1: aliased_opt <=
 10.0: constant_opt <= CONSTANT
 10.1: constant_opt <=
-
-Recursions:
-1 => (7 (0.1) -> )
 
 LALR Parse Table:
 State 0:

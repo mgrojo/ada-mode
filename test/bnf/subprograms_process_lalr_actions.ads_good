@@ -18,14 +18,14 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-package Subprograms_Process_Actions is
+package Subprograms_Process_LALR_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 4,
       Last_Terminal       => 21,
       First_Nonterminal   => 22,
-      Last_Nonterminal    => 34,
-      SOI_ID              => 35,
+      Last_Nonterminal    => 33,
+      SOI_ID              => 34,
       EOI_ID              => 21,
       Accept_ID           => 22,
       Case_Insensitive    => False,
@@ -66,7 +66,6 @@ package Subprograms_Process_Actions is
          new String'("subprogram"),
          new String'("subtype"),
          new String'("use_clause"),
-         new String'("declaration_list"),
          new String'("nonterminal_014"),
          new String'("Wisi_SOI")),
       Terminal_Image_Width => 11,
@@ -107,7 +106,6 @@ package Subprograms_Process_Actions is
       subprogram_ID,
       subtype_ID,
       use_clause_ID,
-      declaration_list_ID,
       nonterminal_014_ID,
       Wisi_SOI_ID);
 
@@ -249,6 +247,12 @@ package Subprograms_Process_Actions is
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function compilation_unit_1_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function name_0_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
@@ -263,4 +267,4 @@ package Subprograms_Process_Actions is
     return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    Partial_Parse_Active    : aliased Boolean := False;
    Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
-end Subprograms_Process_Actions;
+end Subprograms_Process_LALR_Actions;

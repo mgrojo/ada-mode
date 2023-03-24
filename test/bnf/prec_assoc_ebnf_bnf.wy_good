@@ -79,6 +79,7 @@ word
 
 %token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
 
+
 %end if
 
 %start compilation_unit_list
@@ -96,12 +97,12 @@ compilation_unit_list
 
 expression
   : primary
-  | <prec=unary>unary_operator expression
-  | <assoc=left><prec=binary_relational>expression relational_op expression
-  | <assoc=left><prec=binary_and>expression AND expression
-  | <assoc=left><prec=binary_or>expression or_op expression
-  | <assoc=left><prec=binary_multiply>expression multiply_op expression
-  | <assoc=left><prec=binary_add>expression add_op expression
+  | <prec=unary> unary_operator expression
+  | <assoc=left><prec=binary_relational> expression relational_op expression
+  | <assoc=left><prec=binary_and> expression AND expression
+  | <assoc=left><prec=binary_or> expression or_op expression
+  | <assoc=left><prec=binary_multiply> expression multiply_op expression
+  | <assoc=left><prec=binary_add> expression add_op expression
   ;
 
 unary_operator
@@ -111,7 +112,8 @@ unary_operator
   ;
 
 relational_op
-<prec=binary_relational>  : EQUAL
+<prec=binary_relational>
+  : EQUAL
   | SLASH_EQUAL
   | LESS
   | LESS_EQUAL
@@ -119,15 +121,18 @@ relational_op
   | GREATER_EQUAL
   ;
 or_op
-<prec=binary_or>  : OR
+<prec=binary_or>
+  : OR
   | XOR
   ;
 multiply_op
-<prec=binary_multiply>  : STAR
+<prec=binary_multiply>
+  : STAR
   | SLASH
   ;
 add_op
-<prec=binary_add>  : PLUS
+<prec=binary_add>
+  : PLUS
   | MINUS
   ;
 

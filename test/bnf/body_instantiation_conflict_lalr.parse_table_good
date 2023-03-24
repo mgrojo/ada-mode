@@ -31,8 +31,6 @@ Productions:
 18.1: parameter_list <=
 19.0: generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
 
-Recursions:
-
 LALR Parse Table:
 State 0:
      13.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI

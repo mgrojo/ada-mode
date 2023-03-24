@@ -45,11 +45,14 @@
       null;
    end Handle_Aspect;
 }%
+
 %end if
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+
+;; See note in ada_lite.wy about 'Tree_Sitter None'
+%generate Tree_Sitter None tree_sitter
 
 %meta_syntax BNF
 
@@ -137,6 +140,7 @@ word
 
 %token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
 
+
 %end if
 
 %start compilation_unit_list
@@ -209,6 +213,7 @@ word
 %mckenzie_cost_insert EXIT 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
+
 %end if
 
 %conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
@@ -241,6 +246,7 @@ word
 
 %elsif parser = Tree_Sitter
 %conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+
 %end if
 
 ;;;; grammar rules

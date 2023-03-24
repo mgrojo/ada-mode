@@ -1,0 +1,88 @@
+;;; subprograms-process-lalr.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
+
+;;  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
+
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
+;;
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+(require 'wisi-process-parse)
+
+(defconst subprograms-process-lalr-token-table
+  [WHITESPACE
+   NEW_LINE
+   COMMENT_1
+   COMMENT_2
+   BEGIN
+   END
+   EXCEPTION
+   FOR
+   FUNCTION
+   IN
+   LOOP
+   PROCEDURE
+   WHEN
+   USE
+   LEFT_PAREN
+   RIGHT_PAREN
+   COLON
+   COMMA
+   DOT
+   SEMICOLON
+   SYMBOL
+   Wisi_EOI
+   wisitoken_accept
+   block
+   compilation_unit
+   declaration
+   loop_statement
+   name
+   name_list
+   parameter_list
+   subprogram
+   subtype
+   use_clause
+   nonterminal_014
+   Wisi_SOI
+   ])
+
+(defconst subprograms-process-lalr-face-table
+  [
+   font-lock-keyword-face
+   font-lock-type-face
+   font-lock-function-name-face
+   nil
+   ])
+
+(defconst subprograms-process-lalr--repair-image
+  '(
+   (BEGIN . "begin")
+   (END . "end")
+   (EXCEPTION . "exception")
+   (FOR . "for")
+   (FUNCTION . "function")
+   (IN . "in")
+   (LOOP . "loop")
+   (PROCEDURE . "procedure")
+   (WHEN . "when")
+   (USE . "use")
+   (LEFT_PAREN . "(")
+   (RIGHT_PAREN . ")")
+   (COLON . ":")
+   (COMMA . ",")
+   (DOT . ".")
+   (SEMICOLON . ";")
+   (SYMBOL . "bogus_symbol")
+   ))
+
+(provide 'subprograms-process-lalr)

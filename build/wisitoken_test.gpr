@@ -42,7 +42,6 @@ project WisiToken_Test is
       "ada_lite_lr1_run.ads",
       "ada_lite_packrat_gen_run.ads",
       "ada_lite_packrat_proc_run.ads",
-      "ada_lite_tree_sitter_run.adb",
       "body_instantiation_conflict_lalr_run.ads",
       "body_instantiation_conflict_lr1_run.ads",
       "body_instantiation_conflict_packrat_gen_run.ads",
@@ -54,7 +53,6 @@ project WisiToken_Test is
       "character_literal_lr1_run.ads",
       "character_literal_packrat_gen_run.ads",
       "character_literal_packrat_proc_run.ads",
-      "character_literal_tree_sitter_run.adb",
       "conflict_name_lalr_run.ads",
       "dragon_4_43_lalr_run.ads",
       "dragon_4_43_packrat_gen_run.ads",
@@ -89,11 +87,7 @@ project WisiToken_Test is
       "optimized_conflict_03_lalr_run.ads",
       "optimized_conflict_04_lalr_run.ads",
       "optimized_list_lr1_run.ads",
-      "optimized_list_ebnf_lr1_run.ads",
       "prec_assoc_lalr_run.ads",
-      "prec_assoc_tree_sitter_run.adb",
-      "prec_assoc_ebnf_lalr_run.ads",
-      "prec_assoc_ebnf_tree_sitter_run.adb",
       "range_conflict_lalr_run.ads",
       "range_conflict_packrat_gen_run.ads",
       "range_conflict_packrat_proc_run.ads",
@@ -107,7 +101,6 @@ project WisiToken_Test is
    Gen_EBNF :=
      (
       "ada_lite_ebnf_lalr_run.ads",
-      "ada_lite_ebnf_tree_sitter_run.adb",
       "identifier_list_name_conflict_lalr_run.ads",
       "identifier_list_name_conflict_packrat_gen_run.ads",
       "identifier_list_name_conflict_packrat_proc_run.ads",
@@ -117,14 +110,18 @@ project WisiToken_Test is
       "java_types_ch19_lr1_run.ads",
       "lalr_generator_bug_01_lalr_run.ads",
       "nested_ebnf_optional_lalr_run.ads",
+      "optimized_list_ebnf_lr1_run.ads",
+      "prec_assoc_ebnf_lalr_run.ads",
       "three_action_conflict_lalr_run.ads"
      );
 
    Gen_Tree_Sitter :=
      (
-      "ada_lite_ebnf_tree_sitter_run.adb",
-      "ada_lite_tree_sitter_run.adb",
-      "dragon_4_43_tree_sitter_run.adb"
+      -- ada_lite, ada_lite_ebnf do not have tree_sitter test_main.
+      "character_literal_tree_sitter_run.adb",
+      "dragon_4_43_tree_sitter_run.adb",
+      "prec_assoc_ebnf_tree_sitter_run.adb",
+      "prec_assoc_tree_sitter_run.adb"
      );
 
 

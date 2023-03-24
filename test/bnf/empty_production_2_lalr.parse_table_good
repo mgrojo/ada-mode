@@ -13,15 +13,11 @@ Tokens:
 
 Productions:
 7.0: wisitoken_accept <= declarations Wisi_EOI
-8.0: declaration <= body ; (1 => Other_Left)
+8.0: declaration <= body
 8.1: declaration <=
-9.0: declarations <= declarations declaration ; (1 => Direct_Left, 2 => Other_Right)
-9.1: declarations <= declaration ; (1 => Other_Left)
-10.0: body <= IS declarations BEGIN SEMICOLON ; (2 => Other)
-
-Recursions:
-1 => (8 (0.1) -> 10 (0.2) -> 9 (0.2, 1.1) -> )
-2 => (9 (0.1) -> )
+9.0: declarations <= declarations declaration
+9.1: declarations <= declaration
+10.0: body <= IS declarations BEGIN SEMICOLON
 
 LALR Parse Table:
 State 0:

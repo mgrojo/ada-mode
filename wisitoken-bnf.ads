@@ -57,7 +57,7 @@ package WisiToken.BNF is
       Packrat_Proc => new String'("Packrat_Proc"),
       External     => new String'("External"),
       Tree_Sitter  => new String'("Tree_Sitter"));
-   --  Suitable for Ada package names.
+   --  Suitable for Ada package names. For file names, use To_Lower (Gen_Alg'Image).
 
    function To_Generate_Algorithm (Item : in String) return Generate_Algorithm;
    --  Raises User_Error for invalid Item
@@ -67,13 +67,14 @@ package WisiToken.BNF is
 
    function From_Generate_Env_Var return Generate_Algorithm_Set;
 
-   type Output_Language is (Ada_Lang, Ada_Emacs_Lang);
+   type Output_Language is (None, Ada_Lang, Ada_Emacs_Lang);
    subtype Ada_Output_Language is Output_Language range Ada_Lang .. Ada_Emacs_Lang;
    --  _Lang to avoid colliding with the standard package Ada and
    --  WisiToken packages named *.Ada. In the grammar file, they
    --  are named by (case insensitive):
    Output_Language_Image : constant array (Output_Language) of String_Access_Constant :=
-     (Ada_Lang       => new String'("Ada"),
+     (None           => new String'("None"),
+      Ada_Lang       => new String'("Ada"),
       Ada_Emacs_Lang => new String'("Ada_Emacs"));
 
    function To_Output_Language (Item : in String) return Output_Language;
@@ -110,7 +111,7 @@ package WisiToken.BNF is
 
    type Generate_Tuple is record
       Gen_Alg        : Generate_Algorithm := None;
-      Out_Lang       : Output_Language    := Ada_Lang;
+      Out_Lang       : Output_Language    := None;
       Lexer          : Lexer_Type         := None;
       Interface_Kind : Interface_Type     := None;
       Text_Rep       : Boolean            := False;

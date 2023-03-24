@@ -24,8 +24,6 @@ Productions:
 13.0: statement <= GOTO SEMICOLON
 14.0: expression <= TRUE
 
-Recursions:
-
 LALR Parse Table:
 State 0:
      11.0:wisitoken_accept <= ^ if_statement Wisi_EOI

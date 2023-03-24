@@ -20,21 +20,15 @@ Tokens:
 Productions:
 11.0: wisitoken_accept <= compilation_unit Wisi_EOI
 12.0: compilation_unit <= membership_choice range_g
-13.0: membership_choice <= primary ; (1 => Other_Left)
-13.1: membership_choice <= range_g ; (1 => Other_Left)
+13.0: membership_choice <= primary
+13.1: membership_choice <= range_g
 14.0: primary <= IDENTIFIER
 14.1: primary <= STRING_LITERAL
-14.2: primary <= LEFT_PAREN relation RIGHT_PAREN ; (2 => Other)
-15.0: range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ; (5 => Other)
+14.2: primary <= LEFT_PAREN relation RIGHT_PAREN
+15.0: range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN
 15.1: range_g <= IDENTIFIER TICK RANGE
-15.2: range_g <= primary DOT_DOT primary ; (1 => Other_Left, 3 => Other_Right)
-16.0: relation <= primary IN membership_choice ; (1 => Other_Left, 3 => Other_Right)
-
-Recursions:
-1 => (13 (0.1) -> 14 (2.2) -> 16 (0.3) -> )
-2 => (13 (1.1) -> 15 (2.1, 2.3) -> 14 (2.2) -> 16 (0.3) -> )
-3 => (13 (1.1) -> 15 (0.5) -> 16 (0.3) -> )
-4 => (14 (2.2) -> 16 (0.1) -> )
+15.2: range_g <= primary DOT_DOT primary
+16.0: relation <= primary IN membership_choice
 
 LALR Parse Table:
 State 0:

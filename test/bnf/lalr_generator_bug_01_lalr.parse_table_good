@@ -36,38 +36,32 @@ Tokens:
 
 Productions:
 17.0: wisitoken_accept <= compilation_unit Wisi_EOI
-18.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ; (2 => Other)
-19.0: association <= IDENTIFIER EQUAL_GREATER expression ; (3 => Other_Right)
-19.1: association <= expression ; (1 => Other_Left)
-20.0: association_list <= association ; (1 => Other_Left)
+18.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN
+19.0: association <= IDENTIFIER EQUAL_GREATER expression
+19.1: association <= expression
+20.0: association_list <= association
 21.0: compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON
 21.1: compilation_unit <= IDENTIFIER COLON subtype_indication SEMICOLON
 21.2: compilation_unit <= TYPE IDENTIFIER IS SEMICOLON
-22.0: expression <= relation ; (1 => Other_Left)
-23.0: name <= name actual_parameter_part ; (1 => Direct_Left, 2 => Other_Right)
+22.0: expression <= relation
+23.0: name <= name actual_parameter_part
 23.1: name <= IDENTIFIER
 24.0: name_opt <= name
 24.1: name_opt <=
-25.0: primary <= name ; (1 => Other_Left)
+25.0: primary <= name
 26.0: procedure_call_statement <= name SEMICOLON
-27.0: relation <= simple_expression ; (1 => Other_Left)
+27.0: relation <= simple_expression
 28.0: sequence_of_statements_list <= procedure_call_statement
-28.1: sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ; (1 => Direct_Left)
+28.1: sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement
 29.0: sequence_of_statements <=
 29.1: sequence_of_statements <= sequence_of_statements_list
-30.0: simple_expression <= unary_adding_operator_opt primary ; (2 => Other_Right)
-31.0: subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ; (3 => Other)
+30.0: simple_expression <= unary_adding_operator_opt primary
+31.0: subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN
 31.1: subtype_indication <= name
 32.0: unary_adding_operator <= PLUS
 32.1: unary_adding_operator <= MINUS
 33.0: unary_adding_operator_opt <= unary_adding_operator
 33.1: unary_adding_operator_opt <=
-
-Recursions:
-1 => (18 (0.2) -> 20 (0.1) -> 19 (0.3, 1.1) -> 22 (0.1) -> 27 (0.1) -> 30 (0.2) -> 25 (0.1) -> 23 (0.2) -> )
-2 => (23 (0.1) -> )
-3 => (28 (1.1) -> )
-4 => (31 (0.3) -> )
 
 LALR Parse Table:
 State 0:

@@ -84,17 +84,17 @@ module.exports = grammar({
 
       compilation_unit: $ => seq($.expression, ';'),
 
-      expression: $ => choice($.primary, prec('unary',seq($.unary_operator, $.expression)), prec.left('binary_relational',seq($.expression, $.relational_op, $.expression)), prec.left('binary_and',seq($.expression, $.AND, $.expression)), prec.left('binary_or',seq($.expression, $.or_op, $.expression)), prec.left('binary_multiply',seq($.expression, $.multiply_op, $.expression)), prec.left('binary_add',seq($.expression, $.add_op, $.expression))),
+      expression: $ => choice($.primary, prec('unary', seq($.unary_operator, $.expression)), prec.left('binary_relational', seq($.expression, $.relational_op, $.expression)), prec.left('binary_and', seq($.expression, $.AND, $.expression)), prec.left('binary_or', seq($.expression, $.or_op, $.expression)), prec.left('binary_multiply', seq($.expression, $.multiply_op, $.expression)), prec.left('binary_add', seq($.expression, $.add_op, $.expression))),
 
       unary_operator: $ => choice($.NOT, '+', '-'),
 
-      relational_op: $ => prec('binary_relational',choice('=', '/=', '<', '<=', '>', '>=')),
+      relational_op: $ => prec('binary_relational', choice('=', '/=', '<', '<=', '>', '>=')),
 
-      or_op: $ => prec('binary_or',choice($.OR, $.XOR)),
+      or_op: $ => prec('binary_or', choice($.OR, $.XOR)),
 
-      multiply_op: $ => prec('binary_multiply',choice('*', '/')),
+      multiply_op: $ => prec('binary_multiply', choice('*', '/')),
 
-      add_op: $ => prec('binary_add',choice('+', '-')),
+      add_op: $ => prec('binary_add', choice('+', '-')),
 
       primary: $ => choice($.NUMERIC_LITERAL, $.IDENTIFIER, seq('(', $.expression, ')')),
 

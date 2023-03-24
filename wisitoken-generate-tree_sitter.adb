@@ -31,10 +31,13 @@ package body WisiToken.Generate.Tree_Sitter is
    is (To_Token_Enum (Tree.ID (Node)) in rhs_ID | rhs_item_list_ID | rhs_item_ID);
 
    procedure Eliminate_Empty_Productions
-     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree)
+     (Data     : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree     : in out WisiToken.Syntax_Trees.Tree;
+      No_Empty : in     Boolean)
    is
-      Ignore_Lines    : Boolean := False;
+      use all type Ada.Containers.Count_Type;
+
+      Ignore_Lines : Boolean := False;
 
       type Empty_Nonterm is record
          Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -657,11 +660,25 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions start");
          if Trace_Generate_EBNF > Detail then
             Tree.Print_Tree (Tree.Root);
+            Ada.Text_IO.New_Line;
          end if;
       end if;
 
       Find_Empty_Nodes (Tree.Root);
       --  Also finds %if etc, adds them to Nodes_To_Delete.
+
+      if No_Empty and Empty_Nonterms.Length > 0 then
+         declare
+            use Ada.Strings.Unbounded;
+            Empty_Image : Unbounded_String;
+         begin
+            for Nonterm of Empty_Nonterms loop
+               Append (Empty_Image, Nonterm.Name);
+               Append (Empty_Image, " ");
+            end loop;
+            raise Grammar_Error with "Tree_Sitter forbids possibly empty nonterms: " & (-Empty_Image);
+         end;
+      end if;
 
       if Trace_Generate_EBNF > Outline then
          Ada.Text_IO.Put_Line ("nodes to delete:" & Nodes_To_Delete.Length'Image);
@@ -773,9 +790,9 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       if Trace_Generate_EBNF > Detail then
-         Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions end");
          Tree.Print_Tree (Tree.Root);
+         Ada.Text_IO.New_Line;
       end if;
    end Eliminate_Empty_Productions;
 
@@ -1353,6 +1370,18 @@ package body WisiToken.Generate.Tree_Sitter is
                   if Kind = "case_insensitive" then
                      --  The meta phase grammar file parse sets
                      --  Data.Language_Params.Case_Insensitive.
+                     null;
+
+                  elsif Kind = "elisp_action" then
+                     --  Used in generating Action code
+                     null;
+
+                  elsif Kind = "elisp_face" then
+                     --  Used in generating Action code
+                     null;
+
+                  elsif Kind = "elisp_indent" then
+                     --  Used in generating Action code
                      null;
 
                   elsif Kind = "generate" then

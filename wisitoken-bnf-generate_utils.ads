@@ -45,7 +45,6 @@ package WisiToken.BNF.Generate_Utils is
       --  Names of subprograms for each grammar post_parse and in_parse
       --  action; non-null only if there is an action in the grammar.
 
-      Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
 
       --  The following fields are LR specific; so far, it's not worth
@@ -56,6 +55,7 @@ package WisiToken.BNF.Generate_Utils is
       LR_Parse_Table     : WisiToken.Parse.LR.Parse_Table_Ptr;
       Parser_State_Count : WisiToken.Unknown_State_Index := 0;
    end record;
+   type Generate_Data_Access is access Generate_Data;
 
    function Initialize
      (Input_Data        : in WisiToken_Grammar_Runtime.User_Data_Access;

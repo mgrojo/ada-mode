@@ -22,7 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada_Lite_Actions;
+with Ada_Lite_LR1_Actions;
 with Ada_Lite_LR1_Main;
 with Grammar_Grammar_01_Actions;
 with Grammar_Grammar_01_LR1_Main;
@@ -98,7 +98,7 @@ package body Test_Syntax_Trees is
       pragma Unreferenced (T);
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
 
       --  The block_statement has a leading empty nonterm that must be
       --  deleted.
@@ -120,7 +120,7 @@ package body Test_Syntax_Trees is
    is
       pragma Unreferenced (T);
       use WisiToken.AUnit;
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
 
       --  The requested line is started by a comment_new_line
       Text : constant String :=
@@ -204,7 +204,7 @@ package body Test_Syntax_Trees is
    is
       pragma Unreferenced (T);
       use WisiToken.AUnit;
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
 
       --  Byte_Region of an empty nonterm.
       Text : constant String :=
@@ -325,7 +325,7 @@ package body Test_Syntax_Trees is
    procedure Find_Char_Pos_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
 
       Text : constant String :=
         "  -- leading comment" & ASCII.LF & "  A; -- comment" & ASCII.LF & "  B;  ";
@@ -1244,7 +1244,7 @@ package body Test_Syntax_Trees is
    is
       pragma Unreferenced (T);
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
 
       --  Tree has an error and a deleted terminal
       Text : constant String := "procedure A is ; begin C; end A;";

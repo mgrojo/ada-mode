@@ -28,8 +28,8 @@ with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with Ada_Lite_Actions;
-with Ada_Lite_Ebnf_Actions;
+with Ada_Lite_LR1_Actions;
+with Ada_Lite_Ebnf_LALR_Actions;
 with Ada_Lite_Ebnf_LALR_Main;
 with Ada_Lite_LR1_Main;
 with GNAT.Traceback.Symbolic;
@@ -59,10 +59,10 @@ package body Test_Incremental is
          Text_Rep_File_Name             => "ada_lite_lr1_re2c_parse_table.txt");
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
-        (Ada_Lite_Actions.Descriptor.First_Terminal,
-         Ada_Lite_Actions.Descriptor.Last_Terminal,
-         Ada_Lite_Actions.Descriptor.First_Nonterminal,
-         Ada_Lite_Actions.Descriptor.Last_Nonterminal);
+        (Ada_Lite_LR1_Actions.Descriptor.First_Terminal,
+         Ada_Lite_LR1_Actions.Descriptor.Last_Terminal,
+         Ada_Lite_LR1_Actions.Descriptor.First_Nonterminal,
+         Ada_Lite_LR1_Actions.Descriptor.Last_Nonterminal);
    end Ada_Lite;
 
    package Ada_Lite_EBNF is
@@ -83,10 +83,10 @@ package body Test_Incremental is
          User_Data                      => null);
 
       Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
-        (Ada_Lite_Ebnf_Actions.Descriptor.First_Terminal,
-         Ada_Lite_Ebnf_Actions.Descriptor.Last_Terminal,
-         Ada_Lite_Ebnf_Actions.Descriptor.First_Nonterminal,
-         Ada_Lite_Ebnf_Actions.Descriptor.Last_Nonterminal);
+        (Ada_Lite_Ebnf_LALR_Actions.Descriptor.First_Terminal,
+         Ada_Lite_Ebnf_LALR_Actions.Descriptor.Last_Terminal,
+         Ada_Lite_Ebnf_LALR_Actions.Descriptor.First_Nonterminal,
+         Ada_Lite_Ebnf_LALR_Actions.Descriptor.Last_Nonterminal);
    end Ada_Lite_EBNF;
 
    package Grammar is
@@ -1485,7 +1485,7 @@ package body Test_Incremental is
 
       declare
          use WisiToken.Syntax_Trees;
-         use Ada_Lite_Actions;
+         use Ada_Lite_LR1_Actions;
          use AUnit.Checks;
          Tree : WisiToken.Syntax_Trees.Tree renames Ada_Lite.Incremental_Parser.Tree;
          Begin_Name_Node : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +subprogram_specification_ID);
@@ -1504,7 +1504,7 @@ package body Test_Incremental is
    begin
       --  Test that error due to Missing_Name is dropped when incremental
       --  edit fixes it.
-      Ada_Lite_Actions.End_Name_Optional := False;
+      Ada_Lite_LR1_Actions.End_Name_Optional := False;
 
       Parse_Text
         (Initial => "procedure Name is begin null; end;",
@@ -1544,7 +1544,7 @@ package body Test_Incremental is
       --  recovery finishes the block started by "begin". Incremental parse
       --  edit fixes the error; main parser must delete the error on "."
       --  when the name_opt nonterm is shifted.
-      Ada_Lite_Actions.End_Name_Optional := False;
+      Ada_Lite_LR1_Actions.End_Name_Optional := False;
 
       Parse_Text
         (Initial           =>
@@ -1928,7 +1928,7 @@ package body Test_Incremental is
    procedure Recover_08a (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Ebnf_Actions;
+      use Ada_Lite_Ebnf_LALR_Actions;
    begin
       --  Recover_08? cover all cases where Breakdown optimized_list
       --  encounters an RHS_Index = 2 node.
@@ -1997,7 +1997,7 @@ package body Test_Incremental is
    procedure Recover_08b (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Ebnf_Actions;
+      use Ada_Lite_Ebnf_LALR_Actions;
    begin
       --  Recover_08? cover all cases where Breakdown optimized_list
       --  encounters an RHS_Index = 2 node.
@@ -2084,7 +2084,7 @@ package body Test_Incremental is
    procedure Recover_08c (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Ebnf_Actions;
+      use Ada_Lite_Ebnf_LALR_Actions;
    begin
       --  Recover_08? cover all cases where Breakdown optimized_list
       --  encounters an RHS_Index = 2 node.
@@ -2157,7 +2157,7 @@ package body Test_Incremental is
    procedure Recover_08d (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Ebnf_Actions;
+      use Ada_Lite_Ebnf_LALR_Actions;
    begin
       --  Recover_08? cover all cases where Breakdown optimized_list
       --  encounters an RHS_Index = 2 node.
@@ -2265,7 +2265,7 @@ package body Test_Incremental is
    procedure Recover_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
    begin
       --  From ada_mode-incremental_recover_03.adb. Error on final name_opt,
       --  solution is delete the identifier; had op.del_node wrong because
@@ -2549,7 +2549,7 @@ package body Test_Incremental is
    procedure Modify_Deleted_Node (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite_Actions;
+      use Ada_Lite_LR1_Actions;
       use AUnit.Checks.Containers;
       use WisiToken.AUnit;
    begin
@@ -3220,11 +3220,11 @@ package body Test_Incremental is
       Incremental_Parser := Ada_Lite.Incremental_Parser'Access;
       Full_Parser        := Ada_Lite.Full_Parser'Access;
 
-      Ada_Lite_Actions.End_Name_Optional               := True;
+      Ada_Lite_LR1_Actions.End_Name_Optional           := True;
       Ada_Lite.Full_Parser.Table.McKenzie_Param        := Ada_Lite.Orig_McKenzie_Param;
       Ada_Lite.Incremental_Parser.Table.McKenzie_Param := Ada_Lite.Orig_McKenzie_Param;
 
-      Ada_Lite_Ebnf_Actions.End_Name_Optional               := True;
+      Ada_Lite_Ebnf_LALR_Actions.End_Name_Optional          := True;
       Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param        := Ada_Lite_EBNF.Orig_McKenzie_Param;
       Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param := Ada_Lite_EBNF.Orig_McKenzie_Param;
 

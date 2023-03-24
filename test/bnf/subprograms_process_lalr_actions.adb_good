@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -21,7 +21,7 @@ with SAL;
 with Wisi; use Wisi;
 with Wisi.Subprograms; use Wisi.Subprograms;
 with WisiToken.In_Parse_Actions; use WisiToken.In_Parse_Actions;
-package body Subprograms_Process_Actions is
+package body Subprograms_Process_LALR_Actions is
 
    use WisiToken.Syntax_Trees.In_Parse_Actions;
    use all type Motion_Param_Array;
@@ -267,6 +267,18 @@ package body Subprograms_Process_Actions is
    begin
       return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);
    end compilation_unit_0_check;
+
+   function compilation_unit_1_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status
+   is
+      pragma Unreferenced (Tokens);
+   begin
+      return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);
+   end compilation_unit_1_check;
 
    procedure loop_statement_0
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -717,18 +729,18 @@ package body Subprograms_Process_Actions is
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
-      G4 : constant SAL.Peek_Type := 2;
+      T2 : constant SAL.Peek_Type := 2;
       T3 : constant SAL.Peek_Type := 3;
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         null;
+         Face_Apply_List_Action (Parse_Data, Tree, Nonterm, (1 => (T2, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Int, 0))), G4 => (False, (Simple, (Label
-         => None))), T3 => (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Int, 0))), T2 => (False, (Simple, (Int,
+         Subp_Indent_Broken))), T3 => (False, (Simple, (Int, 0)))));
       end case;
    end use_clause_0;
 
-end Subprograms_Process_Actions;
+end Subprograms_Process_LALR_Actions;

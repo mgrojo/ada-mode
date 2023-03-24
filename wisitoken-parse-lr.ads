@@ -70,8 +70,8 @@ package WisiToken.Parse.LR is
    record
       Production : Production_ID;
       --  The production that produced this action. Used to find precedence
-      --  during grammar generation conflict resolution, and to find kernel
-      --  items during error recovery.
+      --  during grammar generation conflict resolution, in_parse actions
+      --  during parse, and kernel items during error recovery.
 
       case Verb is
       when Shift =>

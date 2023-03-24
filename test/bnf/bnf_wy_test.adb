@@ -173,17 +173,30 @@ package body BNF_WY_Test is
 
       if Tuple.Gen_Alg /= None then
          case Tuple.Out_Lang is
-         when WisiToken.BNF.Ada_Lang =>
+         when None | WisiToken.BNF.Ada_Lang =>
             --  Not useful to diff the generated Ada source here; the fact that
             --  the parse succeeds is enough.
             null;
 
          when Ada_Emacs_Lang =>
-            Diff_One (Root_Name & Int_Kind & "_actions.ads", Skip => (1 => 2));
-            Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
-            Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
-            Diff_One (Root_Name & "-process.el");
-
+            declare
+               Adj_Root_Name : constant String := Root_Name &
+                 Int_Kind &
+                 (if If_Lexer_Present
+                  then "_" & To_Lower (Tuple.Gen_Alg'Image)
+                  else "");
+            begin
+               Diff_One (Adj_Root_Name & "_actions.ads", Skip => (1 => 2));
+               Diff_One (Adj_Root_Name & "_actions.adb", Skip => (1 => 2));
+               Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
+               Diff_One
+                 (Root_Name &
+                    "-" & To_Lower (Interface_Type'Image (Tuple.Interface_Kind)) &
+                    (if If_Lexer_Present
+                     then "-" & To_Lower (Tuple.Gen_Alg'Image)
+                     else "") &
+                    ".el");
+            end;
          end case;
 
          if Tuple.Text_Rep then
@@ -289,7 +302,7 @@ package body BNF_WY_Test is
                   (if Test.Input_Name = null then "" else Test.Input_Name.all),
                   Tuple.Gen_Alg, McKenzie_Recover);
 
-            when WisiToken.BNF.Ada_Emacs_Lang =>
+            when WisiToken.BNF.None | WisiToken.BNF.Ada_Emacs_Lang =>
                null;
             end case;
 

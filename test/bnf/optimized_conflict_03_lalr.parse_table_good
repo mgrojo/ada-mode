@@ -18,18 +18,14 @@ Tokens:
 
 Productions:
 10.0: wisitoken_accept <= subtype_indication Wisi_EOI
-11.0: subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ; (3 => Other, 5 => Other_Right)
-12.0: simple_expression <= primary ; (1 => Other_Left)
-12.1: simple_expression <= simple_expression binary_adding_operator primary ; (1 => Direct_Left, 3 => Other_Right)
+11.0: subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression
+12.0: simple_expression <= primary
+12.1: simple_expression <= simple_expression binary_adding_operator primary
 13.0: primary <= IDENTIFIER
-13.1: primary <= allocator ; (1 => Other_Left)
+13.1: primary <= allocator
 14.0: binary_adding_operator <= PLUS
 14.1: binary_adding_operator <= MINUS
-15.0: allocator <= NEW subtype_indication ; (2 => Other_Right)
-
-Recursions:
-1 => (11 (0.3, 0.5) -> 12 (0.1, 1.3) -> 13 (1.1) -> 15 (0.2) -> )
-2 => (12 (1.1) -> )
+15.0: allocator <= NEW subtype_indication
 
 LALR Parse Table:
 State 0:

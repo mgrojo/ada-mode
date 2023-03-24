@@ -41,6 +41,7 @@ gen_BNF :: empty_production_6_re2c.c
 gen_BNF :: empty_production_7_re2c.c
 gen_BNF :: empty_production_8_re2c.c
 gen_BNF :: optimized_list_re2c.c
+gen_BNF :: prec_assoc_re2c.c
 gen_BNF :: range_conflict_re2c.c
 gen_BNF :: skip_to_grammar_re2c.c
 gen_BNF :: warth_left_recurse_expr_1_re2c.c
@@ -61,6 +62,7 @@ gen_EBNF :: optimized_conflict_02_re2c.c
 gen_EBNF :: optimized_conflict_03_re2c.c
 gen_EBNF :: optimized_conflict_04_re2c.c
 gen_EBNF :: optimized_list_ebnf_re2c.c
+gen_EBNF :: prec_assoc_ebnf_re2c.c
 gen_EBNF :: python_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: subprograms_re2c.c
 gen_EBNF :: three_action_conflict_re2c.c
@@ -71,7 +73,10 @@ gen_EBNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
 # installed.
 gen_Tree_Sitter :: ada_lite_ebnf_tree_sitter.c
 gen_Tree_Sitter :: ada_lite_tree_sitter.c
+gen_Tree_Sitter :: character_literal_tree_sitter.c
 gen_Tree_Sitter :: dragon_4_43_tree_sitter.c
+gen_Tree_Sitter :: prec_assoc_tree_sitter.c
+gen_Tree_Sitter :: prec_assoc_ebnf_tree_sitter.c
 
 # GENERATE is used by wisitoken_test.gpr; see there for valid values.
 # We assume tree-sitter is not installed; can be overridden by user.
@@ -92,9 +97,10 @@ test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-
 
 clean :: test-clean
 	rm -f Makefile.conf
-	rm -rf obj bin
+	rm -rf obj bin devel_obj
 	rm -rf obj_pro exec_pro
 	rm -f error_correction_algorithm.ps
+	rm -f bindings src Cargo.toml package.json
 
 # don't delete prj.el, release_process.text
 test-clean :
@@ -154,7 +160,7 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-%.re2c : %.wy wisitoken-bnf-generate.exe
+%.re2c %.js : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**_actions.adb $**_actions.ads $*.js $*_bnf.wy $**_main.adb $**.parse_table
 

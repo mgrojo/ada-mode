@@ -2824,7 +2824,8 @@ package WisiToken.Syntax_Trees is
       Expecting             : in Boolean := False;
       Safe_Only             : in Boolean := False)
      return String;
-   --  If Safe_Only, assume Node is not in tree, so can't use Prev_/Next_ anything.
+   --  If Safe_Only, assume Node is not in tree or some children were
+   --  deleted, so can't use Prev_/Next_ anything.
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
@@ -2956,7 +2957,8 @@ package WisiToken.Syntax_Trees is
      (Tree         : in Syntax_Trees.Tree;
       Root         : in Node_Access := Invalid_Node_Access;
       Line_Numbers : in Boolean     := False;
-      Non_Grammar  : in Boolean     := False);
+      Non_Grammar  : in Boolean     := False;
+      Safe_Only    : in Boolean     := False);
    --  Print tree rooted at Root (default Tree.Root) to
    --  Tree.Lexer.Trace, for debugging.
    --

@@ -3,7 +3,7 @@ Docs/dir
 Docs/wisitoken-user_guide.html
 Docs/wisitoken-user_guide.info
 build/*-elisp.el
-build/*-process.el
+build/*-process*.el
 build/*.adb
 build/*.ads
 build/*.aux
