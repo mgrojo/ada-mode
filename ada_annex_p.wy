@@ -81,7 +81,7 @@
 
 %generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
-%generate Tree_Sitter Ada_Emacs tree_sitter
+%generate Tree_Sitter Ada_Emacs tree_sitter Process
 
 %if parser in LALR | LR1
 %partial_recursion
@@ -285,12 +285,11 @@ tick : TICK_1 | TICK_2 ;
 word : IDENTIFIER ;
 
 ;; This allows newline in string, which may actually be a good thing when editing.
-%token <string> STRING_LITERAL %[ /"(""|[^"])*"/u ]%
-%token <string> CHARACTER_LITERAL %[ /'.'/u ]%
+%token <string> STRING_LITERAL %[ /"(""|[^"])*"/u ]% '""'
+%token <string> CHARACTER_LITERAL %[ /'.'/u ]% "' '"
 
 %end if
 
-%if parser in LALR | LR1
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
 %elisp_face font-lock-type-face
@@ -304,6 +303,7 @@ word : IDENTIFIER ;
 %elisp_indent ada-indent-record    Ada_Indent_Record_0    3 1 2
 %elisp_indent "ada-indent-record*" Ada_Indent_Record_1    3 2
 
+%if parser in LALR | LR1
 ;; Set McKenzie error recovery costs.
 ;;
 ;; We assume the user is typing new code more often than deleting or
@@ -404,16 +404,19 @@ word : IDENTIFIER ;
 
 ;;; conflicts
 
+%if parser in LALR
+;; LR1, tree-sitter do not report this conflict.
+%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
+%end if
+
 %if parser in LALR | LR1
-;;; FIXME: resolve these or doc why not:
+;; tree-sitter does not report these conflicts.
+;;
+;; FIXME: resolve these or doc why not:
 %conflict REDUCE discrete_choice | REDUCE component_choice_list on token EQUAL_GREATER
 %conflict REDUCE name | REDUCE component_choice_list_1 on token EQUAL_GREATER
-%conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
 %conflict REDUCE subtype_indication | REDUCE primary on token COMMA
 %conflict REDUCE subtype_indication | REDUCE primary on token EQUAL_GREATER
-%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
-%conflict SHIFT expression_list | REDUCE extended_global_aspect_element on token COMMA
-%conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token FUNCTION
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PACKAGE
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PROCEDURE
@@ -431,141 +434,29 @@ word : IDENTIFIER ;
 
 ;;; Resolved conflicts
 
-;; This is from:
+;; Consider: 'A | B ^ | C'
 ;;
-;; discrete_choice_list : expression '|' expression
-;; expression : relation
-;; relation : simple_expression 'in' membership_choice_list
+;; discrete_choice_list => expression ^ | expression
+;;                      => relation ^ | relation
+;;                      => simple_expression in membership_choice_list ^ | relation
+;;                      => IDENTIFIER in membership_choice | membership_choice | relation
+;;                      => IDENTIFIER in IDENTIFIER | IDENTIFIER ^ | relation
 ;;
-;; which is one reason Annex P has choice_relation and
+;; It's not clear whether the next BAR should be part of the
+;; membership_choice_list, or the higher-level discrete_choice_list.
+;; Which is one reason Annex P has choice_relation and
 ;; choice_expression; that excludes 'in' in a discrete_choice_list. So
 ;; this conflict cannot arise in a legal Ada program; it doesn't
-;; matter how we resolve it. This resolution matches the one in the
-;; tree-sitter grammar.
+;; matter how we resolve it. This resolution matches tree-sitter,
+;; where assoc=left on membership_choice_list resolves it.
 %conflict_resolution SHIFT membership_choice_list | REDUCE relation on token BAR : membership_choice_list
 
-%end if
 
-;; object_renaming_declaration starts with "IDENTIFIER :", which also
-;; looks like "defining_identifier_list :" from object_declaration
-;; etc. We have to use the generalized parser to look at what comes
-;; after the ":".
-;;
-;; FIXME: Tree_Sitter detects a similar conflict in
-;; exception_renaming_declaration and label_opt; it's not clear why
-;; wisitoken does not.
-%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
-
-
-;;; Documented but not resolved conflicts. Listed in the order they
-;;; were reported by tree-sitter.
-
-;; subprogram_body => procedure_specification is null
-;; subprogram_body => procedure_specification is begin
-;; We need to look at the tokens after 'is' to resolve the conflict
-%conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
-
-;; expression_function_declaration => function_specification is aggregate
-;; subprogram_body => function_specification is begin
-;; We need to look at the tokens after 'is' to resolve the conflict
-%conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
-
-;; enumeration_representation_clause => for simple_name use array_aggregate
-;; record_representation_clause => for simple_name use record
-;; at_clause => for IDENTIFIER use at
-;; We need to look at the tokens after 'use' to resolve the conflict
-%conflict SHIFT at_clause | REDUCE simple_name on token USE
-
-;; generic_instantiation => procedure simple_name is new
-;; subprogram_body => procedure_specification is begin
-;; We need to look at the tokens after 'is' to resolve the conflict
-%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
-
-;; case_expression => case expression is ...
-;;                 => case record_aggregate is ...
-;;                 => case ( record_component_association_list ) is ...
-;;                 => case ( name_for_component_choice | name_for_component_choice => ... ) is ...
-;;                 => case ( IDENTIFIER | ...) is ...
-;;
-;; case_expression => case expression is ...
-;;                 => case array_aggregate is ...
-;;                 => case ( array_component_association_list ) is ...
-;;                 => case ( discrete_choice | discrete_choice => ... ) is ...
-;;                 => case ( expression | discrete_choice => ... ) is ...
-;;                 => case ( name | discrete_choice => ... ) is ...
-;;                 => case ( IDENTIFIER | ...) is ...
-;;
-;; At a higher level, aggregates are illegal as case expressions, but
-;; that's in the grammar. WisiToken does both in parallel until we get
-;; to 'case expression', then eliminates one due to duplicate state.
-;; FIXME: what does tree_sitter do?
-%conflict SHIFT positional_array_aggregate | REDUCE expression_list on token COMMA
-%conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_list on token COMMA
-
-;; Similarly
-%conflict REDUCE name | REDUCE component_choice_list_1 on token BAR
-%conflict REDUCE subtype_indication | REDUCE primary on token BAR
-
-;; case_expression => case expression is
-;;                 => case array_aggregate is
-;;                 => case [ array_component_association_list ]
-;;                 => case [ array_component_association ]
-;;                 => case [ iterated_element_association ]
-;;
-;; case_expression => case expression is
-;;                 => case name_not_function_call is
-;;                 => case attribute_reference is
-;;                 => case reduction_attribute_reference is
-;;                 => case value_sequence ' ... is
-;;                 => case [ iterated_element_association ] ' ... is
-;; We have to look at the token following ']' to resolve the conflict
-%conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
-
-;; iteration_scheme => for loop_parameter_specification
-;;                  => for IDENTIFIER in reverse
-;;
-;; iteration_scheme => for iterator_specification
-;;                  => for IDENTIFIER in_of reverse
-;;                  => for IDENTIFIER in reverse
-;; WisiToken parser reduces these to duplicate state.
-;; FIXME: what does tree_sitter do?
-%conflict SHIFT loop_parameter_specification | REDUCE in_of on token REVERSE
-
-;; package_body => package body simple_name is ... begin
-;;              => package body IDENTIFIER is ... begin
-;;
-;; package_body_stub => package body IDENTIFIER is separate
-;; We need to look at the tokens after 'is' to resolve the conflict.
-%conflict SHIFT package_body_stub | REDUCE simple_name on token IS
-
-;; full_type_declaration => type IDENTIFIER known_discriminant_part is type_definition ;
-;;
-;; incomplete_type_declaration => type IDENTIFIER discriminant_part is tagged ;
-;;                             => type IDENTIFIER known discriminant_part is tagged ;
-;; We need to look at the tokens after 'is' to resolve the conflict.
-%conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
-
-;; case_expression => case expression is ...
-;;                 => case aggregate is ...
-;;                 => case record_array_aggregate is
-;;                 => case ( expression ) is
-;;                 => case ( raise_expression with simple_expression ) is
-;;                 => case ( raise name with ... ) is
-;;
-;; case_expression => case expression is ...
-;;                 => case aggregate is ...
-;;                 => case extension_aggregate is
-;;                 => case ( expression with record_component_association_list ) is
-;;                 => case ( raise_expression with record_component_association_list ) is
-;;                 => case ( raise name with record_component_association_list ) is
-;;
-;; WisiToken parser reduces these to duplicate state.
-;; FIXME: what does tree_sitter do?
-%conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
-
-%if parser = Tree_Sitter
+%elsif parser = Tree_Sitter
 ;; Tree_Sitter finds some conflicts that WisiToken does not
-
+;;
+;; Consider 'case (A => ...'
+;;
 ;; case expression is  => case record_aggregate is
 ;;                     => case ( record_component_association ... ) is
 ;;                     => case ( component_choice_list => ... ) is
@@ -574,25 +465,197 @@ word : IDENTIFIER ;
 ;;                     => case ( array_component_association ... ) is
 ;;                     => case ( discrete_choice_list => ... ) is
 ;;                     => case ( others => ... ) is
+;;
+;; FIXME: improve derivation; where is the parse point, what is the
+;; conflict token; does this match one of the remaining wisitoken
+;; conflicts?
 %conflict discrete_choice component_choice_list
+
 %end if
+
+;;; Documented but not resolved conflicts. Listed in the order they
+;;; were reported by tree-sitter.
+
+;; Consider 'A ^ : ...'
+;;
+;; object_renaming_declaration => IDENTIFIER ^ : name renames name ;
+;;
+;; object_declaration => defining_identifier_list ^ : subtype_indication ;
+;;
+;; We have to look at tokens after ':' to resolve the conflict.
+%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
+
+;; subprogram_body => procedure_specification ^ is null
+;; subprogram_body => procedure_specification ^ is begin
+;; We need to look at the tokens after 'is' to resolve the conflict
+%conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
+
+;; expression_function_declaration => function_specification ^ is aggregate
+;; subprogram_body => function_specification ^ is begin
+;; We need to look at the tokens after 'is' to resolve the conflict
+%conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
+
+;; enumeration_representation_clause => for simple_name ^ use array_aggregate
+;; record_representation_clause => for simple_name ^ use record
+;; at_clause => for IDENTIFIER use at
+;; We need to look at the tokens after 'use' to resolve the conflict
+%conflict SHIFT at_clause | REDUCE simple_name on token USE
+
+;; generic_instantiation => procedure simple_name ^ is new
+;; subprogram_body => procedure_specification ^ is begin
+;; We need to look at the tokens after 'is' to resolve the conflict
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+
+;; Consider 'case (A ^ , ...'
+;;
+;; case_expression => case expression is ...
+;;                 => case record_aggregate is ...
+;;                 => case ( record_component_association_list ) is ...
+;;                 => case ( record_component_association ^ , record_component_association ) is ...
+;;
+;; case_expression => case expression is ...
+;;                 => case array_aggregate is ...
+;;                 => case ( array_component_association_list ) is ...
+;;                 => case ( array_component_association ^ , array_component_association ) is ...
+;;
+;; At a higher level, aggregates are illegal as case expressions, but
+;; that's in the grammar. WisiToken does both in parallel until we get
+;; to 'case expression', then eliminates one due to duplicate state.
+;; FIXME: what does tree_sitter do?
+;; FIXME: derive expression_list
+%conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_list on token COMMA
+
+;; FIXME: derive these
+%conflict SHIFT positional_array_aggregate | REDUCE expression_list on token COMMA
+%conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
+
+;; FIXME: derive these
+%conflict REDUCE name | REDUCE component_choice_list_1 on token BAR
+%conflict REDUCE subtype_indication | REDUCE primary on token BAR
+
+;; Consider 'A [ B ^ ] ...'
+;;
+;; case_expression => case expression is ...
+;;                 => case array_aggregate is ...
+;;                 => case [ array_component_association_list ^ ] is ...
+;;                 => case [ array_component_association ^ ] is ...
+;;
+;; case_expression => case expression is
+;;                 => case name is
+;;                 => case attribute_reference is
+;;                 => case reduction_attribute_reference is
+;;                 => case value_sequence ' ... is
+;;                 => case [ iterated_element_association ^ ] ' ... is
+;; We have to look at the token following ']' to resolve the conflict
+%conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
+
+;; Consider 'for A in ^ reverse ...'
+;;
+;; iteration_scheme => for loop_parameter_specification
+;;                  => for IDENTIFIER in ^ reverse
+;;
+;; iteration_scheme => for iterator_specification
+;;                  => for IDENTIFIER in_of ^ reverse
+;;                  => for IDENTIFIER in ^ reverse
+;; WisiToken parser reduces these to duplicate state at iteration_scheme.
+;; FIXME: what does tree_sitter do?
+;; FIXME: factor out common part to eliminate conflict
+%conflict SHIFT loop_parameter_specification | REDUCE in_of on token REVERSE
+
+;; Consider 'package body A ^ is ...'
+;; package_body => package body simple_name ^ is ... begin
+;;
+;; package_body_stub => package body IDENTIFIER ^ is separate
+;;
+;; We need to look at the tokens after 'is' to resolve the conflict.
+%conflict SHIFT package_body_stub | REDUCE simple_name on token IS
+
+;; Consider 'type A (B : Integer) ^ is ...'
+;;
+;; full_type_declaration => type IDENTIFIER known_discriminant_part ^ is type_definition ;
+;;
+;; incomplete_type_declaration => type IDENTIFIER discriminant_part ^ is tagged ;
+;;
+;; We need to look at the tokens after 'is' to resolve the conflict.
+%conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
+
+;; Consider 'case ( raise A ^ with "B" '
+;;
+;; case_expression => case expression is ...
+;;                 => case aggregate is ...
+;;                 => case record_array_aggregate is
+;;                 => case ( expression ) is
+;;                 => case ( raise_expression ) is
+;;                 => case ( raise name ^ with <string>_expression ) is
+;;
+;; case_expression => case expression is ...
+;;                 => case aggregate is ...
+;;                 => case extension_aggregate is
+;;                 => case ( expression ^ with record_component_association_list ) is
+;;                 => case ( raise_expression ^ with record_component_association_list ) is
+;;                 => case ( raise name ^ with record_component_association_list ) is
+;;
+;; If the record_component_association_list is a single expression as
+;; in the example input, WisiToken parser reduces these to duplicate
+;; state. Otherwise we need to look at tokens after 'with' to resolve
+;; the conflict.
+;; FIXME: what does tree_sitter do when it's a single expression?
+%conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
 
 ;; FIXME: derive record_component_association, parenthesized_expression_1
 %conflict REDUCE record_component_association | REDUCE parenthesized_expression_1 on token RIGHT_PAREN
 
-;; FIXME: not right
-;; Consider 'TYPE IDENTIFIER IS NEW subtype_indication ^ WITH ...'
+;; Consider 'type A is new subtype_indication ^ with ...'
+;;
 ;; private_extension_declaration => type identifier is new subtype_indication ^ with private ;
 ;;
-;; derived_type_definition       => type identifier is new subtype_indication ^ record_extension_part ;
-;;                               => type identifier is new subtype_indication ^ with record_definition ;
+;; full_type_declaration => type identifier is type_definition ;
+;;                       => type identifier is derived_type_definition
+;;                       => type identifier is new subtype_indication record_extension_part ;
+;;                       => type identifier is new subtype_indication ^ with record_definition ;
 ;; We need to look at the token after 'with'
 ;; Tree_Sitter names this conflict differently than wisitoken
 %if parser in LALR | LR1
 %conflict SHIFT record_extension_part | REDUCE derived_type_definition on token WITH
 %elsif parser = Tree_Sitter
 %conflict derived_type_definition private_extension_declaration
+%conflict derived_type_definition
 %end if
+
+;; Consider 'generic type A is new name ^ with ...'
+;;
+;; generic_declaration => generic_subprogram_declaration
+;;                     => generic_formal_part subprogram_specification ;
+;;                     => generic generic_formal_parameter_declaration subprogram_specification ;
+;;                     => formal_type_declaration subprogram_specification ;
+;;                     => formal_complete_type_declaration subprogram_specification ;
+;;                     => type IDENTIFIER is formal_type_definition ; subprogram_specification ;
+;;                     => type IDENTIFIER is formal_derived_type_definition ; subprogram_specification ;
+;;                     => type IDENTIFIER is new name ^ with private ; subprogram_specification ;
+;;
+;;                     => type IDENTIFIER is formal_type_definition aspect_specification ; subprogram_specification ;
+;;                     => type IDENTIFIER is formal_type_definition ^ with aspect_mark_list ; subprogram_specification ;
+;; We need to look at tokens after 'with' to resolve the conflict.
+%conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
+
+;; Consider 'subprogram_specification with aspect_mark => ( do expression_list ^ ,'
+;;
+;; subprogram_declaration => subprogram_specification aspect_specification ;
+;;                        => subprogram_specification with aspect_mark_list ;
+;;                        => subprogram_specification with aspect_mark => aspect_definition ;
+;;                        => subprogram_specification with aspect_mark => global_aspect_definition ;
+;;                        => subprogram_specification with aspect_mark => extended_global_aspect_definition ;
+;;                        => subprogram_specification with aspect_mark => ( global_aspect_element ^ , global_aspect_element ) ;
+;;                        => subprogram_specification with aspect_mark => ( extended_global_aspect_element ^ , global_aspect_element) ;
+;;                        => subprogram_specification with aspect_mark => ( do expression_list ^ , global_aspect_element) ;
+;;
+;;                        => subprogram_specification with aspect_mark => extended_global_aspect_definition ;
+;;                        => subprogram_specification with aspect_mark => ( global_aspect_element ) ;
+;;                        => subprogram_specification with aspect_mark => ( extended_global_aspect_element ) ;
+;;                        => subprogram_specification with aspect_mark => ( do expression_list ) ;
+;;                        => subprogram_specification with aspect_mark => ( do expression_list ^ , expression ) ;
+;; We need to look at tokens after , to resolve the conflict.
+%conflict SHIFT expression_list | REDUCE extended_global_aspect_element on token COMMA
 
 ;;; end of conflicts
 
@@ -1526,7 +1589,7 @@ subtype_indication_paren_constraint
 
 subpool_specification ::= '(' name ')' ;
 
-sequence_of_statements : statement+ {label} ;
+sequence_of_statements <assoc=left> : statement+ {label} ;
 
 statement : {label} (simple_statement | compound_statement) ;
 
@@ -1845,7 +1908,7 @@ global_aspect_definition
   ;;  'null' ;;deleted; redundant with expression in aspect
   ;; | 'unspecified'  ;;deleted: not a keyword
   : global_mode global_designator
-  |  '(' global_aspect_element{ ','  global_aspect_element} ')'
+  | '(' global_aspect_element { ','  global_aspect_element} ')'
   | extended_global_aspect_definition
   ;
 
@@ -2046,7 +2109,7 @@ overriding_indicator
 
 use_clause : use_package_clause | use_type_clause ;
 
-name_list ;;:new; split out from use_package_clause for action. also :renamed from 'global_set'
+name_list <assoc=left> ;;:new; split out from use_package_clause for action. also :renamed from 'global_set'
   : name {','  name}
   ;
 

@@ -57,7 +57,7 @@ endif
 	cd ./$(<D); dos2unix -q $(*F)_re2c.c
 
 %_tree_sitter.c : %.js
-	cd ./$(<D); tree-sitter generate $(<F)
+	cd ./$(<D); time tree-sitter generate $(<F)
 
 followed-by : ARGS := ../ada_annex_p.wy term_list REM 1
 followed-by : $(WISITOKEN)/build/wisitoken-followed_by.exe
