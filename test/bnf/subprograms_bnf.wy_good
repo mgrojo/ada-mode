@@ -90,21 +90,21 @@
 ;; language-specific elisp action
 %elisp_action face wisi-mmmify-token MMMify_Token
 
-;; Auto generated token labels with holes in indent args
+;; Auto generated token labels with holes in indent args; preserve one manual label
 block
-  : T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END T9=SYMBOL
+  : name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END T9=SYMBOL
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
-  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END
+  | name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
-  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END T9=SYMBOL
+  | name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END T9=SYMBOL
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
-  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END
+  | name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
@@ -135,10 +135,10 @@ compilation_unit
   : G4=declaration
     %()%
     %((wisi-terminate-partial-parse))%
-  | G4=compilation_unit declaration
+  | compilation_unit G4=declaration
     %()%
     %((wisi-terminate-partial-parse))%
-  | G4=compilation_unit G4=compilation_unit
+  | compilation_unit compilation_unit
   ;
 
 declaration
@@ -154,7 +154,7 @@ loop_statement
   ;
 
 name
-  : pre=name DOT suf=SYMBOL
+  : pre=name T2=DOT suf=SYMBOL
     %((wisi-face-mark-action [pre prefix suf suffix]))%
     %((wisi-merge-names pre suf))%
   | suf=SYMBOL
@@ -193,6 +193,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION nam=name par=parameter_list sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -204,6 +205,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION nam=name blo=block sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -215,6 +217,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION nam=name sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -226,6 +229,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION par=parameter_list blo=block sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -237,6 +241,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION par=parameter_list sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -248,6 +253,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION blo=block sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -259,6 +265,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -270,23 +277,25 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | PROCEDURE name parameter_list END name SEMICOLON
 ;; No manual or automatic token labels
     %((wisi-statement-action [1 statement-start 2 name 6 statement-end])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0]))%
-  | T1=FUNCTION T2=name T3=parameter_list T4=block T5=SEMICOLON
-;; Test elisp indent function with automatic token labels
+
+  | T1=FUNCTION name=name T3=parameter_list T4=block T5=SEMICOLON
+;; Custom elisp indent function and mixed manual and automatic token labels
     %((wisi-indent-action [nil
-                           [(subp-indent-function_3 'FUNCTION 2) subp-indent-broken]
-                           (subp-indent-function_1 2 (* 2 subp-indent-broken))
+                           [(subp-indent-function_3 'FUNCTION name) subp-indent-broken]
+                           (subp-indent-function_1 name (* 2 subp-indent-broken))
                            (subp-indent-function_2)
                            nil]))%
-  | T1=FUNCTION T2=name T3=parameter_list T5=SEMICOLON
-;; Test elisp indent function with automatic token labels
+  | T1=FUNCTION name=name T3=parameter_list T5=SEMICOLON
+;; Custom elisp indent function and mixed manual and automatic token labels
     %((wisi-indent-action [nil
-                           [(subp-indent-function_3 'FUNCTION 2) subp-indent-broken]
-                           (subp-indent-function_1 2 (* 2 subp-indent-broken))
+                           [(subp-indent-function_3 'FUNCTION name) subp-indent-broken]
+                           (subp-indent-function_1 name (* 2 subp-indent-broken))
                            (subp-indent-function_2)
                            nil]))%
   ;

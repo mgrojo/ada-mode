@@ -126,12 +126,15 @@ package body WisiToken_Grammar_Runtime is
       return RHS : WisiToken.BNF.RHS_Type do
          RHS.Source_Line := Tree.Line_Region (Token, Trailing_Non_Grammar => True).First;
 
-         if Tree.Augmented (Token) /= null then
+         if Tree.Augmented (Token) = null then
+            RHS.Orig_EBNF_RHS := True;
+         else
             declare
                Aug : constant Augmented_Access := Augmented_Access (Tree.Augmented (Token));
             begin
+               RHS.Orig_EBNF_RHS     := Aug.Orig_EBNF_RHS;
+               RHS.EBNF_RHS_Index    := Aug.EBNF_RHS_Index;
                RHS.Auto_Token_Labels := Aug.Auto_Token_Labels;
-               RHS.Edited_Token_List := Aug.Edited_Token_List;
             end;
          end if;
 
@@ -168,32 +171,45 @@ package body WisiToken_Grammar_Runtime is
                RHS.Precedence    := Get_Precedence (Data, Tree, Attr_List);
 
                for I of Tree.Get_IDs (RHS_Item_List, +rhs_element_ID) loop
-                  case Tree.RHS_Index (I) is
-                  when 0 =>
-                     --  rhs_item
-                     RHS.Tokens.Append
-                       (WisiToken.BNF.Labeled_Token'
-                          (Label      => +"",
-                           Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
+                  declare
+                     Orig_Token_Index : constant SAL.Base_Peek_Type :=
+                       (if RHS.Orig_EBNF_RHS or Tree.Augmented (I) = null then 0
+                        else WisiToken_Grammar_Runtime.Augmented (Tree.Augmented (I).all).Orig_Token_Index);
+                  begin
+                     --  We don't check for non-zero Orig_Token_Index here; that just
+                     --  indicates it's a new item. See subprograms.wy compilation_unit.
 
-                  when 1 =>
-                     --  IDENTIFIER = rhs_item
-                     declare
-                        Label : constant String := Get_Text (Data, Tree, Tree.Child (I, 1));
-                     begin
+                     case Tree.RHS_Index (I) is
+                     when 0 =>
+
+                        --  rhs_item
                         RHS.Tokens.Append
                           (WisiToken.BNF.Labeled_Token'
-                             (Label      => +Label,
-                              Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
+                             (Label            => +"",
+                              Orig_Token_Index => Orig_Token_Index,
+                              Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
 
-                        if (for all L of Labels => -L /= Label) then
-                           Labels.Append (+Label);
-                        end if;
-                     end;
+                     when 1 =>
+                        --  IDENTIFIER = rhs_item
+                        declare
+                           Label : constant String := Get_Text (Data, Tree, Tree.Child (I, 1));
+                        begin
+                           RHS.Tokens.Append
+                             (WisiToken.BNF.Labeled_Token'
+                                (Label            => +Label,
+                                 Orig_Token_Index => Orig_Token_Index,
+                                 Identifier       => +Get_Text (Data, Tree, Tree.Child (I, 3))));
 
-                  when others =>
-                     WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("Get_RHS; unimplemented token", Tree, I);
-                  end case;
+                           if (for all L of Labels => -L /= Label) then
+                              Labels.Append (+Label);
+                           end if;
+                        end;
+
+                     when others =>
+                        WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+                          ("Get_RHS; unimplemented token", Tree, I);
+                     end case;
+                  end;
                end loop;
 
                if Action_1 /= Invalid_Node_Access then
@@ -282,15 +298,33 @@ package body WisiToken_Grammar_Runtime is
    overriding
    function Copy_Augmented
      (User_Data : in User_Data_Type;
-      Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
+      Augmented : in not null WisiToken.Syntax_Trees.Augmented_Class_Access)
      return WisiToken.Syntax_Trees.Augmented_Class_Access
    is
       Old_Aug : WisiToken_Grammar_Runtime.Augmented renames Augmented_Access (Augmented).all;
-      New_Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
-        (Old_Aug.EBNF, Old_Aug.Auto_Token_Labels, Old_Aug.Edited_Token_List);
+      New_Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'(Old_Aug);
    begin
       return WisiToken.Syntax_Trees.Augmented_Class_Access (New_Aug);
    end Copy_Augmented;
+
+   overriding
+   function Image_Augmented (Item : in Augmented) return String
+   --  This is for debugging, so it is only updated to match current code
+   --  when needed for a debugging session.
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      return
+        "(" &
+        (if Item.EBNF then "EBNF, " else "") &
+        (if Item.Auto_Token_Labels then "Auto_Token_Labels, " else "") &
+        (if Item.Orig_EBNF_RHS then "Orig_EBNF_RHS, " else "") &
+        (if not Item.Orig_EBNF_RHS and Item.EBNF_RHS_Index /= Natural'Last
+         then "EBNF_RHS_Index =>" & Item.EBNF_RHS_Index'Image & ", "
+         else "") &
+        (if Item.Orig_Token_Index /= 0 then "Orig_Token_Index =>" & Item.Orig_Token_Index'Image & ", " else "") &
+        ")";
+   end Image_Augmented;
 
    procedure Reset
      (Data        : in out User_Data_Type;

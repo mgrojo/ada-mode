@@ -93,6 +93,8 @@ test_mckenzie, test_incremental fail on Multiple_Errors_On_One_Token_*
             contained in
 
  tree-sitter
+update o.e.a.s-4
+
 propagate to main
 
 need to translate between tree_sitter nonterm token_id, rhs_id and wisitoken production_ids to lookup actions.

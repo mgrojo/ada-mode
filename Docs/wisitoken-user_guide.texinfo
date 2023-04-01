@@ -527,7 +527,7 @@ code aggree on what they mean.
 @item %elisp_indent <elisp name> <Ada name> [<arg_count> [token_arg_index]...]
 Declare elisp and Ada names for an indent variable or function.
 
-When generating Ada code for Emacs, names used in @code{wisi-indent}
+When generating Ada code for Emacs, names used in @code{wisi-indent-action}
 actions that are not recognized are assumed to be elisp and Ada
 variables, with the Ada name derived from elisp name by replacing
 @code{-} with @code{_}, and converting to @code{Mixed_Case}.

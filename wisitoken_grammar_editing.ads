@@ -103,9 +103,10 @@ package WisiToken_Grammar_Editing is
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
-     (Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Item  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Label : in     Identifier_Token := Invalid_Identifier_Token)
+     (Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Item      : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Label     : in     Identifier_Token       := Invalid_Identifier_Token;
+      Augmented : in     WisiToken.Syntax_Trees.Augmented_Class_Access := null)
      return WisiToken.Syntax_Trees.Valid_Node_Access
    with Pre => Tree.ID (Item) = +rhs_item_ID,
      Post => Tree.Production_ID (Add_RHS_Element'Result) =
@@ -124,7 +125,6 @@ package WisiToken_Grammar_Editing is
       Attr_List         : in     WisiToken.Syntax_Trees.Node_Access;
       Item_List         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Auto_Token_Labels : in     Boolean;
-      Edited_Token_List : in     Boolean;
       Post_Parse_Action : in     WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access;
       In_Parse_Action   : in     WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access

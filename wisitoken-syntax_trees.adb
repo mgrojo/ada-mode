@@ -1919,7 +1919,7 @@ package body WisiToken.Syntax_Trees is
 
    function Copy_Augmented
      (User_Data : in User_Data_Type;
-      Augmented : in Augmented_Class_Access)
+      Augmented : in not null Augmented_Class_Access)
      return Augmented_Class_Access
    is begin
       raise SAL.Programmer_Error;
@@ -8226,6 +8226,7 @@ package body WisiToken.Syntax_Trees is
       Root         : in Node_Access := Invalid_Node_Access;
       Line_Numbers : in Boolean     := False;
       Non_Grammar  : in Boolean     := False;
+      Augmented    : in Boolean     := False;
       Safe_Only    : in Boolean     := False)
    is
       procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
@@ -8240,12 +8241,9 @@ package body WisiToken.Syntax_Trees is
                    Node_Numbers => True,
                    Line_Numbers => Line_Numbers,
                    Non_Grammar  => Non_Grammar,
+                   Augmented    => Augmented,
                    Safe_Only    => Safe_Only),
             Prefix              => False);
-
-         if Node.Augmented /= null then
-            Tree.Lexer.Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
-         end if;
 
          Tree.Lexer.Trace.New_Line;
          if Node.Label = Nonterm then

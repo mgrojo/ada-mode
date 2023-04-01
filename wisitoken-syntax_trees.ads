@@ -586,9 +586,8 @@ package WisiToken.Syntax_Trees is
 
    function Copy_Augmented
      (User_Data : in User_Data_Type;
-      Augmented : in Augmented_Class_Access)
-     return Augmented_Class_Access
-   with Pre => Augmented /= null;
+      Augmented : in not null Augmented_Class_Access)
+     return Augmented_Class_Access;
    --  Default implementation raises SAL.Programmer_Error.
 
    function Insert_After
@@ -2958,6 +2957,7 @@ package WisiToken.Syntax_Trees is
       Root         : in Node_Access := Invalid_Node_Access;
       Line_Numbers : in Boolean     := False;
       Non_Grammar  : in Boolean     := False;
+      Augmented    : in Boolean     := False;
       Safe_Only    : in Boolean     := False);
    --  Print tree rooted at Root (default Tree.Root) to
    --  Tree.Lexer.Trace, for debugging.

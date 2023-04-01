@@ -299,11 +299,6 @@ begin
       is begin
          if Trace_Generate > Outline or Trace_Generate_EBNF > Outline then
             Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
-
-            if Trace_Generate_EBNF > Detail then
-               Ada.Text_IO.Put_Line ("EBNF tree:");
-               Grammar_Parser.Tree.Print_Tree;
-            end if;
          end if;
 
          declare
@@ -319,7 +314,7 @@ begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
-               BNF_Tree.Print_Tree;
+               BNF_Tree.Print_Tree (Augmented => True);
             end if;
 
             if Output_BNF then

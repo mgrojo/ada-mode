@@ -164,13 +164,19 @@ is
       RHS             : in     RHS_Type;
       Prod_ID         : in     WisiToken.Production_ID;
       Unsplit_Lines   : in     Ada.Strings.Unbounded.Unbounded_String;
-      Labels          : in     String_Arrays.Vector;
+      Rule            : in     BNF.Rule_Type;
       Empty           :    out Boolean;
       In_Parse_Action : in     Boolean)
    is
-      --  Create Post_Parse_Action (if In_Parse_Action = False; Lines must be RHS.Action) or
-      --  In_Parse_Action (if In_Parse_Action = True; Lines must be RHS.In_Parse_Action) subprogram named
-      --  Name for RHS.
+      use all type SAL.Base_Peek_Type;
+
+      --  Create Post_Parse_Action (if In_Parse_Action = False; Lines must
+      --  be RHS.Action) or In_Parse_Action (if In_Parse_Action = True;
+      --  Lines must be RHS.In_Parse_Action) subprogram named Name for RHS.
+      --
+      --  Labels is collection of all labels used in any RHS in the nonterm;
+      --  _not_ in RHS token order. RHS.Tokens(I).Label contains explicit
+      --  and automatic token labels.
 
       use Ada.Strings;
       use Ada.Strings.Fixed;
@@ -190,33 +196,56 @@ is
       Indent_Action_Line : Unbounded_String;
       In_Parse_Action_Line         : Unbounded_String;
 
-      Label_Needed   : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
+      Label_Needed   : array (Rule.Labels.First_Index .. Rule.Labels.Last_Index) of Boolean := (others => False);
       Nonterm_Needed : Boolean := False;
 
-      Last_Token_Index : Base_Identifier_Index := 0;
-      function Next_Token_Label return String
-      is begin
-         --  Only called from Indent_Params when RHS.Auto_Token_Labels is True.
-         Last_Token_Index := @ + 1;
-         return "T" & Trimmed_Image (Last_Token_Index);
-      end Next_Token_Label;
+      function Find_RHS (RHS_Index : in Natural) return RHS_Lists.Cursor
+      is
+         use RHS_Lists;
+         Result : Cursor := Rule.Right_Hand_Sides.First;
+      begin
+         for I in 1 .. RHS_Index loop
+            Next (Result);
+         end loop;
+         return Result;
+      end Find_RHS;
+
+      EBNF_RHS : RHS_Type renames RHS_Lists.Element (Find_RHS (RHS.EBNF_RHS_Index));
 
       function Get_Label (Token_Param : in String; Integer : in Boolean := False) return String
-      is begin
+      is
+         function Finish (Label : in String) return String
+         is (if Integer and then (0 /= Index (Token_Param, Numeric, Outside))
+             then "Integer (" & Label & ")"
+             else Label);
+
+      begin
          if RHS.Auto_Token_Labels then
-            return
-              (if Integer
-               then "Integer (T" & Token_Param & ")"
-               else "T" & Token_Param);
+            if 0 = Index (Token_Param, Numeric, Outside) then
+               --  Token_param is an integer token index, not a label
+               declare
+                  Index : constant Positive_Index_Type := Positive_Index_Type'Value (Token_Param);
+                  Label : constant String := -EBNF_RHS.Tokens (Index).Label;
+               begin
+                  if Label'Length = 0 then
+                     return Finish (Token_Param);
+                  else
+                     return Finish (Label);
+                  end if;
+               end;
+            else
+               --  Token_Param is a label
+               return Finish (Token_Param);
+            end if;
          else
-            return Token_Param;
+            return Finish (Token_Param);
          end if;
       end Get_Label;
 
       procedure Mark_Label_Used (Label : in String)
       is begin
-         for I in Labels.First_Index .. Labels.Last_Index loop
-            if Label = Labels (I) then
+         for I in Rule.Labels.First_Index .. Rule.Labels.Last_Index loop
+            if Label = Rule.Labels (I) then
                Label_Needed (I) := True;
             end if;
          end loop;
@@ -242,8 +271,8 @@ is
             return False;
          end if;
 
-         for I in Labels.First_Index .. Labels.Last_Index loop
-            if Label = Labels (I) then
+         for I in Rule.Labels.First_Index .. Rule.Labels.Last_Index loop
+            if Label = Rule.Labels (I) then
                Label_Needed (I) := True;
                return True;
             end if;
@@ -253,7 +282,7 @@ is
 
       function Find_Token_Index (I : in Base_Identifier_Index) return SAL.Base_Peek_Type
       is
-         Rule_Label : constant String := -Labels (I);
+         Rule_Label : constant String := -Rule.Labels (I);
       begin
          for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
             if Length (RHS.Tokens (I).Label) > 0 and then
@@ -586,7 +615,7 @@ is
       is
          --  If N is non-empty, it is the first arg in wisi-indent-action*, followed by ','.
          --
-         --  Params is a vector, one item for each token in Tokens. Each item is one of:
+         --  Params is a vector, one item for each token in EBNF tokens. Each item is one of:
          --
          --  - an integer; copy to output
          --
@@ -597,6 +626,11 @@ is
          --  - a vector with two elements [code_indent comment_indent]; convert to Indent_Pair.
          --
          --  - a cons of a token label with any of the above.
+         --
+         --  When EBNF is converted to BNF, one ENBF RHS is typically expanded
+         --  to several RHS, each missing some tokens. However, the action
+         --  still has indent parameters for all of the original tokens. They
+         --  are matched by the token labels.
 
          use Ada.Strings.Maps;
          use Ada.Containers;
@@ -778,7 +812,7 @@ is
                            Declared_Args_Last := Declared_Args'Last;
                         end if;
 
-                        Declared_Arg_Count  := Count_Type'Value
+                        Declared_Arg_Count := Count_Type'Value
                           (Declared_Args (Declared_Args_First .. Declared_Args_Last));
 
                         Get_Next_Token_Arg;
@@ -901,16 +935,25 @@ is
             end if;
          end Ensure_Indent_Param;
 
-         Param_Label_Count : Ada.Containers.Count_Type := 0;
+         RHS_Token_Index : SAL.Base_Peek_Type := RHS.Tokens.First_Index; -- Index of current token in current RHS.
 
-         procedure One_Param (Label : in String := "")
+         Param_Index : SAL.Base_Peek_Type := 1; -- Index of current indent parameter.
+
+         procedure One_Param (Skip : in Boolean; Label : in String := "")
+         --  If not Skip, current indent param is for a token actually in RHS; add it to
+         --  Param_List.
+         --
+         --  If Skip, current indent param is not in RHS; parse the param but
+         --  don't add it.
+         --
+         --  Label is non-"" only for recursive calls.
          is
             Pair : String_Pair_Type;
          begin
-            if Label = "" then
-               if RHS.Auto_Token_Labels then
-                  Pair.Name := +Next_Token_Label;
-               end if;
+            if Skip then
+               Pair.Name := +"";
+            elsif Label = "" then
+               Pair.Name := RHS.Tokens (RHS_Token_Index).Label;
             else
                Pair.Name := +Label;
             end if;
@@ -923,14 +966,12 @@ is
                begin
                   if Label_Last > 0 then
                      --  cons; manual label
-                     pragma Assert (not RHS.Auto_Token_Labels);
                      declare
                         Label : constant String := Params (Last + 1 .. Label_Last);
                      begin
                         Last := Index_Non_Blank (Params, Label_Last + 3);
-                        One_Param (Label);
+                        One_Param (Skip, Label);
                      end;
-                     Param_Label_Count := @ + 1;
 
                      if Params (Last) /= ')' then
                         Put_Error
@@ -942,7 +983,9 @@ is
                   else
                      --  function
                      Pair.Value := +"(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
-                     Param_List.Append (Pair);
+                     if not Skip then
+                        Param_List.Append (Pair);
+                     end if;
                   end if;
                end;
 
@@ -951,8 +994,9 @@ is
                Pair.Value := +"(True, " & Ensure_Indent_Param (Expression (Last + 1));
                Pair.Value := @ & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
 
-               Param_List.Append (Pair);
-
+               if not Skip then
+                  Param_List.Append (Pair);
+               end if;
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
@@ -963,7 +1007,9 @@ is
             when others =>
                --  integer or symbol
                Pair.Value := +"(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
-               Param_List.Append (Pair);
+               if not Skip then
+                  Param_List.Append (Pair);
+               end if;
             end case;
          end One_Param;
 
@@ -979,25 +1025,51 @@ is
 
             exit when Params (Last) = ']';
 
-            One_Param;
+            if RHS_Token_Index > EBNF_RHS.Tokens.Last_Index then
+               Put_Error
+                 (Error_Message
+                    (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all)) &
+                    " extra indent parameters");
+               exit;
+            end if;
+            if RHS.Orig_EBNF_RHS or else
+              (RHS_Token_Index <= RHS.Tokens.Last_Index and then
+                 RHS.Tokens (RHS_Token_Index).Orig_Token_Index = Param_Index)
+            then
+               One_Param (Skip => False);
+               RHS_Token_Index := @ + 1;
+            else
+               One_Param (Skip => True);
+            end if;
+            Param_Index := @ + 1;
+
          end loop;
 
-         --  Now we have Param_List; match it against RHS.Tokens and create Result.
+         if RHS.Orig_EBNF_RHS and Param_Index < EBNF_RHS.Tokens.Last_Index then
+            Put_Error
+              (Error_Message
+                 (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all)) &
+                 " missing indent parameters");
+         end if;
 
-         if RHS.Auto_Token_Labels or Param_Label_Count = Param_List.Length then
-            --  All tokens are either manually or automatically labeled, and if
-            --  manual then all parameters are manually labeled, and we can detect
-            --  extra params in edited RHS.
+         if RHS.Auto_Token_Labels then
+            --  If the original RHS had any EBNF, all tokens are either manually
+            --  or automatically labeled and RHS.Auto_Token_Labels is true.
+            --  Otherwise RHS.Auto_Token_Labels is False.
             declare
                use String_Pair_Lists;
-               use all type SAL.Base_Peek_Type;
 
                Token_I   : Positive_Index_Type      := RHS.Tokens.First_Index;
                Param_Cur : String_Pair_Lists.Cursor := Param_List.First;
-               Param_I   : Positive_Index_Type      := RHS.Tokens.First_Index;
-
-               Nil_Indent : constant String := "(False, (Simple, (Label => None)))";
             begin
+               if not Has_Element (Param_Cur) then
+                  Put_Error
+                    (Error_Message
+                       (Grammar_File_Name,
+                        RHS.Source_Line, "empty param_list"));
+                  raise SAL.Programmer_Error;
+               end if;
+
                loop
                   exit when Token_I > RHS.Tokens.Last_Index or not Has_Element (Param_Cur);
 
@@ -1005,59 +1077,29 @@ is
                      Token_Label : constant String := -RHS.Tokens (Token_I).Label;
                      Param_Label : constant String := -Element (Param_Cur).Name;
                   begin
-                     if Token_Label = Param_Label then
-                        Result := Result & (if Need_Comma then ", " else "") & Param_Label & " => " &
-                          Element (Param_Cur).Value;
+                     --  IMPROVEME: if there is a manual param label, verify that there is
+                     --  a matching token label.
+                     Result := Result &
+                       (if Need_Comma then ", " else "") &
+                       (if Token_Label'Length > 0 then Token_Label else Param_Label) & " => " &
+                       Element (Param_Cur).Value;
 
-                        Mark_Label_Used (Token_Label);
+                     Mark_Label_Used (Token_Label);
 
-                        Need_Comma := True;
+                     Need_Comma := True;
 
-                        Token_I := @ + 1;
-                        Next (Param_Cur);
-                        Param_I := @ + 1;
-
-                     elsif RHS.Auto_Token_Labels and
-                       (Token_Label'Length > 0 and then Token_Label (1) /= 'T') and
-                       Token_I = Param_I
-                     then
-                        Result := Result & (if Need_Comma then ", " else "") & Token_Label & " => " & Nil_Indent;
-                        Mark_Label_Used (Token_Label);
-                        Need_Comma := True;
-
-                        Token_I := @ + 1;
-                        Next (Param_Cur);
-                        Param_I := @ + 1;
-
-                     else
-                        Next (Param_Cur);
-                        Param_I := @ + 1;
-                     end if;
+                     Token_I := @ + 1;
+                     Next (Param_Cur);
                   end;
                end loop;
-
-               if (not RHS.Edited_Token_List or Prod_ID.RHS = 0) and then
-                 (Token_I /= RHS.Tokens.Last_Index + 1 or Has_Element (Param_Cur))
-               then
-                  --  We don't check 'Has_Element (Param_Cur)' when edited_token_list
-                  --  and RHS_Index /= 0, because we expect to have more params than
-                  --  tokens. RHS_Index = 0 always has all optional tokens.
-                  if RHS.Auto_Token_Labels then
-                     Put_Error
-                       (Error_Message
-                          (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all)) &
-                          (if Token_I <= RHS.Tokens.Last_Index then " missing" else " extra") & " indent parameters");
-                  else
-                     Put_Error
-                       (Error_Message
-                          (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all) &
-                             ": missing or extra indent parameter, or missing token label"));
-                  end if;
-               end if;
             end;
 
          else
-            --  No labels; assume Param_List is correct.
+            --  No auto labels; ignore manual labels and assume Param_List is
+            --  correct. IMPROVEME: We could check that manual labels match
+            --  between the RHS and the action. IMPROVEME: if all specified params
+            --  have manual labels, allow indent for remaining tokens to default
+            --  to nil.
             for Pair of Param_List loop
                Result := Result & (if Need_Comma then ", " else "") & Pair.Value;
                Need_Comma := True;
@@ -1376,7 +1418,13 @@ is
          when E : others =>
             Put_Error
               (Error_Message
-                 (Grammar_File_Name, RHS.Source_Line, "Sexp: '" & Sexp & "': " & Ada.Exceptions.Exception_Message (E)));
+                 (Grammar_File_Name, RHS.Source_Line, "RHS: '" & Image (RHS.Tokens)));
+            Put_Error
+              (Error_Message
+                 (Grammar_File_Name, RHS.Source_Line, "... Sexp: '" & Sexp));
+            Put_Error
+              (Error_Message
+                 (Grammar_File_Name, RHS.Source_Line, "... " & Ada.Exceptions.Exception_Message (E)));
             raise;
          end;
       end loop;
@@ -1432,7 +1480,7 @@ is
                   for I in Label_Needed'Range loop
                      if Label_Needed (I) then
                         Indent_Line
-                          (-Labels (I) & " : constant SAL.Peek_Type :=" &
+                          (-Rule.Labels (I) & " : constant SAL.Peek_Type :=" &
                              SAL.Peek_Type'Image (Find_Token_Index (I)) & ";");
                      end if;
                   end loop;
@@ -1467,7 +1515,7 @@ is
          for I in Label_Needed'Range loop
             if Label_Needed (I) then
                Indent_Line
-                 (-Labels (I) & " : constant SAL.Peek_Type :=" &
+                 (-Rule.Labels (I) & " : constant SAL.Peek_Type :=" &
                     SAL.Peek_Type'Image (Find_Token_Index (I)) & ";");
             end if;
          end loop;
@@ -1608,7 +1656,7 @@ is
          --  nonterminals.
          declare
             LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
-            RHS_Index : Integer                     := 0; -- Semantic_Action defines RHS_Index as zero-origin
+            RHS_Index : Integer                     := 0;
             Empty     : Boolean;
          begin
             for RHS of Rule.Right_Hand_Sides loop
@@ -1617,7 +1665,7 @@ is
                      Name : constant String := Post_Parse_Action_Names (LHS_ID)(RHS_Index).all;
                   begin
                      Create_Ada_Action
-                       (Name, RHS, (LHS_ID, RHS_Index), RHS.Post_Parse_Action, Rule.Labels, Empty,
+                       (Name, RHS, (LHS_ID, RHS_Index), RHS.Post_Parse_Action, Rule, Empty,
                         In_Parse_Action => False);
                      if Empty then
                         Post_Parse_Action_Names (LHS_ID)(RHS_Index) := null;
@@ -1630,7 +1678,7 @@ is
                      Name  : constant String := In_Parse_Action_Names (LHS_ID)(RHS_Index).all;
                   begin
                      Create_Ada_Action
-                       (Name, RHS, (LHS_ID, RHS_Index), RHS.In_Parse_Action, Rule.Labels, Empty,
+                       (Name, RHS, (LHS_ID, RHS_Index), RHS.In_Parse_Action, Rule, Empty,
                         In_Parse_Action => True);
                      if Empty then
                         In_Parse_Action_Names (LHS_ID)(RHS_Index) := null;
