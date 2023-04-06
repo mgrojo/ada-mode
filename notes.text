@@ -94,6 +94,7 @@ test_mckenzie, test_incremental fail on Multiple_Errors_On_One_Token_*
 
  tree-sitter
 update o.e.a.s-4
+    ada_annex_p.wy reports errors. sigh.
 
 propagate to main
 

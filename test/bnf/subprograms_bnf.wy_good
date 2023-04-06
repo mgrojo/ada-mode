@@ -40,9 +40,12 @@
 %keyword FUNCTION "function"
 %keyword IN "in"
 %keyword LOOP "loop"
+%keyword OF "of"
+%keyword PARALLEL "parallel"
 %keyword PROCEDURE "procedure"
-%keyword WHEN "when"
+%keyword REVERSE "reverse"
 %keyword USE "use"
+%keyword WHEN "when"
 
 %token <left-paren> LEFT_PAREN "("
 %token <right-paren> RIGHT_PAREN ")"
@@ -66,6 +69,13 @@
 
 %non_grammar <comment-new-line> COMMENT_1 "--"
 %non_grammar <comment-new-line> COMMENT_2 "//"
+
+%if parser = LALR
+%conflict SHIFT name | REDUCE in_of on token SYMBOL
+
+%elsif parser = Tree_Sitter
+%conflict iteration_scheme in_of%conflict subprogram
+%end if
 
 %if parser = LALR
 %mckenzie_check_limit 3
@@ -148,9 +158,44 @@ declaration
 
 ;; No automatic token labels needed; manual labels preserved.
 loop_statement
-  : FOR SYMBOL IN nam=subtype LOOP SEMICOLON
+  : iteration_scheme LOOP SEMICOLON
+    %((wisi-indent-action [nil 0 nil]))%
+  ;
+
+iteration_scheme
+  : FOR SYMBOL IN nam=subtype
     %((wisi-face-remove-action [nam])
-      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent 0 0]))%
+      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent]))%
+  | T1=PARALLEL T2=LEFT_PAREN T3=chunk_specification T4=RIGHT_PAREN T5=FOR T6=iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  | T1=PARALLEL T5=FOR T6=iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  | T5=FOR T6=iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  ;
+
+in_of
+  : IN
+  | OF
+  ;;; split out for actions
+
+iterator_specification
+  : defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=in_of T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=in_of nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=in_of T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=in_of nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  ;
+
+chunk_specification
+  : SYMBOL
   ;
 
 name
@@ -300,12 +345,6 @@ subprogram
                            nil]))%
   ;
 
-%if parser = Tree_Sitter
-;; It's not at all clear why tree-sitter reports this conflict.
-;; IMPROVEME; post an issue on tree-sitter github.
-%conflict subprogram
-%end if
-
 subtype
   : name
     %((wisi-face-apply-action [1 font-lock-type-face font-lock-function-name-face]))%
@@ -313,12 +352,12 @@ subtype
 
 use_clause
 ;; simple group item to test auto token labels
-  : T1=USE T2=nonterminal_014 T3=SEMICOLON
+  : T1=USE T2=nonterminal_022 T3=SEMICOLON
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%
   ;
 
 ;; end of file
-nonterminal_014
+nonterminal_022
   : name_list
   ;

@@ -39,11 +39,17 @@ module.exports = grammar({
 
       LOOP: $ => reserved("loop"),
 
+      OF: $ => reserved("of"),
+
+      PARALLEL: $ => reserved("parallel"),
+
       PROCEDURE: $ => reserved("procedure"),
 
-      WHEN: $ => reserved("when"),
+      REVERSE: $ => reserved("reverse"),
 
       USE: $ => reserved("use"),
+
+      WHEN: $ => reserved("when"),
 
       LEFT_PAREN: $ => "(",
 
@@ -67,7 +73,15 @@ module.exports = grammar({
 
       declaration: $ => choice($.subprogram, $.use_clause),
 
-      loop_statement: $ => seq($.FOR, $.SYMBOL, $.IN, field('nam', $.subtype), $.LOOP, $.SEMICOLON),
+      loop_statement: $ => seq($.iteration_scheme, $.LOOP, $.SEMICOLON),
+
+      iteration_scheme: $ => choice(seq($.FOR, $.SYMBOL, $.IN, field('nam', $.subtype)), seq(optional(seq($.PARALLEL, optional(seq('(', $.chunk_specification, ')')))), $.FOR, $.iterator_specification)),
+
+      in_of: $ => choice($.IN, $.OF),
+
+      iterator_specification: $ => seq(field('defining_identifier', $.SYMBOL), optional(seq(':', $.SYMBOL)), $.in_of, optional($.REVERSE), field('nam', $.name)),
+
+      chunk_specification: $ => $.SYMBOL,
 
       name: $ => seq(optional(seq(field('pre', $.name), $.DOT)), field('suf', $.SYMBOL)),
 
@@ -83,6 +97,7 @@ module.exports = grammar({
 
   },
   conflicts: $ => [
+      [$.iteration_scheme, $.in_of, ],
       [$.subprogram, ],
   ],
   extras: $ => [

@@ -29,9 +29,12 @@
    FUNCTION
    IN
    LOOP
+   OF
+   PARALLEL
    PROCEDURE
-   WHEN
+   REVERSE
    USE
+   WHEN
    LEFT_PAREN
    RIGHT_PAREN
    COLON
@@ -45,13 +48,17 @@
    compilation_unit
    declaration
    loop_statement
+   iteration_scheme
+   in_of
+   iterator_specification
+   chunk_specification
    name
    name_list
    parameter_list
    subprogram
    subtype
    use_clause
-   nonterminal_014
+   nonterminal_022
    Wisi_SOI
    ])
 
@@ -72,9 +79,12 @@
    (FUNCTION . "function")
    (IN . "in")
    (LOOP . "loop")
+   (OF . "of")
+   (PARALLEL . "parallel")
    (PROCEDURE . "procedure")
-   (WHEN . "when")
+   (REVERSE . "reverse")
    (USE . "use")
+   (WHEN . "when")
    (LEFT_PAREN . "(")
    (RIGHT_PAREN . ")")
    (COLON . ":")

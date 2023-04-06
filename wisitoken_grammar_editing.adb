@@ -2964,7 +2964,6 @@ package body WisiToken_Grammar_Editing is
                B_Alternative_List : constant Constant_List := Create_List
                  (Tree, Tree.Child (B_Alt_List, Tree.Child_Count (B_Alt_List)),
                   +rhs_alternative_list_1_ID, +rhs_item_list_ID);
-
             begin
                --  An alternate design would be to splice together the existing A,
                --  B_i, C; but it's too hard to get all the parent updates right.
@@ -2978,14 +2977,30 @@ package body WisiToken_Grammar_Editing is
 
                      function Is_Orig_EBNF_RHS return Boolean
                      is begin
-                        if Container_List.Element_ID = +rhs_ID and then
-                          B_Alternative_List.Count = 1 and then
-                          B_Item_List.Count = 1
-                        then
+                        --  Consider subprograms.wy iteration_scheme, which has a nested
+                        --  rhs_optional_item. Translating the nested optional gives an
+                        --  rhs_alternative_list with two elements, which are copied to two
+                        --  RHSs when translating the outer optional item; the first has all
+                        --  the tokens (and thus Orig_EBNF_RHS is True), the second is missing
+                        --  some (and thus Orig_EBNF_RHS is False).
+                        if Alt /= Element (First (B_Alternative_List)) then
+                           return False;
+                        end if;
+
+                        if Container_List.Element_ID = +rhs_ID then
+                           --  If B originally contained literal alternatives (ie uses '|'), then
+                           --  mapping the token indices to an action is not possible. But if B
+                           --  contained nested optional items, leading to multiple alternatives
+                           --  that are simple edits of the original, then mapping is possible.
+                           --  That's too complex to check for here, and nested optional is
+                           --  common in Ada, so we don't try to check; we assume testing will
+                           --  identify cases where mapping doesn't work. See subprograms.wy
+                           --  iteration_Scheme.
                            declare
                               RHS_Node : constant Valid_Node_Access := Element (Container_Cur);
                            begin
                               if Tree.Augmented (RHS_Node) = null then
+                                 --  This is an edited RHS with some optional left out.
                                  return False;
                               else
                                  return WisiToken_Grammar_Runtime.Augmented
@@ -2993,6 +3008,17 @@ package body WisiToken_Grammar_Editing is
                               end if;
                            end;
                         else
+                           --  B is nested in an alternatives list, so
+                           --  mapping the token indices to an action is not possible.
+                           declare
+                              RHS : constant Valid_Node_Access := Element (Container_Cur);
+                           begin
+                              if Tree.ID (Tree.Child (RHS, Tree.Child_Count (RHS))) = +ACTION_ID then
+                                 WisiToken.Generate.Put_Error
+                                   (Tree.Error_Message
+                                      (RHS, "complex optional item with action; can't map token indices to action"));
+                              end if;
+                           end;
                            return False;
                         end if;
                      end Is_Orig_EBNF_RHS;
@@ -4021,6 +4047,10 @@ package body WisiToken_Grammar_Editing is
                   Put_Line (File, "  ;");
                else
                   --  ";" present, including trailing newline, unless virtual.
+
+                  --  FIXME: for some reason, this 'put' gets lost if there is a
+                  --  comment. sigh. Changing to 'put_line' keeps the semicolon, but is
+                  --  annoying.
                   Put (File, "  ;");
                   Put_Comments (Children (Children'Last), Force_New_Line => True);
                end if;

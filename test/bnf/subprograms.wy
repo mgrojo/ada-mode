@@ -37,9 +37,12 @@
 %keyword FUNCTION "function"
 %keyword IN "in"
 %keyword LOOP "loop"
+%keyword OF "of"
+%keyword PARALLEL "parallel"
 %keyword PROCEDURE "procedure"
-%keyword WHEN "when"
+%keyword REVERSE "reverse"
 %keyword USE "use"
+%keyword WHEN "when"
 
 %token <left-paren> LEFT_PAREN "("
 %token <right-paren> RIGHT_PAREN ")"
@@ -62,6 +65,18 @@
 
 %non_grammar <comment-new-line> COMMENT_1 "--"
 %non_grammar <comment-new-line> COMMENT_2 "//"
+
+%if parser = LALR
+%conflict SHIFT name | REDUCE in_of on token SYMBOL
+
+%elsif parser = Tree_Sitter
+%conflict iteration_scheme in_of
+
+;; It's not at all clear why tree-sitter reports this conflict.
+;; IMPROVEME; post an issue on tree-sitter github.
+%conflict subprogram
+
+%end if
 
 %if parser = LALR
 %mckenzie_check_limit 3
@@ -111,10 +126,27 @@ declaration
 
 ;; No automatic token labels needed; manual labels preserved.
 loop_statement
-  : FOR SYMBOL IN nam=subtype LOOP SEMICOLON
-    %((wisi-face-remove-action [nam])
-      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent 0 0]))%
+  : iteration_scheme LOOP SEMICOLON
+    %((wisi-indent-action [nil 0 nil]))%
   ;
+
+iteration_scheme
+  : FOR SYMBOL IN nam=subtype
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent]))%
+  | [ 'parallel' [ '(' chunk_specification ')' ]] 'for' iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  ;
+
+in_of : 'in' | 'of' ; ;; split out for actions
+
+iterator_specification
+  : defining_identifier=SYMBOL [':' SYMBOL] in_of ['reverse'] nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  ;
+
+chunk_specification : SYMBOL ;
 
 name
   : [pre=name DOT] suf=SYMBOL
@@ -165,12 +197,6 @@ subprogram
                            (subp-indent-function_2)
                            nil]))%
   ;
-
-%if parser=Tree_Sitter
-;; It's not at all clear why tree-sitter reports this conflict.
-;; IMPROVEME; post an issue on tree-sitter github.
-%conflict subprogram
-%end if
 
 subtype
   : name

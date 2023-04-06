@@ -287,6 +287,24 @@ package body Subprograms_Process_LALR_Actions is
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, ((False, (Simple, (Label => None))), (False, (Simple, (Int, 0))),
+         (False, (Simple, (Label => None)))));
+      end case;
+   end loop_statement_0;
+
+   procedure iteration_scheme_0
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       nam : constant SAL.Peek_Type := 4;
    begin
       case Parse_Data.Post_Parse_Action is
@@ -296,10 +314,169 @@ package body Subprograms_Process_LALR_Actions is
          Face_Remove_Action (Parse_Data, Tree, Nonterm, (1 => nam));
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, ((False, (Simple, (Int, -Subp_Indent))), (False, (Simple, (Int,
-         0))), (False, (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent))),
-         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         0))), (False, (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent)))));
       end case;
-   end loop_statement_0;
+   end iteration_scheme_0;
+
+   procedure iteration_scheme_1
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      T5 : constant SAL.Peek_Type := 5;
+      T6 : constant SAL.Peek_Type := 6;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Label => None))), T3 => (False, (Simple, (Label => None))), T4 => (False, (Simple, (Label => None))), T5 =>
+         (False, (Simple, (Int, -Subp_Indent))), T6 => (False, (Simple, (Label => None)))));
+      end case;
+   end iteration_scheme_1;
+
+   procedure iteration_scheme_2
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T5 : constant SAL.Peek_Type := 2;
+      T6 : constant SAL.Peek_Type := 3;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T5 => (False, (Simple,
+         (Int, -Subp_Indent))), T6 => (False, (Simple, (Label => None)))));
+      end case;
+   end iteration_scheme_2;
+
+   procedure iteration_scheme_3
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T5 : constant SAL.Peek_Type := 1;
+      T6 : constant SAL.Peek_Type := 2;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T5 => (False, (Simple, (Int, -Subp_Indent))), T6 => (False,
+         (Simple, (Label => None)))));
+      end case;
+   end iteration_scheme_3;
+
+   procedure iterator_specification_0
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      defining_identifier : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      T5 : constant SAL.Peek_Type := 5;
+      nam : constant SAL.Peek_Type := 6;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Remove_Action (Parse_Data, Tree, Nonterm, (1 => nam));
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (defining_identifier => (False, (Simple, (Int, 0))), T2 => (False,
+         (Simple, (Label => None))), T3 => (False, (Simple, (Label => None))), T4 => (False, (Simple, (Int, Subp_Indent
+         - Subp_Indent_Broken))), T5 => (False, (Simple, (Label => None))), nam => (False, (Simple, (Int,
+         Subp_Indent)))));
+      end case;
+   end iterator_specification_0;
+
+   procedure iterator_specification_1
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      defining_identifier : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      nam : constant SAL.Peek_Type := 5;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Remove_Action (Parse_Data, Tree, Nonterm, (1 => nam));
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (defining_identifier => (False, (Simple, (Int, 0))), T2 => (False,
+         (Simple, (Label => None))), T3 => (False, (Simple, (Label => None))), T4 => (False, (Simple, (Int, Subp_Indent
+         - Subp_Indent_Broken))), nam => (False, (Simple, (Int, Subp_Indent)))));
+      end case;
+   end iterator_specification_1;
+
+   procedure iterator_specification_2
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      defining_identifier : constant SAL.Peek_Type := 1;
+      T4 : constant SAL.Peek_Type := 2;
+      T5 : constant SAL.Peek_Type := 3;
+      nam : constant SAL.Peek_Type := 4;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Remove_Action (Parse_Data, Tree, Nonterm, (1 => nam));
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (defining_identifier => (False, (Simple, (Int, 0))), T4 => (False,
+         (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), T5 => (False, (Simple, (Label => None))), nam => (False,
+         (Simple, (Int, Subp_Indent)))));
+      end case;
+   end iterator_specification_2;
+
+   procedure iterator_specification_3
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      defining_identifier : constant SAL.Peek_Type := 1;
+      T4 : constant SAL.Peek_Type := 2;
+      nam : constant SAL.Peek_Type := 3;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Remove_Action (Parse_Data, Tree, Nonterm, (1 => nam));
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (defining_identifier => (False, (Simple, (Int, 0))), T4 => (False,
+         (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), nam => (False, (Simple, (Int, Subp_Indent)))));
+      end case;
+   end iterator_specification_3;
 
    procedure name_0
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
