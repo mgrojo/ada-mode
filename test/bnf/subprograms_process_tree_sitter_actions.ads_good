@@ -25,8 +25,8 @@ package Subprograms_Process_Tree_Sitter_Actions is
      (First_Terminal    => 2,
       Last_Terminal       => 22,
       First_Nonterminal   => 23,
-      Last_Nonterminal    => 38,
-      SOI_ID              => 39,
+      Last_Nonterminal    => 39,
+      SOI_ID              => 40,
       EOI_ID              => 22,
       Accept_ID           => 23,
       Case_Insensitive    => False,
@@ -59,6 +59,7 @@ package Subprograms_Process_Tree_Sitter_Actions is
          new String'("Wisi_EOI"),
          new String'("wisitoken_accept"),
          new String'("block"),
+         new String'("formal_part"),
          new String'("compilation_unit"),
          new String'("declaration"),
          new String'("loop_statement"),
@@ -104,6 +105,7 @@ package Subprograms_Process_Tree_Sitter_Actions is
       Wisi_EOI_ID,
       wisitoken_accept_ID,
       block_ID,
+      formal_part_ID,
       compilation_unit_ID,
       declaration_ID,
       loop_statement_ID,
@@ -157,6 +159,14 @@ package Subprograms_Process_Tree_Sitter_Actions is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure block_7
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure block_8
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure block_9
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);

@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Assertions;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
@@ -214,8 +215,8 @@ is
 
       function Get_Label (Token_Param : in String; Integer : in Boolean := False) return String
       is
-         function Finish (Label : in String) return String
-         is (if Integer and then (0 /= Index (Token_Param, Numeric, Outside))
+         function Finish (Label : in String; Force_Integer : in Boolean) return String
+         is (if Force_Integer
              then "Integer (" & Label & ")"
              else Label);
 
@@ -223,22 +224,33 @@ is
          if RHS.Auto_Token_Labels then
             if 0 = Index (Token_Param, Numeric, Outside) then
                --  Token_param is an integer token index, not a label
-               declare
-                  Index : constant Positive_Index_Type := Positive_Index_Type'Value (Token_Param);
-                  Label : constant String := -EBNF_RHS.Tokens (Index).Label;
                begin
-                  if Label'Length = 0 then
-                     return Finish (Token_Param);
-                  else
-                     return Finish (Label);
-                  end if;
+                  declare
+                     Index : constant Positive_Index_Type := Positive_Index_Type'Value (Token_Param);
+                     Label : constant String := -EBNF_RHS.Tokens (Index).Label;
+                  begin
+                     if Label'Length = 0 then
+                        return Finish (Token_Param, Force_Integer => False);
+                     else
+                        return Finish (Label, Force_Integer => Integer);
+                     end if;
+                  end;
+               exception
+               when Ada.Assertions.Assertion_Error | Constraint_Error =>
+                  Put_Error
+                    (Error_Message
+                       (Grammar_File_Name, RHS.Source_Line,
+                        "token index '" & Token_Param & "' not in range" & EBNF_RHS.Tokens.First_Index'Image &
+                          " .." & EBNF_RHS.Tokens.Last_Index'Image));
+                  return "";
                end;
             else
                --  Token_Param is a label
-               return Finish (Token_Param);
+               return Finish (Token_Param, Force_Integer => Integer);
             end if;
          else
-            return Finish (Token_Param);
+            return Finish
+              (Token_Param, Force_Integer => Integer and then (0 /= Index (Token_Param, Numeric, Outside)));
          end if;
       end Get_Label;
 
@@ -1077,6 +1089,13 @@ is
                      Token_Label : constant String := -RHS.Tokens (Token_I).Label;
                      Param_Label : constant String := -Element (Param_Cur).Name;
                   begin
+                     if Token_Label'Length = 0 and then Param_Label'Length = 0 then
+                        Put_Error
+                          (Error_Message
+                             (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all)) &
+                             " missing or misplaced indent label");
+                     end if;
+
                      --  IMPROVEME: if there is a manual param label, verify that there is
                      --  a matching token label.
                      Result := Result &
@@ -1108,7 +1127,7 @@ is
 
          Nonterm_Needed := True;
          if Param_List.Length = 1 then
-            Result := Prefix & "1 => " & Result;
+            Result := Prefix & (if RHS.Auto_Token_Labels then "" else "1 => ") & Result;
          else
             Result := Prefix & Result;
          end if;

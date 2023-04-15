@@ -45,6 +45,7 @@
    Wisi_EOI
    wisitoken_accept
    block
+   formal_part
    compilation_unit
    declaration
    loop_statement
@@ -70,7 +71,7 @@
    nil
    ])
 
-(defconst subprograms-process-tree_sitter--repair-image
+(defconst subprograms-process-tree_sitter-repair-image
   '(
    (BEGIN . "begin")
    (END . "end")

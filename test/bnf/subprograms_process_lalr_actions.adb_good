@@ -257,6 +257,44 @@ package body Subprograms_Process_LALR_Actions is
       end case;
    end block_7;
 
+   procedure block_8
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      parameter_profile : constant SAL.Peek_Type := 2;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), parameter_profile =>
+         (False, (Simple, (Anchored_1, T1, Ada_Indent_Broken)))));
+      end case;
+   end block_8;
+
+   procedure block_9
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None)))));
+      end case;
+   end block_9;
+
    function compilation_unit_0_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
@@ -584,16 +622,16 @@ package body Subprograms_Process_LALR_Actions is
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
-      T2 : constant SAL.Peek_Type := 2;
+      arg : constant SAL.Peek_Type := 2;
       T3 : constant SAL.Peek_Type := 3;
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, (1 => (T2, Misc)));
+         Statement_Action (Parse_Data, Tree, Nonterm, (1 => (arg, Misc)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Int, 0))), T2 => (False, (Simple,
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Int, 0))), arg => (False, (Simple,
          (Anchored_0, T1, 1))), T3 => (False, (Simple, (Anchored_0, T1, 0)))));
       end case;
    end parameter_list_0;
@@ -848,14 +886,14 @@ package body Subprograms_Process_LALR_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         null;
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (name, Name), (T5, Statement_End)));
       when Face =>
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), name => (True, (Simple,
-         (Language, Function_2'Access, 8 & Integer (Name))), (Simple, (Int, Subp_Indent_Broken))), T3 => (False,
-         (Simple, (Language, Function_1'Access, Integer (Name) & 2 * Subp_Indent_Broken))), T4 => (False, (Simple,
-         (Language, Function_2'Access, Null_Args))), T5 => (False, (Simple, (Label => None)))));
+         (Language, Function_3'Access, 8 & Integer (T1) & Integer (Name))), (Simple, (Int, Subp_Indent_Broken))), T3 =>
+         (False, (Simple, (Language, Function_1'Access, Integer (Name) & 2 * Subp_Indent_Broken))), T4 => (False,
+         (Simple, (Language, Function_2'Access, Null_Args))), T5 => (False, (Simple, (Label => None)))));
       end case;
    end subprogram_9;
 
@@ -872,14 +910,14 @@ package body Subprograms_Process_LALR_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         null;
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (name, Name), (T5, Statement_End)));
       when Face =>
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), name => (True, (Simple,
-         (Language, Function_2'Access, 8 & Integer (Name))), (Simple, (Int, Subp_Indent_Broken))), T3 => (False,
-         (Simple, (Language, Function_1'Access, Integer (Name) & 2 * Subp_Indent_Broken))), T5 => (False, (Simple,
-         (Label => None)))));
+         (Language, Function_3'Access, 8 & Integer (T1) & Integer (Name))), (Simple, (Int, Subp_Indent_Broken))), T3 =>
+         (False, (Simple, (Language, Function_1'Access, Integer (Name) & 2 * Subp_Indent_Broken))), T5 => (False,
+         (Simple, (Label => None)))));
       end case;
    end subprogram_10;
 

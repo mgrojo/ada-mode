@@ -24,8 +24,8 @@ package Subprograms_Process_LALR_Actions is
      (First_Terminal    => 4,
       Last_Terminal       => 24,
       First_Nonterminal   => 25,
-      Last_Nonterminal    => 40,
-      SOI_ID              => 41,
+      Last_Nonterminal    => 41,
+      SOI_ID              => 42,
       EOI_ID              => 24,
       Accept_ID           => 25,
       Case_Insensitive    => False,
@@ -60,6 +60,7 @@ package Subprograms_Process_LALR_Actions is
          new String'("Wisi_EOI"),
          new String'("wisitoken_accept"),
          new String'("block"),
+         new String'("formal_part"),
          new String'("compilation_unit"),
          new String'("declaration"),
          new String'("loop_statement"),
@@ -107,6 +108,7 @@ package Subprograms_Process_LALR_Actions is
       Wisi_EOI_ID,
       wisitoken_accept_ID,
       block_ID,
+      formal_part_ID,
       compilation_unit_ID,
       declaration_ID,
       loop_statement_ID,
@@ -160,6 +162,14 @@ package Subprograms_Process_LALR_Actions is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure block_7
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure block_8
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure block_9
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);

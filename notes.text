@@ -32,6 +32,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-3"        . "../org.wisitoken")))
 
  current work
+wisitoken-bnf-output_ada_emacs.adb: change _check to _in_parse, other to _post_parse
+
 new test case:
     test_mckenzie missing_name_1 with end_name_optional true
         hangs in tree.current_error
@@ -93,11 +95,6 @@ test_mckenzie, test_incremental fail on Multiple_Errors_On_One_Token_*
             contained in
 
  tree-sitter
-update o.e.a.s-4
-    ada_annex_p.wy reports errors. sigh.
-
-propagate to main
-
 need to translate between tree_sitter nonterm token_id, rhs_id and wisitoken production_ids to lookup actions.
     lookup action relies on production_id stored in nonterm
         set by parser reduce using production_id stored in action in parse table

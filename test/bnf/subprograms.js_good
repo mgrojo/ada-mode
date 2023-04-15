@@ -69,7 +69,9 @@ module.exports = grammar({
 
       COMMENT_2: $ => token(seq("//", /.*/)),
 
-      block: $ => seq(optional(seq(field('name', $.SYMBOL), $.COLON)), $.BEGIN, $.loop_statement, optional(seq($.EXCEPTION, $.WHEN, $.name)), $.END, optional($.SYMBOL)),
+      block: $ => choice(seq(optional(seq(field('name', $.SYMBOL), $.COLON)), $.BEGIN, $.loop_statement, optional(seq($.EXCEPTION, $.WHEN, $.name)), $.END, optional($.SYMBOL)), seq($.name, optional(field('parameter_profile', $.formal_part)), $.SEMICOLON)),
+
+      formal_part: $ => seq($.LEFT_PAREN, $.SYMBOL, $.RIGHT_PAREN),
 
       declaration: $ => choice($.subprogram, $.use_clause),
 
@@ -87,7 +89,7 @@ module.exports = grammar({
 
       name_list: $ => choice($.name, seq($.name_list, $.COMMA, $.name)),
 
-      parameter_list: $ => seq($.LEFT_PAREN, optional($.SYMBOL), $.RIGHT_PAREN),
+      parameter_list: $ => seq($.LEFT_PAREN, field('arg', optional($.SYMBOL)), $.RIGHT_PAREN),
 
       subprogram: $ => choice(seq(field('fun', $.FUNCTION), field('nam', optional($.name)), field('par', optional($.parameter_list)), field('blo', optional($.block)), field('sem', $.SEMICOLON)), seq($.PROCEDURE, $.name, $.parameter_list, $.END, $.name, $.SEMICOLON), seq($.FUNCTION, field('name', $.name), $.parameter_list, optional($.block), $.SEMICOLON)),
 
@@ -97,6 +99,7 @@ module.exports = grammar({
 
   },
   conflicts: $ => [
+      [$.formal_part, $.parameter_list, ],
       [$.iteration_scheme, $.in_of, ],
       [$.subprogram, ],
   ],

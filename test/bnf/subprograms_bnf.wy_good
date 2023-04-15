@@ -70,6 +70,8 @@
 %non_grammar <comment-new-line> COMMENT_1 "--"
 %non_grammar <comment-new-line> COMMENT_2 "//"
 
+%conflict REDUCE formal_part | REDUCE parameter_list on token SEMICOLON
+
 %if parser = LALR
 %conflict SHIFT name | REDUCE in_of on token SYMBOL
 
@@ -95,7 +97,7 @@
 ;; language-specific elisp names in indent actions
 %elisp_indent subp-indent-function_1 Function_1 2 1
 %elisp_indent subp-indent-function_2 Function_2 0
-%elisp_indent subp-indent-function_3 Function_2 2 2
+%elisp_indent subp-indent-function_3 Function_3 3 2 3
 
 ;; language-specific elisp action
 %elisp_action face wisi-mmmify-token MMMify_Token
@@ -134,6 +136,14 @@ block
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
+  | T1=name parameter_profile=formal_part T3=SEMICOLON
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
+  | T1=name T3=SEMICOLON
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
+  ;
+
+formal_part
+  : LEFT_PAREN SYMBOL RIGHT_PAREN
   ;
 
 ;; No automatic token labels are needed; declaration+ is expanded in
@@ -218,7 +228,7 @@ name_list
   ;
 
 parameter_list
-  : T1=LEFT_PAREN T2=SYMBOL T3=RIGHT_PAREN
+  : T1=LEFT_PAREN arg=SYMBOL T3=RIGHT_PAREN
     %((wisi-statement-action [2 misc])
       (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
   | T1=LEFT_PAREN T3=RIGHT_PAREN
@@ -331,15 +341,17 @@ subprogram
 
   | T1=FUNCTION name=name T3=parameter_list T4=block T5=SEMICOLON
 ;; Custom elisp indent function and mixed manual and automatic token labels
-    %((wisi-indent-action [nil
-                           [(subp-indent-function_3 'FUNCTION name) subp-indent-broken]
+    %((wisi-statement-action [1 statement-start 2 name 5 statement-end])
+      (wisi-indent-action [nil
+                           [(subp-indent-function_3 'FUNCTION 1 name) subp-indent-broken]
                            (subp-indent-function_1 name (* 2 subp-indent-broken))
                            (subp-indent-function_2)
                            nil]))%
   | T1=FUNCTION name=name T3=parameter_list T5=SEMICOLON
 ;; Custom elisp indent function and mixed manual and automatic token labels
-    %((wisi-indent-action [nil
-                           [(subp-indent-function_3 'FUNCTION name) subp-indent-broken]
+    %((wisi-statement-action [1 statement-start 2 name 5 statement-end])
+      (wisi-indent-action [nil
+                           [(subp-indent-function_3 'FUNCTION 1 name) subp-indent-broken]
                            (subp-indent-function_1 name (* 2 subp-indent-broken))
                            (subp-indent-function_2)
                            nil]))%
