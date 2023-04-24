@@ -25,7 +25,7 @@ procedure Format_Parameter_List
    Edit_Begin_Char : in     WisiToken.Buffer_Pos)
 is
    use Standard.Ada.Containers;
-   use Ada_Annex_P_Process_Actions;
+   use Ada_Annex_P_Process_LR1_Actions;
    use Standard.Ada.Text_IO;
    use WisiToken.Syntax_Trees;
 

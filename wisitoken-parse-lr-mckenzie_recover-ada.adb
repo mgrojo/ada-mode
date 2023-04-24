@@ -17,15 +17,14 @@
 
 pragma License (Modified_GPL);
 
-with Ada_Annex_P_Process_Actions;
+with Ada_Annex_P_Process_LR1_Actions; use Ada_Annex_P_Process_LR1_Actions; -- token names, To_Token_Enum
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
-   use Ada_Annex_P_Process_Actions; -- token names, To_Token_Enum
    use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
-   Descriptor : WisiToken.Descriptor renames Ada_Annex_P_Process_Actions.Descriptor;
+   Descriptor : WisiToken.Descriptor renames Ada_Annex_P_Process_LR1_Actions.Descriptor;
 
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
    subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
@@ -1163,42 +1162,46 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                End_ID_Actions : constant Minimal_Action_Arrays.Vector := Shared_Parser.Table.States
                  (Config.Stack.Peek.State).Minimal_Complete_Actions;
             begin
-               if End_ID_Actions.Length /= 1 then
+               if End_ID_Actions.Length = 0 then
+                  --  Let normal McKenzie find the right token to insert.
+                  return;
+               end if;
+
+               if Debug_Mode and then End_ID_Actions.Length > 1 then
                   --  FIXME: do all actions? need a test case
                   raise Bad_Config with "Language_Fixes Insert_End_Token_Semi multiple actions";
-
-               else
-                  New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-
-                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
-
-                  Push_Back_Check (Super, Shared_Parser, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
-
-                  case End_ID_Actions (End_ID_Actions.First_Index).Verb is
-                  when Shift =>
-                     --  case a or b
-
-                     --  Inserting the end keyword and semicolon here avoids the costs added by
-                     --  Insert_Minimal_Complete_Actions.
-                     Insert
-                       (Super, Shared_Parser, New_Config,
-                        (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
-
-                     Local_Config_Heap.Add (New_Config);
-                     if Trace_McKenzie > Detail then
-                        Put ("Language_Fixes " & "wrong end keyword a", New_Config);
-                     end if;
-
-                  when Reduce =>
-                     --  case c: ada_mode-recover_39.adb.
-                     Insert (Super, Shared_Parser, New_Config, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
-
-                     Local_Config_Heap.Add (New_Config);
-                     if Trace_McKenzie > Detail then
-                        Put ("Language_Fixes " & Label, New_Config);
-                     end if;
-                  end case;
                end if;
+
+               New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
+               Push_Back_Check (Super, Shared_Parser, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
+
+               case End_ID_Actions (End_ID_Actions.First_Index).Verb is
+               when Shift =>
+                  --  case a or b
+
+                  --  Inserting the end keyword and semicolon here avoids the costs added by
+                  --  Insert_Minimal_Complete_Actions.
+                  Insert
+                    (Super, Shared_Parser, New_Config,
+                     (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
+
+                  Local_Config_Heap.Add (New_Config);
+                  if Trace_McKenzie > Detail then
+                     Put ("Language_Fixes " & "wrong end keyword a", New_Config);
+                  end if;
+
+               when Reduce =>
+                  --  case c: ada_mode-recover_39.adb.
+                  Insert (Super, Shared_Parser, New_Config, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
+
+                  Local_Config_Heap.Add (New_Config);
+                  if Trace_McKenzie > Detail then
+                     Put ("Language_Fixes " & Label, New_Config);
+                  end if;
+               end case;
             end Insert_End_Token_Semi;
          begin
             if To_Token_Enum (Tree.Element_ID (Config.Error_Token)) /= IDENTIFIER_ID then

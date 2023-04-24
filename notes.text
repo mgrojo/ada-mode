@@ -59,6 +59,28 @@ o.e.a.stephe-7 (): available
 
  current work
 run all tests
+error: c:/Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-interactive_01.adb:116:
+... result of '(unless (eq ada-statement-backend 'none) (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))' does not match.
+... expect 't'
+    wisi-goto-statement-start on comment following statement goes instead to containing start
+        wisi-backward-cache when to 'for', not final ';'
+        no cache on ';'
+
+slice missing name ( name constraint )
+    is that legal?
+
+
+
+fix "too many parsers" in aggregates
+    subprograms_process_actions.adb
+    %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
+
+    delete parenthesized_expression; redundant with aggregate
+
+    merge record_component_association with positional_array_aggregate?
+
+
+propagate to main
 
 use tree-sitter as parser for wisi
     add run_ada_tree_sitter_parse.ads
@@ -66,6 +88,9 @@ use tree-sitter as parser for wisi
     try tree_sitter parse on debug.adb with input from FIXME: cases
 
     need wisi backends to access tree-sitter syntax tree
+
+    wisi-ada*.adb handle ada_annex_p_process_*_actions!
+        add ada_actions.* for each feature, bodies dispatch?
 
 Apply changes slowly in o.e.a-m.s-2, find out why recursion blows up
 

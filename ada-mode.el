@@ -106,13 +106,13 @@
 
 (require 'ada-core)
 (require 'ada-indent-user-options)
-(require 'ada_annex_p-process)
 (require 'ada-skel)
 (require 'align)
 (require 'cl-lib)
 (require 'compile)
 (require 'find-file)
 (require 'wisi)
+(require 'wisi-process-parse)
 
 (defun ada-mode-version ()
   "Return Ada mode version."
@@ -1609,20 +1609,57 @@ Prompts with completion, defaults to filename at point."
 `ada-indent-backend', `ada-xref-backend' are set to other.
 See `ada-eglot-setup' in ada-eglot.el for a similar function.")
 
+(defvar ada_annex_p-process-lr1-face-table)
+(defvar ada_annex_p-process-lr1-token-table)
+(defvar ada_annex_p-process-lr1-repair-image)
+
+(defvar ada_annex_p-process-lalr-face-table)
+(defvar ada_annex_p-process-lalr-token-table)
+(defvar ada_annex_p-process-lalr-repair-image)
+
+(defvar ada_annex_p-process-tree_sitter-face-table)
+(defvar ada_annex_p-process-tree_sitter-token-table)
+(defvar ada_annex_p-process-tree_sitter-repair-image)
+
 ;;;###autoload
 (cl-defun ada-parse-require-process (&key wait)
   "Start the Ada parser in an external process, if not already started.
 Unless WAIT, does not wait for parser to respond. Returns the parser object."
   (interactive)
-  (let ((parser (wisi-process-parse-get
-		 (make-ada-wisi-parser
-		  :label "Ada"
-		  :language-protocol-version ada-wisi-language-protocol-version
-		  :exec-file ada-process-parse-exec
-		  :exec-opts ada-process-parse-exec-opts
-		  :face-table ada_annex_p-process-face-table
-		  :token-table ada_annex_p-process-token-table
-		  :repair-image ada_annex_p-process-repair-image))))
+  (let (face-table token-table repair-image parser)
+    (cond
+     ((string-match "lr1" ada-process-parse-exec)
+      (require 'ada_annex_p-process-lr1)
+      (setq face-table ada_annex_p-process-lr1-face-table)
+      (setq token-table ada_annex_p-process-lr1-token-table)
+      (setq repair-image ada_annex_p-process-lr1-repair-image))
+
+     ((string-match "lalr" ada-process-parse-exec)
+      (require 'ada_annex_p-process-lalr)
+      (setq face-table ada_annex_p-process-lalr-face-table)
+      (setq token-table ada_annex_p-process-lalr-token-table)
+      (setq repair-image ada_annex_p-process-lalr-repair-image))
+
+     ((string-match "tree_sitter" ada-process-parse-exec)
+      (require 'ada_annex_p-process-tree_sitter)
+      (setq face-table ada_annex_p-process-tree_sitter-face-table)
+      (setq token-table ada_annex_p-process-tree_sitter-token-table)
+      (setq repair-image ada_annex_p-process-tree_sitter-repair-image))
+
+     (t
+      (user-error "unrecognized `ada-process-parse-exec'; file name must contain one of 'lr1', 'lalr', 'tree_sitter'"))
+     )
+
+    (setq parser
+	  (wisi-process-parse-get
+	   (make-ada-wisi-parser
+	    :label "Ada"
+	    :language-protocol-version ada-wisi-language-protocol-version
+	    :exec-file ada-process-parse-exec
+	    :exec-opts ada-process-parse-exec-opts
+	    :face-table face-table
+	    :token-table token-table
+	    :repair-image repair-image)))
     (wisi-parse-require-process parser :nowait (not wait))
     parser))
 
