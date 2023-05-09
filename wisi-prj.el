@@ -1,6 +1,6 @@
 ;;; wisi-prj.el --- project integration -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2019 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2019 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Usage:
 ;;
@@ -365,14 +365,13 @@ user arg limits completion to current file."
     ;; WORKAROUND: in emacs 28 xref-location changed from defclass to
     ;; cl-defstruct.
     (require 'eieio)
-    (with-suppressed-warnings ;; "unknown slot" in emacs 28
-	(progn
-	  (defun xref-item-summary (item) (oref item summary))
-	  (defun xref-item-location (item) (oref item location))
-	  (defun xref-file-location-file (location) (oref location file))
-	  (defun xref-file-location-line (location) (oref location line))
-	  (defun xref-file-location-column (location) (oref location column))
-	  ))))
+    (with-no-warnings ;; "unknown slot"
+      (defun xref-item-summary (item) (oref item summary))
+      (defun xref-item-location (item) (oref item location))
+      (defun xref-file-location-file (location) (oref location file))
+      (defun xref-file-location-line (location) (oref location line))
+      (defun xref-file-location-column (location) (oref location column))
+      )))
 
 (defun wisi-goto-spec/body (identifier)
   "Goto declaration or body for IDENTIFIER (default symbol at point).
@@ -1441,7 +1440,11 @@ For `xref-backend-functions'."
   (let ((prj (project-current)))
     (when (and (wisi-prj-p prj)
 	       (wisi-prj-xref prj))
-      prj)))
+      (cond
+       ((eq (wisi-prj-xref prj) 'eglot)
+	'eglot)
+       (t prj))
+      )))
 
 ;;;; project-find-functions alternatives
 

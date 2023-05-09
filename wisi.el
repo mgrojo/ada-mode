@@ -1,15 +1,15 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 4.1.1
+;; Version: 4.2.2
 ;; package-requires: ((emacs "25.3") (seq "2.20"))
-;; URL: http://stephe-leake.org/ada/wisitoken.html
+;; URL: https://stephe-leake.org/ada/wisitoken.html
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -24,12 +24,12 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 
 ;;; Commentary:
 
-;;;; History: see NEWS-wisi.text
+;;;; History: see NEWS
 ;;
 ;;;; Design:
 ;;
@@ -1232,7 +1232,7 @@ Return start cache."
 
 (defun wisi-goto-statement-start ()
   "Move point to token at start of statement point is in or after.
-Return start cache."
+Return start cache (nil if point is before first statement)."
   (interactive)
   (wisi-validate-cache-current-statement t 'navigate)
   (wisi-goto-start (or (wisi-get-cache (point))
@@ -1830,7 +1830,11 @@ with incremental parse after each key event."
   "Set up a buffer for parsing files with wisi."
   ;; wisi-disable-* should be set in a find-file-hook such as
   ;; ada-eglot-setup, not in local variables.
-  (when (and (not wisi-disable-parser) parser)
+  (when (and (not wisi-disable-parser)
+	     parser
+	     ;; indirect buffers handled below.
+	     ;; We don't insist on (null wisi-parser-shared), so we can re-run ada-mode
+	     )
     (setq wisi-parser-shared parser)
     (setq wisi-parser-local (make-wisi-parser-local))
 
@@ -1868,6 +1872,8 @@ with incremental parse after each key event."
     ;; wisi-disable-diagnostics is handled in wisi-process-parse.el
 
     (when (not wisi-disable-face)
+      ;; font-lock complains about not working in indirect buffers,
+      ;; but we need to set all the local variables for mmm-mode.
       (jit-lock-register #'wisi-fontify-region))
 
     (when (not wisi-disable-indent)
@@ -1884,11 +1890,19 @@ with incremental parse after each key event."
       (when wisi-save-all-changes
 	(setf (wisi-parser-local-all-changes wisi-parser-local) nil))
 
-      ;; We don't wait for this to complete here, so users can scroll
-      ;; around while the initial parse runs. font-lock will not work
-      ;; during that time (the parser is busy, the buffer is read-only).
-      (when (< 0 wisi-debug) (message "start initial full parse in %s" (current-buffer)))
-      (wisi-parse-incremental wisi-parser-shared 'none :full t :nowait wisi-parse-full-background)
+      (unless (buffer-base-buffer)
+	;; If are in an indirect buffer (ie mmm-temp-buffer), We need
+	;; to set all the local variables above, but _not_ start a
+	;; parse; that would duplicate and conflict with the parse in
+	;; the main buffer.
+
+	;; We don't wait for this to complete here, so users can scroll
+	;; around while the initial parse runs. font-lock will not work
+	;; during that time (the parser is busy, the buffer is read-only).
+	(when (< 0 wisi-debug) (message "starting initial full parse; parser %s buffer %s"
+					(wisi-process--parser-label parser)
+					(current-buffer)))
+	(wisi-parse-incremental wisi-parser-shared 'none :full t :nowait wisi-parse-full-background))
 
       (when wisi-save-text-tree
 	(wisi-parse-save-text-tree-auto wisi-parser-shared t))

@@ -37,125 +37,31 @@ org.emacs.wisi.stephe-4 (): available
 Most notes are in ../org.emacs.ada-mode/notes.text, for simplicity in finding them
 
  release process
-keep status in ~/projects.text
-do wisitoken release ../org.wisitoken/build/release_process.text
+see ada-mode notes for full process; only wisi-specific details here.
+all tests done in ada-mode
 
-check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
-    to update a bug: nnn@debbugs.gnu.org
-        subject: from bug title, for people who rely on that.
-    if fixed in devel sources, add 'pending' tag:
-        control@debbugs.gnu.org
-        tags nnn + pending
+https://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
+(dvc-status "/Projects/elpa/packages/wisi")
+(dvc-sync-run "/Projects/elpa/packages/wisi")
+(dvc-sync-review "/Projects/elpa/packages/wisi")
 
-check for ELPA patches by others
-    (dvc-status "/Projects/elpa/packages/wisi")
-    (dvc-pull "/Projects/elpa/packages/wisi")
-    (dvc-sync-review "/Projects/elpa/packages/wisi")
-        update
-        clean, quit sync
-    cd c:/Projects/elpa/packages/wisi
-    git log -2
+build/Makefile pub
+/Projects/elpa/packages/wisi/ELPA.make all
 
-    if changes:
-        (dvc-log "/Projects/elpa/packages/<dir>/<file>")
-        apply changes to current
-
-run tests in ada-mode
-
-compare:
-    build/Makefile pub
-
-    reset package-load-list to '(all) to allow installing wisi:
-        (setq package-load-list '(all))
-
-    (list-packages)
-        install previous wisi from public ELPA for diffs
-
-    (ediff-directories "~/.emacs.d/elpa/wisi-3.1.8" "/Projects/elpa/packages/wisi" nil)
-        NEWS
-            copyright date
-            add release date
-            add new features
-
-build in elpa; /Projects/elpa/packages/wisi/Makefile
-    check for unused sources in wisi; no .o => edit Makefile pub-*
-
-Check copyright on files in elpa
-    c:/Projects/elpa/GNUMakefile check-all
-    if any files added to output, fix them (add or change to FSF)
+(ediff-directories "/Projects/elpa_release/packages/wisi" "/Projects/elpa/packages/wisi" nil)
 
 bump versions
-    Gnu ELPA requires single digits between dots in versions
-
-    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
-        bump third digit for bug fixes, minor features, no user-incompatible changes
-        bump second digit for major features, mostly backward-compatible
-            - GPS indentation engine add/delete
-            - delete elisp lexer
-            - use virtual tokens in indent
-            - build with alire, create_parser, support eglot
-            - ? module?
-
-        bump first digit for really major user-visible changes
-            wisi:
-            - 3 project.el integration
-            - 4 incremental parse
-
-         if current release is non-beta, propagate from elpa/packages/wisi to elpa_release/packages/wisi
-
     NEWS
 
-    emacs_wisi_common_parse.ads
-        (should have been changed already, but verify)
-        Protocol_Version if this file changed, or
-        wisi-process-parse.el -send-parse, -send-refactor, -execute
-        changed; ie, if installed parser must be replaced on upgrade or downgrade
+    emacs_wisi_common_parse.ads Protocol_Version
+    wisi-process-parse.el       wisi-process-parse-protocol-version
 
     wisi.el
-        copyright date
-        Version:
-        package-requires versions
-
     wisi.texi
-        copyright date
-        @title
-        @node top
-
     README
-        first line
-
     alire.toml
-        version
-        depends-on versions
 
-(dvc-state-one ".")
-
-On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
-    alr publish --tar
-    # at "upload and enter url" prompt; in mys2
-    cd /Projects/org.stephe-leake.sal/alire/archives
-    gpg -b *.tgz
-    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # wait until http download actually works; took 0.5 days
-    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_mode-1.0.0.tgz
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr-mode-i.j.k.tgz
-
-push to elpa
-    (dvc-pull "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
-
-    build/Makefile pub
-
-    (dvc-state-one "/Projects/elpa/packages/wisi") commit
-    (dvc-push)
-
-mark fixed bugs
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=wisi
-    http://debbugs.gnu.org/Developer.html
-    email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.1.3
-        don't include Version: header; that's an Emacs version
-    debbugs updates ada-mode summary page within half an hour; no emails
+(dvc-propagate-one "/Projects/elpa/packages/wisi" "/Projects/elpa_release/packages/wisi")
+(dvc-sync-run "/Projects/elpa/packages/wisi")
 
 -- end of file

@@ -8,20 +8,10 @@ project Wisi_Alire is
 
    for Source_Dirs use (".", "config/");
    for Excluded_Source_Files use
-     ("libadalang-analysis-more.adb",
-      "libadalang-analysis-more.ads",
-      "libadalang-analysis-implementation-more.adb",
-      "libadalang-analysis-implementation-more.ads",
-      "wisi-libadalang.adb",
-      "wisi-libadalang.ads",
-      "gen_run_wisi_libadalang_parse.adb",
-      "gen_run_wisi_libadalang_parse.ads",
-
-      -- FIXME: run tests if "validation" build? requires sal_aunit_ext crate
+     (-- FIXME: run tests if "validation" build? requires sal_aunit_ext crate
       "test_all_harness.adb",
       "test_edit_source.adb",
-      "test_edit_source.ads"
-   );
+      "test_edit_source.ads");
 
    for Object_Dir use "obj/" & Emacs_Wisi_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
