@@ -1477,7 +1477,7 @@ package body WisiToken.Generate.LR is
                --  considering recursion.
                --
                --  Insert_Minimal_Complete_Actions does not need any recursion
-               --  information at runtim, because we elminate all cases where it
+               --  information at runtime, because we elminate all cases where it
                --  might here.
                --
                --  The strategy in Insert_Minimal_Complete_Actions when
@@ -1552,7 +1552,7 @@ package body WisiToken.Generate.LR is
                --  the true Length_After_Dot must be computed at runtime. Recursion
                --  is not considered, because any other McKensie operation would also
                --  need to do a reduce to the LHS here. Label is Keep_Always,
-               --  Minimal_Action is Reduce_Production.
+               --  Minimal_Action is Reduce.
                --
                --  In state 68 production 115.0, Length_After_Dot is 0 because
                --  parameter_profile_opt is nullable. We don't ignore recursion in

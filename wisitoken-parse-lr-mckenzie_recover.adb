@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -828,7 +828,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Check (Shared_Parser.Tree.ID (Node), Expected_ID, Shared_Parser.Tree.Lexer.Descriptor.all);
          end if;
          if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
-            raise Bad_Config;
+            raise Invalid_Case;
          end if;
          Append (Config.Ops, Op);
          Append (Config.Insert_Delete, Op);
@@ -1411,7 +1411,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Op : constant Recover_Op := (Insert, ID, Shared_Parser.Tree.Get_Sequential_Index (Before));
       begin
          if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
-            raise Bad_Config;
+            raise Invalid_Case;
          end if;
          Append (Config.Ops, Op);
          Append (Config.Insert_Delete, Op);
@@ -1668,6 +1668,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config                : in out Configuration;
       Push_Back_Undo_Reduce : in     Boolean)
    is begin
+      if Recover_Op_Arrays.Is_Full (Config.Ops) then
+         --  We don't call Super.Config_Full here, because we don't have Parser_Index.
+         raise Invalid_Case;
+      end if;
+
       --  We relax the "don't push back into previous recover" restriction
       --  for Language_Fixes; see test_mckenzie_recover.adb Missing_Name_5.
       if not Push_Back_Valid (Super, Shared_Parser, Config, Push_Back_Undo_Reduce => Push_Back_Undo_Reduce) then
@@ -1832,6 +1837,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Prev_State := Goto_For (Table, Prev_State, Tree.ID (C));
          end if;
          if Stack.Is_Full then
+            --  Stack size is a design constraint, so this could be Invalid_Case.
+            --  But the required size depends on the nesting level of user code,
+            --  not the complexity of the error recover config. So it's a serious
+            --  error to hit it.
             raise Bad_Config;
          end if;
          Stack.Push ((Prev_State, Tree.Get_Recover_Token (C)));
