@@ -20,5 +20,5 @@
 (package-install 'ada-mode)
 (package-install 'ada-ref-man)
 
-(pop-to-buffer "*Messges*")
+(pop-to-buffer "*Messages*")
 ;; end of file

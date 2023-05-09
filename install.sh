@@ -12,9 +12,11 @@ else
     PREFIX=$1
 fi
     
-echo "installing ada-mode executables to" $PREFIX/bin
+echo "installing ada-mode executables to" $PREFIX/bin "; ensure that is in PATH"
 
 # No need for gprinstall; we only need the executable 
+
+mkdir -p $PREFIX/bin
 
 if type alr; then
     cp emacs_ada_mode*/bin/* $PREFIX/bin

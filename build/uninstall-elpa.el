@@ -24,7 +24,7 @@
 
 (pkg-dir-clean "ada-mode" ada-mode-version)
 (pkg-dir-clean "ada-ref-man" ada-ref-man-version)
-(pkg-dir-clean "wisi" "4.2.0")
+(pkg-dir-clean "wisi" "4.2.2")
 (pkg-dir-clean "uniquify-files" "1.0.4")
 
 ;; end of file
