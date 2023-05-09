@@ -1,6 +1,6 @@
 ;;; wisi-run-indent-test.el --- utils for automating indentation and casing tests  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2018 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2018 - 2023  Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -358,9 +358,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 			  (length last-result)
 			  (length expected-result)))))
 
-	      (let ((i 0))
+	      (let ((i 0)
+                    (fail nil))
 		(while (< i (length expected-result))
 		  (unless (equal (nth i expected-result) (nth i last-result))
+                    (setq fail t)
 		    (setq error-count (1+ error-count))
 		    (message
 		     (concat
@@ -371,7 +373,10 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 			      (nth i last-result)
 			      (nth i expected-result))
 		      )))
-		  (setq i (1+ i)))))
+		  (setq i (1+ i)))
+                (unless fail
+		  (setq pass-count (1+ pass-count))
+		  (message (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))))
 
 	     ((string= (match-string 1) "_SKIP_UNLESS")
 	      (looking-at ".*$")
@@ -392,7 +397,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 	     (t
 	      (setq error-count (1+ error-count))
-	      (error (concat "Unexpected EMACS test command " (match-string 1))))))
+	      (error (concat "error: Unexpected EMACS test command " (match-string 1)))))
+
+	    )
 
 	  (let ((msg (format "%s:%d tests passed %d"
 			     (buffer-file-name) (line-number-at-pos (point)) pass-count)))

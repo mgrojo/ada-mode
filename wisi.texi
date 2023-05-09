@@ -2,7 +2,7 @@
 @settitle Wisi
 
 @copying
-Copyright @copyright{} 1999 - 2022  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2023  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -404,7 +404,7 @@ thus all tokens in the production must be labeled. This
 can improve readability in a long production.
 
 When the grammar file uses EBNF meta-syntax, implicit labels are
-automatically generated for all tokens, unless they are explicitly
+automatically generated for all tokens that are not explicitly
 labeled; this allows keeping track of which optional tokens are left
 out when the production is converted to BNF internally.
 

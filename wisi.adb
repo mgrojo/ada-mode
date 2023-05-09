@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -859,7 +859,7 @@ package body Wisi is
    overriding
    function Copy_Augmented
      (User_Data : in Parse_Data_Type;
-      Augmented : in Syntax_Trees.Augmented_Class_Access)
+      Augmented : in not null Syntax_Trees.Augmented_Class_Access)
      return Syntax_Trees.Augmented_Class_Access
    is
       Old_Aug : constant Augmented_Access := Augmented_Access (Augmented);
