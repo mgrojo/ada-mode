@@ -626,8 +626,8 @@ PARSER will respond with one or more Query messages."
 	(file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
     ;; file-name can be nil during vc-resolve-conflict
 
-    (when (not name-1-pos)
-      (setq name-1-pos name-2-pos)
+    (when (or (not name-1-pos) (= 0 name-1-pos))
+      (setq name-1-pos (min name-2-pos (point-max)))
       (setq name-2-pos 0))
 
     (when (not name-2-pos)
@@ -635,15 +635,15 @@ PARSER will respond with one or more Query messages."
 
     (push (make-wisi--parse-error
 	   :pos (copy-marker name-1-pos)
-	   :pos-2 (copy-marker name-2-pos)
+	   :pos-2 (when (< 0 name-2-pos) (copy-marker name-2-pos))
 	   :message
-	   (format
-	    (concat "%s:%d:%d: %s"
-		    (when (> 0 name-2-pos) " %s:%d:%d"))
-	    file-name (line-number-at-pos name-1-pos t) (funcall column-at-pos name-1-pos)
-	    (aref sexp 4)
-	    (when (> 0 name-2-pos)
-	      file-name (line-number-at-pos name-2-pos t) (funcall column-at-pos name-2-pos))))
+	   (concat
+	    (format "%s:%d:%d: %s"
+		    file-name (line-number-at-pos name-1-pos t) (funcall column-at-pos name-1-pos)
+		    (aref sexp 4))
+	    (when (< 0 name-2-pos)
+              (format " %s:%d:%d"
+		    file-name (line-number-at-pos name-2-pos t) (funcall column-at-pos name-2-pos)))))
 	  (wisi-parser-local-parse-errors wisi-parser-local))
     ))
 

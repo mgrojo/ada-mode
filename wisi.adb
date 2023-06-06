@@ -2197,8 +2197,12 @@ package body Wisi is
                     (case Item.Status.Label is
                      when WisiToken.Syntax_Trees.In_Parse_Actions.Ok => "",
                      when WisiToken.Syntax_Trees.In_Parse_Actions.Error =>
-                        Safe_Pos (Tree.Child (Error_Node, Item.Status.Begin_Name))'Image &
-                          Safe_Pos (Tree.Child (Error_Node, Item.Status.End_Name))'Image & " """ &
+                       (if Item.Status.Begin_Name = 0
+                        then " 0"
+                        else Safe_Pos (Tree.Child (Error_Node, Item.Status.Begin_Name))'Image) &
+                          (if Item.Status.End_Name = 0
+                           then " 0"
+                           else Safe_Pos (Tree.Child (Error_Node, Item.Status.End_Name))'Image) & " """ &
                           (case WisiToken.Syntax_Trees.In_Parse_Actions.Error'(Item.Status.Label) is
                            when Missing_Name_Error => "missing",
                            when Extra_Name_Error => "extra",
