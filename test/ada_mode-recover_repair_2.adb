@@ -6,5 +6,5 @@ is begin
       null;
       --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(kill-word 1)(insert "if")(indent-for-tab-command))
       --EMACSCMD:(wisi-repair-errors)
-   end loop ;
+   end loop;
 end Ada_Mode.Recover_Repair_2;

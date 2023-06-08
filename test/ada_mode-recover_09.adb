@@ -37,8 +37,8 @@ procedure Ada_Mode.Recover_09 is
 
    end Generate_Parser_Body;
 
-   begin
-      New_Line;
+begin
+   New_Line;
 end Ada_Mode.Recover_09;
 -- Local Variables:
 -- ada-end-name-optional: nil

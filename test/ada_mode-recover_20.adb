@@ -15,9 +15,9 @@ begin
         (Prev_3 = Invalid_Token_ID or
            Prev_3 /= Left_Paren_ID))
       or
-        B
-      then
-         --  missing 'end if;'
+     B
+   then
+      --  missing 'end if;'
 
 end Ada_Mode.Recover_20;
 -- Local Variables:

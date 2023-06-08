@@ -187,7 +187,7 @@ package body Wisi.Ada is
          raise SAL.Not_Implemented; -- need use case
 
       when IDENTIFIER_ID =>
-         Method := Tree.Child (Method, 1);
+         null;
 
       when others =>
          Unrecognized ("supported token", Tree, Data, Method);

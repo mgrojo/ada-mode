@@ -8,10 +8,14 @@
 ;; this is also done in run-test; we do it here for 'make one-debug'
 
 (defun switch-to-lr1 ()
+  (wisi-kill-parser)
   (setq ada-process-parse-exec (expand-file-name "bin/ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
-  (ada-mode)
-  (wisi-wait-parser))
+  (wisi-reset-parser)
+  (when wisi-incremental-parse-enable
+    (read-only-mode 0) ;; from aborted initial parse
+    (wisi-parse-incremental wisi-parser-shared 'none :full t :nowait nil))
+  )
 
 (defun test-moom (search-string refactor-string)
   "Refactor method (object ...) to object.method (...)"

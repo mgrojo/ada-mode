@@ -13,7 +13,12 @@ procedure Ada_Mode.Pragma_In_Exception_Handler is
          pragma Warnings (Off);
          when Constraint_Error =>
             raise;
-            pragma Warnings (On);
+
+            --  This pragma is either part of the sequence_of_statements following
+            -- 'when Constraint_Error', or part of the exception_handler list. The
+            -- parser chooses one interpretation randomly, so the indent can
+            -- change when the grammar or parser does.
+         pragma Warnings (On);
       end Write_File_Name_File;
 
    begin

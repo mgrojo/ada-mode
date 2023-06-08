@@ -10,9 +10,9 @@ is
 
          -- missing 'end To_Month;'
          begin
-   end Process_CSV_File;
-begin
-   A := 1;
+         end Process_CSV_File;
+         begin
+      A := 1;
 end Journal_To_TSV;
 -- Local Variables:
 -- ada-end-name-optional: nil

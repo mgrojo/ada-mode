@@ -9,14 +9,14 @@ function Child_Index
   return Sal.Peek_Type
 is
    N : Node_Var_Ref renames Get_Node_Var_Ref (Tree, Parent);
-   begin
-      for I in N.Children.First_Index .. N.Children.Last_Index loop
-         if N.Children (I) = Child then
-            return I;
-         end if;
-      end loop;
-      raise Sal.Programmer_Error; -- Should be prevented by precondition on caller.
-   end Find_Child_Index;
+begin
+   for I in N.Children.First_Index .. N.Children.Last_Index loop
+      if N.Children (I) = Child then
+         return I;
+      end if;
+   end loop;
+   raise Sal.Programmer_Error; -- Should be prevented by precondition on caller.
+end Find_Child_Index;
 
 
 end Child_Index;

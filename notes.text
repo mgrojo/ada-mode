@@ -29,23 +29,24 @@ o.e.a.stephe-7 (): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"    . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"           . "../org.wisitoken.stephe-1")
+   ("../org.wisitoken"           . "../org.wisitoken.stephe-3")
 ;;   ("../org.emacs.gnat-compiler" . "../elpa_work/packages/gnat-compiler")
 ;;   ("../org.emacs.gpr-query"     . "../elpa_work/packages/gpr-query")
-   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-1")
-   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-4")
+   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
   (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/elpa_work/gnat-compiler")
-  ;; (xgit . "/Projects/elpa_work/gpr-query.stephe-1")
+  (xgit . "/Projects/elpa/packages/gnat-compiler")
+  (xgit . "/Projects/elpa/packages/gpr-query")
   (xgit . "/Projects/org.emacs.wisi.stephe-4")
   ;;(xgit . "/Projects/org.emacs.gpr-mode/.stephe-4")
   (xgit . "/Projects/org.emacs.ada-mode.stephe-4")
-  (xgit . "/Projects/eglot-stephe")))
+  ;; (xgit . "/Projects/eglot-stephe")
+  ))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1"           . "../org.stephe_leake.sal")
@@ -58,25 +59,19 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-run all tests
-error: c:/Projects/org.emacs.ada-mode.stephe-4/test/ada_mode-interactive_01.adb:116:
-... result of '(unless (eq ada-statement-backend 'none) (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))' does not match.
-... expect 't'
-    wisi-goto-statement-start on comment following statement goes instead to containing start
-        wisi-backward-cache when to 'for', not final ';'
-        no cache on ';'
 
-slice missing name ( name constraint )
+slice missing 'name ( name constraint )'
     is that legal?
 
 fix "too many parsers" in aggregates
     subprograms_process_actions.adb
     %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
 
-    delete parenthesized_expression; redundant with aggregate
-
     merge record_component_association with positional_array_aggregate?
 
+
+test gpr-mode
+test wisitoken-grammar-mode
 
 propagate to main
 
@@ -94,6 +89,9 @@ use tree-sitter as parser for wisi
 
     wisi-ada*.adb handle ada_annex_p_process_*_actions!
         add ada_actions.* for each feature, bodies dispatch?
+
+    editing ada_mode-recover_30.adb is really slow with incremental wisi parser; try tree-sitter.
+        in web playground?
 
 Add ALIRE_BUILD_ARGS ?= --release to Alire.make
 
