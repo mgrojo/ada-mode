@@ -556,6 +556,10 @@ PARSER will respond with one or more Query messages."
   ;; sexp is [Indent line-number line-begin-char-pos indent]
   ;; see `wisi-process-parse--execute'
   (let ((pos (aref sexp 2)))
+    (when (< 0 wisi-debug)
+	(unless (= (aref sexp 1) (line-number-at-pos pos))
+	  (error "indent: line/pos mismatch at %d" pos)))
+
     (with-silent-modifications
       (when (< (point-min) pos)
 	(put-text-property
@@ -837,7 +841,15 @@ Source buffer is current."
     ;; the process to die.
     (setf (wisi-process--parser-busy parser) t)
     (wisi-parse-log-message parser "kill process")
-    (kill-process (wisi-process--parser-process parser)))
+    (let ((process (wisi-process--parser-process parser)))
+      (kill-process process)
+      (while (process-live-p process)
+	(accept-process-output
+	 process
+	 wisi-process-time-out
+	 nil ;; milliseconds
+	 nil)  ;; just-this-one
+	)))
   (setf (wisi-process--parser-busy parser) nil))
 
 (cl-defun wisi-process-parse--prepare (parser parse-action &key nowait)

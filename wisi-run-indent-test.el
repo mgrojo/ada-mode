@@ -222,11 +222,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)
-  (when wisi-incremental-parse-enable
-    ;; wait for the parser to finish the initial parse
-    (wisi-wait-parser))
 
-  (condition-case err
+  (condition-case-unless-debug err
       (progn
 	(setq indent-tabs-mode nil)
 
@@ -524,7 +521,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
   (let ((dir default-directory))
     ;; Always wait for initial full parse to complete.
-    (setq wisi-parse-full-background nil)
+    (setq-default wisi-parse-full-background nil)
 
     (find-file file-name) ;; sets default-directory
 
