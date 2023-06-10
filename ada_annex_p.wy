@@ -1151,6 +1151,7 @@ explicit_dereference : name '.' 'all' ;
 
 slice
   : name '(' range_g ')' ;;:edited; name ( subtype_indication ) redundant with function_call
+                         ;; this leaves out 'name ( name constraint )', which is illegal.
     %((wisi-indent-action [nil nil (wisi-hanging (wisi-anchored 2 1) (wisi-anchored 2 3)) (wisi-anchored 2 0)]))%
   ;
 
