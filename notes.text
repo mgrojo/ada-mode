@@ -34,6 +34,9 @@ update-wisitoken_grammar
  current work
 propagate to o.w.s-1
 
+improve doc of %if; add 'in' to condition
+    add 'not' ? see ada_annex_p.wy conflict only in LALR
+
 test_incremental.adb fails
     Multiple_Errors_On_One_Token_1
         recover_insert_delete node 1 not in tree
