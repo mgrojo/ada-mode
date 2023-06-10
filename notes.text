@@ -58,13 +58,22 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+use shell or make pkg-spec to run build.sh, install.sh
+    https://git.savannah.gnu.org/cgit/emacs/elpa.git/tree/README#n117
+
 Add output_dir option to w-b-gen
 
-test re2c 2.0.3, for Rolf Ebert on Debian bullseye
-    https://github.com/alire-project/alire/issues/1312
+see FIXME: in ada_annex_p.wy aggregate
+    compare to wisitoken/test/bnf/ada_full.wy
+
 
 https://github.com/AdaCore/ada_language_server/releases
     binary ada_language_server
+
+merge "after full release" below
+review the rest of this file
+
+use spark to find bug in apply source edits
 
 Add ALIRE_BUILD_ARGS ?= --release to Alire.make
 
@@ -1918,7 +1927,7 @@ post on:
     emacs-ada-mode mailing list
     c.l.a newsgroup
     https://forum.ada-lang.io/
-    gitter alire
+    https://gitter.im/ada-lang/Lobby
 
 -------------------
 Gnu Emacs Ada mode 8.0 beta released.
@@ -1978,44 +1987,74 @@ cd ~/.emacs.d/elpa/ada-mode-7.3beta*
 ./build.sh
 ./install.sh
 
-If you have Alire installed, these scripts use it. Otherwise, this
-requires AdaCore gnatcoll packages which you may not have installed;
-see ada-mode.info Installation for help in installing them.
+If you have Alire installed, these scripts use it.
 
 -------------------
 
 
 -------------------
-Gnu Emacs Ada mode 7.3.1 released.
+Gnu Emacs Ada mode 8.0.4 released.
 -------------------
 
-Gnu Emacs Ada mode 7.3.1 is now available in GNU ELPA; the beta
-version has been promoted to release.
+Gnu Emacs Ada mode 8.0.4 is now available in GNU ELPA.
 
-ada-mode and wisi are now compatible with recent gnat versions. The
-grammar is updated to the proposed Ada 2022 version.
+All Ada mode executables can now be built with Alire
+(https://alire.ada.dev/); this greatly simplifies that process.
 
-Incremental parse is provided. It still has some bugs, so it is not
-enabled by default. To try it:
+gpr-query and gpr-mode are split out into separate GNU ELPA packages.
+You must install them separately (Emacs install-package doesn't
+support "recommended packages" like Debian does).
 
-(setq-default wisi-incremental-parse-enable t).
+Ada mode can now be used with Eglot; this is controlled by new variables:
 
-Incremental parse often gets confused; to recover, use M-x
-wisi-reset-parser. That does a full parse of the entire buffer, which
-can be noticeably slow in large buffers.
+ada-diagnostics-backend - one of wisi, eglot, none
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.3.1 and wisi-4.0.0,
-or at http://www.nongnu.org/ada-mode/, for more details.
+ada-face-backend - one of wisi, eglot, none
+
+ada-indent-backend - one of wisi, eglot, none
+
+ada-statement-backend - one of wisi, eglot, none
+
+ada-xref-backend - one of gnat, gpr_query, eglot, none
+
+The diagnostic, face, indent, and statement backends default to wisi
+if the wisi parser is found in PATH, to eglot if the Ada LSP server is
+found, and none otherwise. The xref backend defaults to gpr_query if
+the gpr_query executable in PATH, to gnat otherwise.
+
+ada-diagnostics-backend controls the source of compilation error
+messages while editing.
+
+ada-statement-backend controls statement motion; forward-sexp,
+wisi-goto-statement-end, etc. ada-xref-backend controls
+wisi-goto-spec/body and Emacs xref commands.
+
+In addition, name completion is provided by eglot if any of the other
+backends are using eglot; eglot completion is always better than wisi.
+
+The current AdaCore language server (version 23) supports face but not
+indent. The current version of eglot (1.10) does not support face. The
+Language Server Protocol does not support statment motion. So for now,
+eglot + ada_language_server only provides xref and completion.
+
+The AdaCore language server ada_language_server is installed with
+GNATStudio (which ada-mode will find by default), or can be built with
+Alire. If you build it with Alire, either put it in PATH, or set
+gnat-lsp-server-exec.
+
+I have not tested ada-mode with lsp-mode. You can set ada-*-backend to
+'other to expermiment with that, or tree-sitter, or some other
+backend. tree-sitter will be fully supported in the next ada-mode
+release.
 
 The required Ada code requires a manual compile step, after the normal
-list-packages installation ('install.sh' is new in this release):
+list-packages installation:
 
-cd ~/.emacs.d/elpa/ada-mode-7.3.1
+cd ~/.emacs.d/elpa/ada-mode-7.3beta*
 ./build.sh
 ./install.sh
 
-This requires AdaCore gnatcoll packages which you may not have
-installed; see ada-mode.info Installation for help in installing them.
+If you have Alire installed, these scripts use it.
 -------------------
 
 -------------------
@@ -2037,7 +2076,7 @@ mark fixed bugs
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
         subject: copy from bug report
-        body: closed by ada-mode version 7.2.1
+        body: closed by ada-mode version 8.0.4
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 
