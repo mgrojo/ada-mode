@@ -443,7 +443,7 @@ is -- target 0
    with
      Storage_Size => 512 + 256,
      Priority => 5;
-   --EMACSCMD:(progn (ada-which-function))
+   --EMACSCMD:(ada-which-function)
    --EMACSRESULT:(if wisi-parser-shared "Ada_Mode.Nominal" "")
 
    task body Executive is -- target 5

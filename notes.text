@@ -29,49 +29,65 @@ o.e.a.stephe-7 (): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"    . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"           . "../org.wisitoken.stephe-1")
+   ("../org.wisitoken"           . "../org.wisitoken.stephe-3")
 ;;   ("../org.emacs.gnat-compiler" . "../elpa_work/packages/gnat-compiler")
 ;;   ("../org.emacs.gpr-query"     . "../elpa_work/packages/gpr-query")
-   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-1")
-   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-4")
+   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
   (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/elpa_work/gnat-compiler")
-  ;; (xgit . "/Projects/elpa_work/gpr-query.stephe-1")
+  (xgit . "/Projects/elpa/packages/gnat-compiler")
+  (xgit . "/Projects/elpa/packages/gpr-query")
   (xgit . "/Projects/org.emacs.wisi.stephe-4")
-  ;;(xgit . "/Projects/org.emacs.gpr-mode/.stephe-4")
   (xgit . "/Projects/org.emacs.ada-mode.stephe-4")
-  (xgit . "/Projects/eglot-stephe")))
+  ;; (xgit . "/Projects/eglot-stephe")
+  ))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1"           . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"                  . "../org.wisitoken")
    ("../org.emacs.wisi.stephe-4"                 . "../org.emacs.wisi")
-   ("/Projects/elpa_work/gnat-compiler"          . "/Projects/elpa/packages/gnat-compiler")
-;;   ("/Projects/elpa_work/gpr-query"              . "/Projects/elpa/packages/gpr-query")
    ("../org.emacs.ada-mode.stephe-4"             . "../org.emacs.ada-mode")
-;;   ("/Projects/org.emacs.gpr-mode.stephe-4/"     . "/Projects/org.emacs.gpr-mode/")
    ))
 
  current work
-use shell or make pkg-spec to run build.sh, install.sh
-    https://git.savannah.gnu.org/cgit/emacs/elpa.git/tree/README#n117
+test gpr-mode
+test wisitoken-grammar-mode
+
+fix "too many parsers" in aggregates
+    subprograms_process_actions.adb
+    %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
 
 Add output_dir option to w-b-gen
 
 see FIXME: in ada_annex_p.wy aggregate
     compare to wisitoken/test/bnf/ada_full.wy
 
+use shell or make pkg-spec to run build.sh, install.sh
+    https://git.savannah.gnu.org/cgit/emacs/elpa.git/tree/README#n117
 
 https://github.com/AdaCore/ada_language_server/releases
     binary ada_language_server
 
 merge "after full release" below
 review the rest of this file
+
+use tree-sitter as parser for wisi
+    add run_ada_tree_sitter_parse.ads
+
+    try tree_sitter parse on debug.adb with input from FIXME: cases
+
+    need wisi backends to access tree-sitter syntax tree
+
+    wisi-ada*.adb handle ada_annex_p_process_*_actions!
+        add ada_actions.* for each feature, bodies dispatch?
+
+    editing ada_mode-recover_30.adb is really slow with incremental wisi parser; try tree-sitter.
+        in web playground?
 
 use spark to find bug in apply source edits
 

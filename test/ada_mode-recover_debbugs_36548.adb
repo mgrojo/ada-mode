@@ -25,7 +25,7 @@ procedure Field_parent is
    type Child_T (Child_Disc : Child_Disc_T := Child_Disc_T'First) is new
       Root_T (Rdisc2) with record --  Error here; extra 'is new Root_T (Rdisc2) with record'
          is new Root_T  with record
-                             Child_Field : Integer;
+   Child_Field : Integer;
    case Child_Disc is
       when Cdisc1 => Child_Field1 : Integer;
       when Cdisc2 => Child_Field2 : Float;

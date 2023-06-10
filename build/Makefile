@@ -80,7 +80,12 @@ endif
 test : test-ada-lalr-partial-process-gpr_query.stamp
 test : test-ada-lalr-incremental-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
+
+ifeq ($(shell uname),Linux)
+# I don't maintain the eglot installation on Windows, just for simplicity
 test : test-ada-eglot.stamp
+endif
+
 test : summarize
 
 summarize :
@@ -93,48 +98,58 @@ benchmark :
 # For running a test with ELPA build
 #ADA_MODE_DIR := -L c:/Projects/elpa_release/ada-mode -l c:/Projects/elpa_release/ada-mode/autoloads.el -L c:/Projects/elpa_release/wisi -l c:/Projects/elpa_release/wisi/autoloads.el -l exclude-elpa.el
 
-ONE_TEST_FILE ?= ada_mode-child_procedure.adb
-one :: ELISP ?= (setq-default debug-on-error t save-parser-log (list (list "*EGLOT (_default_/(ada-mode)) events*" "/Projects/org.emacs.ada-mode/debug-1.log")))
-#one :: ELISP ?= (setq-default save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
+TEST_FILE ?= ada_mode-child_procedure.adb
+#one :: ELISP ?= (setq-default debug-on-error t save-parser-log (list (list "*EGLOT (_default_/(ada-mode)) events*" "/Projects/org.emacs.ada-mode/debug-1.log")))
+one :: ELISP ?= (setq-default save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 #one :: ELISP ?= (setq-default debug-on-error t)
-one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
+one :: GENERATE_ARGS := --generate LALR Ada_Emacs Process re2c
 #one :: build_executables
 #one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
 one-clean :: force
-	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
+	rm -f $(TEST_FILE).*
 #	rm -f ../test/gpr_query.db*
 #one :: RUNTEST := run-indent-test-elpa.el
-#one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
-one :: RUNTEST := run-indent-test-eglot.el
-#one :: $(addsuffix .diff-run, $(ONE_TEST_FILE))
-one :: $(addsuffix .diff, $(ONE_TEST_FILE))
+#one :: RUNTEST := run-indent-test-eglot.el
+#one :: $(addsuffix .diff-run, $(TEST_FILE))
+one :: $(addsuffix .diff, $(TEST_FILE))
 
-#one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one-debug :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one-debug :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
-one-debug :: RUNTEST := run-indent-test-eglot.el
-one-debug :: ELISP ?= (setq-default debug-on-error t)
+#one-debug :: RUNTEST := run-indent-test-eglot.el
+one-debug :: ELISP ?= (setq-default debug-on-error t debug-on-quit t)
 one-debug :: force
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
 oneb :: one-clean
 #oneb :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
-oneb :: $(addsuffix .diff, $(ONE_TEST_FILE))
+oneb :: $(addsuffix .diff, $(TEST_FILE))
 
-#two : RUN_ARGS ?= command_file debug.cmd
 two : LOG_ARGS ?= > debug.log 2>&1
-two : RUN_ARGS ?= parse_partial none test/debug.adb --verbosity "debug=1 parse=2"
-two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
+two : TEST_FILE ?= debug_edited-1_030
+two : ACTION ?= none
+two : VERBOSITY ?= debug=1 parse=1 mckenzie=1
+two : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0" # end name optional nil
+#two : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1" # end name optional t
+two : RUN_ARGS ?= parse_partial $(ACTION) $(TEST_FILE) $(LANG_PARAMS) --verbosity '$(VERBOSITY)'
+#two : RUN_ARGS ?= command_file debug.cmd
+two : GENERATE_ARGS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	cd ../; bin/run_ada_lalr_parse.exe $(RUN_ARGS) $(LOG_ARGS)
 
 two-lr1 : LOG_ARGS ?= > debug-lr1.log 2>&1
-two-lr1 : RUN_ARGS ?= parse_partial none test/debug.adb --verbosity "debug=1 parse=2"
+two-lr1 : TEST_FILE ?= debug_edited-1_030
+two-lr1 : ACTION ?= none
+two-lr1 : VERBOSITY ?= "debug=1 parse=1 mckenzie=1"
+two-lr1 : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0" # end name optional nil
+#two-lr1 : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1" # end name optional t
+two-lr1 : RUN_ARGS ?= parse_partial $(ACTION) $(TEST_FILE) $(LANG_PARAMS) --verbosity '$(VERBOSITY)'
 two-lr1 : ../run_ada_lr1_parse.exe
 	cd ../; bin/run_ada_lr1_parse.exe $(RUN_ARGS) $(LOG_ARGS)
 
@@ -148,9 +163,9 @@ two_pro : build_executables
 	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
 	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
 
-three : RUN_ARGS := c:/Eurocontrol 10
-three : run_libadalang.exe
-	cd ..; ./run_libadalang.exe $(RUN_ARGS)
+three : GENERATE_ARGS := --generate LALR Ada_Emacs re2c Process  --generate Tree_Sitter Ada_Emacs Tree_Sitter Process
+three : ../ada_annex_p_re2c.c
+three : ../ada_annex_p_tree_sitter.c
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -422,9 +437,10 @@ trace :
 %$(EXE_EXT) : %.adb force
 	cd ..; gprbuild -p -j8 -P ada_mode_wisi_parse.gpr $*.adb
 
-build_executables : $(WISI)/wisi.gpr ../ada_annex_p_re2c.c force
+# not supporting tree-sitter runtime yet ../ada_annex_p_tree_sitter.c
+build_executables : $(WISI)/wisi.gpr ../ada_annex_p_re2c.c  force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
-	cd ..; if [ -f ada_annex_p_lr1_parse_table.txt ] ; then mv ada_annex_p_lr1_parse_table.txt bin ; fi
+	cd ..; if [ -f ada_annex_p_lr1_re2c_parse_table.txt ] ; then mv ada_annex_p_lr1_re2c_parse_table.txt bin ; fi
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse

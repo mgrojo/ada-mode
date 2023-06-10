@@ -5,7 +5,7 @@
 -- wisi-expand-region did not ignore 'package' in the comment above;
 -- there is no code begin point between point and bob.
 
---EMACSCMD:(wisi-fontify-region (progn (search-forward "pragma")(point)) (point-max))
+--EMACSCMD:(wisi-fontify-region (progn (forward-line)(search-forward "pragma")(point)) (point-max))
 
 pragma License (Modified_Gpl);
 

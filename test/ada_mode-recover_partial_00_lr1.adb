@@ -2,10 +2,8 @@
 
 --EMACSCMD:(switch-to-lr1)
 
--- Before, when hitting the enqueue limit, there were two errors, one
--- from the sytax error, one from recover fail. In addition, all lines
--- are indented to zero. Now there is one error and the indentation is
--- better.
+-- Before, when hitting the enqueue limit, all lines were indented to
+-- zero. Now the indentation is better.
 
 --EMACSCMD:(progn (wisi-parse-buffer 'indent)(length (wisi-parser-local-parse-errors wisi-parser-local)))
 --EMACSRESULT:2

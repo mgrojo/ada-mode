@@ -4,7 +4,7 @@
 *.info
 *.parse_table
 *.re2c
-ada_annex_p-process.el
+ada_annex_p-process-*.el
 ada_annex_p.txt
 ada_annex_p_bnf.wy
 ada_annex_p_lr1_parse_table.txt
@@ -65,3 +65,8 @@ src/
 /alire/
 /config/
 autoloads.el~
+Cargo.toml
+binding.gyp
+bindings/
+package.json
+ada_annex_p.js

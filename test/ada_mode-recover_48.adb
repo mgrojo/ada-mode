@@ -26,3 +26,6 @@ begin
           Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens,
           Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
 end Gen_Run_Wisi_LR_Text_Rep_Parse;
+--Local Variables:
+--ada-end-name-optional: nil
+--End:
