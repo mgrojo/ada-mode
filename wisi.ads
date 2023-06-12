@@ -122,7 +122,7 @@ package Wisi is
    overriding
    function Copy_Augmented
      (User_Data : in Parse_Data_Type;
-      Augmented : in not null WisiToken.Syntax_Trees.Augmented_Class_Access)
+      Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
      return WisiToken.Syntax_Trees.Augmented_Class_Access;
 
    overriding
