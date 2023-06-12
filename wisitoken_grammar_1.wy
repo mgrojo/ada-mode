@@ -11,8 +11,9 @@
 ;;  In particular, we support grammars for popular languages:
 ;;
 ;;  - the Python grammar file given at
-;;    https://docs.python.org/3.8/reference/grammar.html
-;;    except that we require terminal semicolons
+;;    https://docs.python.org/3.8/reference/grammar.html except that
+;;    we require terminal semicolons, to eliminate ambiguities in
+;;    incremental parsing.
 ;;
 ;;  - the Java grammar file given at
 ;;    https://github.com/antlr/grammars-v4/tree/master/java
@@ -24,7 +25,7 @@
 ;;  EBNF syntax.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -45,12 +46,11 @@
 }%
 
 %meta_syntax EBNF
+%language_runtime "Wisi.WisiToken_Grammar"
 
 ;; LR1 for better error correction
 %generate LR1 Ada_Emacs re2c Process
 %start compilation_unit_list
-
-%language_runtime "Wisi.WisiToken_Grammar"
 
 ;; _not_ %case_insensitive; that makes ada.wy "%keyword IF" collide
 ;; with this IF.
@@ -109,8 +109,8 @@
 ;;
 ;; 0x22 = "
 ;; 0x27 = '
-%token <string-double-one-line> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
-%token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
+%token <string-double-one-line> STRING_LITERAL_DOUBLE %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
+%token <string-single-one-line> STRING_LITERAL_SINGLE %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
@@ -133,13 +133,14 @@
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
 %conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
+%conflict SHIFT identifier_list | REDUCE declaration on token IDENTIFIER
 
 ;;;; grammar rules, no particular order
 
 regexp_string
   : REGEXP
-  | STRING_LITERAL_1
-  | STRING_LITERAL_2
+  | STRING_LITERAL_DOUBLE
+  | STRING_LITERAL_SINGLE
   ;
 
 conflict_item
@@ -150,7 +151,7 @@ conflict_item
   ;
 
 conflict_item_list
-  : conflict_item {BAR conflict_item}
+  : <assoc=left> conflict_item {BAR conflict_item}
   ;
 
 token_keyword_non_grammar
@@ -172,9 +173,12 @@ declaration
       (wisi-indent-action [nil nil nil (wisi-hanging 4 2) (wisi-hanging 4 2)]))%
   | PERCENT CODE identifier_list RAW_CODE
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+  | PERCENT CONFLICT identifier_list
+    ;; Tree_Sitter format
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT CONFLICT conflict_item_list ON TOKEN IDENTIFIER
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
-  | PERCENT CONFLICT_RESOLUTION conflict_item_list ON TOKEN COLON IDENTIFIER
+  | PERCENT CONFLICT_RESOLUTION conflict_item_list ON TOKEN IDENTIFIER COLON IDENTIFIER
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
 
   ;; %start, %mckenzie*, etc.
@@ -222,22 +226,25 @@ declaration_item_list
 nonterm_colon : COLON | COLON_COLON_EQUAL ; ;; split out for action
 
 ;; We require terminal semicolons, and force at least one non-empty
-;; rhs, to improve error correction. Consider: exp : term : foo ; We
-;; are editing 'exp : foo ;' to insert a 'term' intermediary. If
+;; rhs, to improve error correction. Consider:
+;;
+;;    exp : term : foo ;
+;;
+;; We are editing 'exp : foo ;' to insert a 'term' intermediary. If
 ;; rhs_list can be empty and we don't require a terminal semicolon,
 ;; this parses as "nonterminal nonterminal", with an empty rhs_list in
 ;; "exp", and no error. Then when we insert "; term :" to complete the
 ;; edit, that empty rhs_list is not reparsed, so we are left with an
-;; error. test/incremental_01.wy. This also forces any empty rhs to be
-;; last, which is not required by the LR generator, but is required by
-;; packrat.
+;; error. See test/incremental_01.wy. This also forces any empty rhs
+;; to be last, which is not required by the LR generator, but is
+;; required by packrat.
 nonterminal
-  : IDENTIFIER nonterm_colon rhs_list ['|'] SEMICOLON
-    %((wisi-statement-action [1 statement-start 5 statement-end])
-      (wisi-motion-action [1 [3 rhs] 5])
+  : IDENTIFIER [attribute_list] nonterm_colon rhs_list ['|'] SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-motion-action [1 [4 rhs] 6])
       (wisi-name-action 1)
       (wisi-face-apply-action [1 nil font-lock-function-name-face])
-      (wisi-indent-action [[nil 2] 2 (wisi-block 2) 2 2]))%
+      (wisi-indent-action [[nil 2] 2 2 (wisi-block 2) 2 2]))%
   ;
 
 rhs_list
@@ -262,17 +269,18 @@ rhs_list
   ;
 
 rhs
-  : rhs_item_list
-    %((wisi-indent-action [[(wisi-hanging nil 2) nil]]))%
-  | rhs_item_list ACTION
-    %((wisi-check-parens [2])
-      (wisi-indent-action [(wisi-hanging nil 2) nil]))%
-  | rhs_item_list ACTION ACTION
-    %((wisi-check-parens [2 3])
-      (wisi-indent-action [(wisi-hanging nil 2) nil nil]))%
+  : attribute* rhs_item_list
+    %((wisi-indent-action [2 [(wisi-hanging nil 2) nil]]))%
+  | attribute* rhs_item_list ACTION
+    %((wisi-check-parens [3])
+      (wisi-indent-action [2 (wisi-hanging nil 2) nil]))%
+  | attribute* rhs_item_list ACTION ACTION
+    %((wisi-check-parens [3 4])
+      (wisi-indent-action [2 (wisi-hanging nil 2) nil nil]))%
   ;
 
-rhs_attribute
+attribute
+  ;; precedence or associativity
   : LESS IDENTIFIER EQUAL IDENTIFIER GREATER
   ;
 
@@ -288,9 +296,8 @@ rhs_item_list
 
 rhs_item
   : IDENTIFIER
-  | STRING_LITERAL_2   ;; value of token
+  | STRING_LITERAL_SINGLE   ;; value of token
     %((wisi-face-apply-action [1 nil font-lock-constant-face]))%
-  | rhs_attribute ;; ANTLR attribute
   | rhs_optional_item
   | rhs_multiple_item
   | rhs_group_item
@@ -304,7 +311,7 @@ rhs_optional_item
   : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
   | IDENTIFIER QUESTION
-  | STRING_LITERAL_2 QUESTION
+  | STRING_LITERAL_SINGLE QUESTION
     %((wisi-face-apply-action [1 nil font-lock-constant-face]))%
   ;
 
@@ -318,12 +325,9 @@ rhs_multiple_item
   ;
 
 rhs_alternative_list
-  : rhs_item_list
-  | rhs_alternative_list BAR rhs_item_list
+  : attribute* rhs_item_list {BAR rhs_item_list}
   ;
 
-;; We don't enforce a complete order, nor require all parts, so
-;; partial files can still be parsed successfully.
 compilation_unit
   : declaration
   | nonterminal
