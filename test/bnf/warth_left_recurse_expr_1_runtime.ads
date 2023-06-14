@@ -2,7 +2,7 @@
 --
 --  Runtime utils for warth_left_recurse_expr_1.wy actions.
 --
---  Copyright (C) 2018, 2020, 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020, 2021, 2023 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -24,7 +24,7 @@ package Warth_Left_Recurse_Expr_1_Runtime is
       Stack : Integer_Stacks.Stack;
    end record;
 
-   overriding procedure Reset (Data : in out User_Data_Type);
+   procedure Reset (Data : in out User_Data_Type);
 
    procedure Push
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

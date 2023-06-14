@@ -29,15 +29,19 @@ incremental_parse-pre-config.input_stream o.w.s-2
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-3"        . "../org.wisitoken")))
 
  current work
-propagate to o.w.s-1
+wisitoken-bnf-output_ada_emacs.adb: change _check to _in_parse, other to _post_parse
 
 improve doc of %if; add 'in' to condition
     add 'not' ? see ada_annex_p.wy conflict only in LALR
 
-test_incremental.adb fails
+new test case:
+    test_mckenzie missing_name_1 with end_name_optional true
+        hangs in tree.current_error
+
+test_mckenzie, test_incremental fail on Multiple_Errors_On_One_Token_*
     Multiple_Errors_On_One_Token_1
         recover_insert_delete node 1 not in tree
     inserted node was on a stream that is now deleted.
@@ -92,30 +96,80 @@ test_incremental.adb fails
             inserted node is -36:SEMICOLON
             contained in
 
-add right-associativity for tree-sitter lists
-    see fixme in o.e.a-m.s-4/ada_annex_p.wy
+ tree-sitter
+need to translate between tree_sitter nonterm token_id, rhs_id and wisitoken production_ids to lookup actions.
+    lookup action relies on production_id stored in nonterm
+        set by parser reduce using production_id stored in action in parse table
+        maybe tree_sitter actually stores something equivalent in its parse tree?
+    tree-sitter generate doesn't output productions in any form.
+    generated C code has list of tokens, and parse table
+    compute productions from table?
 
-translate %conflict_resolution to precedences?
-    https://github.com/tree-sitter/tree-sitter/pull/939
+
+    how does Emacs ts map actions to production rhs_id?
+
+
+add attribute to suppress node name in tree-sitter?
+    ie _membership_choice
+    https://tree-sitter.github.io/tree-sitter/creating-parsers#hiding-rules
+    what exactly is the consequence on the run-time
+        it can't actually leave the node out of the tree; incremental edit would not work?
+        it's left out of "print tree"?
+        it's skipped by tree iterators?
+
+    test with ada_lite_ebnf
+
+edit ada_full.js_good to match wisi generator order, briot changes
+    go thru annex P, add missing token labels to ada_full.wy
+        done to default_expression
+            add that in assign_value?
+
+extract tree_sitter conflict reporting code that finds an example token sequence, add to wisitoken generate
+
+in ada_annex_p.wy, label_opt, identifier_opt are possibly empty
+    forbidden in tree-sitter
+    comment says split out for match_names
+    improve match_names instead
+
+
+see fixme on %conflict component_list in c:/Projects/org.emacs.ada-mode.stephe-4/ada_annex_p.wy
+    not needed if use canonical list pattern?
+        does that sacrifice list optimization?
+            need to print tree-sitter trees
+
+don't compute recursion if no error recovery
+
+output actions in a wisi-tree-sitter compatible way
 
 consider https://github.com/briot/tree-sitter-ada
     some good conflict reduction
     test/bnf/ada_full.wy
-
-    t_bnf_one compares .js
-        ada_lite passes
-        ada_full generates ada_full.js
-            edit ada_full.js_good to match wisi generator order, briot changes
 
 
     notes for briot:
         see tick
         don't need 'token' in string_literal
         basic_declaration missing abstract_subprogram_declaration
-        name_not_function_call does not reduce conflicts?
-        name_for_constraint does?
+
+        list associativity:
+            discriminant_specification_list has prec.right
+            expression_list has prec.left
+            not needed?
+            component_choice_list does not have prec
+
+        name_not_function_call
+            use in subprogram_specification, generic_instantiation, generic_renaming => reduces conflicts
+            missing explicit_dereference
+
+        selected_component does not need prec.left?
+
+        name_for_constraint does reduce conflicts?
+
+        record_component_association_list
+            don't need to enforce two positional expressions at this level
+            does it reduce conflicts?
+
         array_type_definition expanded for actions
-        missing ".all"?
         slice: why do we care if Proc (Arr (1 .. 2)); is parsed as slice, subtype_indeciation instead of function_call, slice?
             we are not building a compiler
                 (there we go presuming the application again. sigh).
@@ -126,6 +180,40 @@ consider https://github.com/briot/tree-sitter-ada
             not worth it
 
         why do we need prec in selected_component, name_list, raise_expression?
+
+        why do we need separate tree nodes for factor_power, factor_abs, factor_not?
+            not used in any queries at https://github.com/briot/tree-sitter-ada/tree/master/queries
+
+        some field names not used in queries (and thus not in ada_full.wy):
+            submitted github issue: https://github.com/briot/tree-sitter-ada/issues/2
+            selected_component: prefix, selector_name
+            slice: prefix
+            value_sequence: is_parallel
+            *: condition
+            *: is_*
+            *: endname
+            subunit: parent_unit_name
+
+        why combine subprogram_declaration, abstract_subprogram_declaration?
+            highlights.scm has:
+            (subprogram_declaration "is" @keyword.function "abstract"  @keyword.function)
+                could be abstract_subprogram_declaration
+
+            (subprogram_declaration (aspect_specification) @attribute)
+                why not mark all aspect_specfication as @attribute?
+                or just list both
+
+            locals.scm:8:(subprogram_declaration) @scope
+                abstract_subprogram_declaration is _not_ a scope
+
+        comment on primary:
+          // _primary might resolve as an '_aggregate',which might resolve as
+          // a 'position_array_aggregate',so an expression like
+          //     case ( .. )
+          // is ambiguous. So we raise the priority here.
+
+            for "case", reducing to non-aggregate is ok, but not other
+            cases of this conflict; they might require an aggregate.
 
     briot says "extension_aggregate allows (parent with value)"
         if extension is a single component?

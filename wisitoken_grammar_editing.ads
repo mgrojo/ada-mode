@@ -103,9 +103,10 @@ package WisiToken_Grammar_Editing is
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
-     (Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Item  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Label : in     Identifier_Token := Invalid_Identifier_Token)
+     (Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Item      : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Label     : in     Identifier_Token       := Invalid_Identifier_Token;
+      Augmented : in     WisiToken.Syntax_Trees.Augmented_Class_Access := null)
      return WisiToken.Syntax_Trees.Valid_Node_Access
    with Pre => Tree.ID (Item) = +rhs_item_ID,
      Post => Tree.Production_ID (Add_RHS_Element'Result) =
@@ -121,18 +122,22 @@ package WisiToken_Grammar_Editing is
 
    function Add_RHS
      (Tree              : in out WisiToken.Syntax_Trees.Tree;
-      Item              : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Attr_List         : in     WisiToken.Syntax_Trees.Node_Access;
+      Item_List         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Auto_Token_Labels : in     Boolean;
-      Edited_Token_List : in     Boolean;
       Post_Parse_Action : in     WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access;
       In_Parse_Action   : in     WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access
-   with Pre => Tree.ID (Item) = +rhs_item_list_ID and
+   with Pre => (Attr_List = WisiToken.Syntax_Trees.Invalid_Node_Access or else
+                  Tree.ID (Attr_List) = +attribute_list_ID) and
+               Tree.ID (Item_List) = +rhs_item_list_ID and
                (Post_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Access or else
-                Tree.ID (Post_Parse_Action) = +ACTION_ID) and
+                  Tree.ID (Post_Parse_Action) = +ACTION_ID) and
                (In_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Access or else
-                Tree.ID (In_Parse_Action) = +ACTION_ID),
+                  Tree.ID (In_Parse_Action) = +ACTION_ID),
      Post => Tree.ID (Add_RHS'Result) = +rhs_ID;
+   --  If Post_, In_Parse_Action are non-null, they are moved to the new
+   --  RHS, not copied.
 
    function Find_Declaration
      (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
@@ -180,9 +185,9 @@ package WisiToken_Grammar_Editing is
    --  Generator.LR.*_Generate requires a BNF grammar.
 
    procedure Print_Source
-     (File_Name : in String;
-      Tree      : in WisiToken.Syntax_Trees.Tree;
-      Data      : in WisiToken_Grammar_Runtime.User_Data_Type);
+     (File_Name : in     String;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Data      : in     WisiToken_Grammar_Runtime.User_Data_Type);
    --  Print the wisitoken grammar source represented by Tree, Terminals
    --  to a new file File_Name.
 

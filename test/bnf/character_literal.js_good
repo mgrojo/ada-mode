@@ -1,16 +1,5 @@
 // generated from character_literal.wy -*- buffer-read-only:t js-indent-level:3 -*-
 
-const reserved = regex => token(prec(2, new RegExp(regex)));
-const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
-const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
-
-const GNAT_Char_Coding = '\\["[0-9A-Fa-f]+"\\]';
-module.exports = grammar({
-   name: 'Character_Literal',
-
-   rules: {
-      compilation_unit: $ => $.statement_list,
-
 // 
 // --  Copyright (C) 2013, 2015, 2017 - 2023 Stephen Leake.  All Rights Reserved.
 // --
@@ -26,6 +15,17 @@ module.exports = grammar({
 // --
 // --  You should have received a copy of the GNU General Public License
 // --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
+const GNAT_Char_Coding = '\\["[0-9A-Fa-f]+"\\]';
+module.exports = grammar({
+   name: 'Character_Literal',
+
+   rules: {
+      compilation_unit: $ => $.statement_list,
+
       FOO: $ => reservedInsensitive("foo"),
 
       COMMA: $ => ",",

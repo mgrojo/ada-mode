@@ -7393,4 +7393,4 @@ State 350:
 
 4 states with conflicts: 34 77 189 258
 
- 80 rules, 4 user actions, 19 checks, 351 states
+ 80 rules, 4 post_parse actions, 19 in_parse actions, 351 states

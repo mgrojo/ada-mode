@@ -27,7 +27,8 @@ with AUnit.Checks.Containers;
 with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with Ada_Lite_Actions;
+with Ada_Lite_LALR_Actions; -- see note at STRING_LITERAL in ada_lite.wy
+with Ada_Lite_LR1_Actions;
 with Ada_Lite_LALR_Main;
 with Ada_Lite_LR1_Main;
 with SAL;
@@ -38,7 +39,7 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_McKenzie_Recover is
-   use Ada_Lite_Actions;
+   use Ada_Lite_LALR_Actions;
    use AUnit.Checks;
    use AUnit.Checks.Containers;
    use WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays;
@@ -52,7 +53,9 @@ package body Test_McKenzie_Recover is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser   : WisiToken.Parse.LR.Parser.Parser_Access;
+   Parser                : WisiToken.Parse.LR.Parser.Parser_Access;
+   End_Name_Optional_Ptr : access Boolean;
+
    Log_File : Ada.Text_IO.File_Type; -- not used
 
    Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
@@ -75,7 +78,7 @@ package body Test_McKenzie_Recover is
    Invalid : constant WisiToken.Syntax_Trees.Base_Sequential_Index := WisiToken.Syntax_Trees.Invalid_Sequential_Index;
 
    procedure Check_ID is new AUnit.Checks.Gen_Check_Discrete_Aux
-     (WisiToken.Token_ID, WisiToken.Descriptor, WisiToken.Image, Ada_Lite_Actions.Descriptor);
+     (WisiToken.Token_ID, WisiToken.Descriptor, WisiToken.Image, Ada_Lite_LALR_Actions.Descriptor);
 
    procedure Parse_Text
      (Text             : in String;
@@ -953,7 +956,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("package body P is procedure Remove is begin A := B; exception end; end P; procedure Q;");
@@ -994,7 +997,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("package body P is procedure Remove is begin A := B; exception end; A := B; end Remove; end P; procedure Q;");
@@ -1034,7 +1037,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
@@ -1074,7 +1077,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("package body P is procedure Remove is begin A := B; end; end P; procedure Q;");
@@ -1103,7 +1106,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("package body P is package body Remove is A : Integer; end; end P; procedure Q;");
@@ -1131,7 +1134,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("procedure Proc_1 is procedure Proc_2 is begin null; end; begin null; end Proc_1;");
@@ -1161,7 +1164,7 @@ package body Test_McKenzie_Recover is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       --  From ada_mode-recover_match_names_03.adb. We have to mess with
       --  mckenzie costs to duplicate the full Ada behavior.
@@ -1427,7 +1430,7 @@ package body Test_McKenzie_Recover is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("procedure Ada_Mode.Interactive_2 is procedure Proc_2 is begin null; begin null; end" &
@@ -1462,7 +1465,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("procedure Ada_Mode.Recover_6 is begin declare name : int; begin null; end Ada_Mode.Recover_6;");
@@ -1487,7 +1490,7 @@ package body Test_McKenzie_Recover is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+      End_Name_Optional_Ptr.all := False; -- Triggers Missing_Name_Error.
 
       Parse_Text
         ("procedure Slow_Recover_2 is begin if 0 /= Input (Context, Name end Slow_Recover_2;");
@@ -2280,7 +2283,7 @@ package body Test_McKenzie_Recover is
    begin
       --  This test case provided the motivation for
       --  Just_Pushed_Back_Or_Deleted to check multiple previous ops.
-      Ada_Lite_Actions.End_Name_Optional := False;
+      End_Name_Optional_Ptr.all := False;
 
       Parse_Text ("procedure A is begin null; end;");
       --           1         2 3  4     5   6 7  8
@@ -2561,6 +2564,8 @@ package body Test_McKenzie_Recover is
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access));
 
+         End_Name_Optional_Ptr := Ada_Lite_LALR_Actions.End_Name_Optional'Access;
+
       when WisiToken.BNF.LR1 =>
          Parser := new WisiToken.Parse.LR.Parser.Parser'
            (Ada_Lite_LR1_Main.Create_Parser
@@ -2570,6 +2575,8 @@ package body Test_McKenzie_Recover is
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
                WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
                Text_Rep_File_Name => "ada_lite_lr1_re2c_parse_table.txt"));
+
+         End_Name_Optional_Ptr := Ada_Lite_LR1_Actions.End_Name_Optional'Access;
       end case;
 
       if T.McKenzie_Options /= null then
@@ -2580,13 +2587,13 @@ package body Test_McKenzie_Recover is
       Orig_Force_Full_Explore        := WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore;
       Orig_Force_High_Cost_Solutions := WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions;
 
-      Orig_End_Name_Optional := End_Name_Optional;
+      Orig_End_Name_Optional := End_Name_Optional_Ptr.all;
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
       --  Run before each test
-      End_Name_Optional := Orig_End_Name_Optional;
+      End_Name_Optional_Ptr.all := Orig_End_Name_Optional;
 
       Parser.Table.McKenzie_Param := Orig_Params;
 

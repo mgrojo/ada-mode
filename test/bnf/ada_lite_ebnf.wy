@@ -47,7 +47,9 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+
+;; See note in ada_lite.wy about 'Tree_Sitter None'
+%generate Tree_Sitter None tree_sitter
 
 %meta_syntax EBNF
 

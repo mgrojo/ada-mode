@@ -1,0 +1,107 @@
+// generated from prec_assoc.wy -*- buffer-read-only:t js-indent-level:3 -*-
+
+// 
+// ;;  Copyright (C) 2023 Free Software Foundation, Inc.
+// ;;
+// ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
+// ;;
+// ;;  This file is part of WisiToken.
+// ;;
+// ;;  WisiToken is free software: you can redistribute it and/or modify
+// ;;  it under the terms of the GNU General Public License as published by
+// ;;  the Free Software Foundation, either version 3 of the License, or
+// ;;  (at your option) any later version.
+// ;;
+// ;;  WisiToken is distributed in the hope that it will be useful,
+// ;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+// ;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// ;;  GNU General Public License for more details.
+// ;;
+// ;;  You should have received a copy of the GNU General Public License
+// ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
+module.exports = grammar({
+   name: 'Prec_Assoc',
+
+   precedences: () => [
+     [
+       'unary',
+       'binary_relational',
+       'binary_and',
+       'binary_or',
+       'binary_multiply',
+       'binary_add',
+     ],
+   ],
+
+   rules: {
+      compilation_unit_list: $ => choice(seq($.compilation_unit_list, $.compilation_unit), $.compilation_unit),
+
+      AND: $ => reservedInsensitive('and'),
+
+      NOT: $ => reservedInsensitive('not'),
+
+      OR: $ => reservedInsensitive('or'),
+
+      XOR: $ => reservedInsensitive('xor'),
+
+      EQUAL: $ => "=",
+
+      GREATER: $ => ">",
+
+      GREATER_EQUAL: $ => ">=",
+
+      LEFT_PAREN: $ => "(",
+
+      LESS: $ => "<",
+
+      LESS_EQUAL: $ => "<=",
+
+      MINUS: $ => "-",
+
+      PLUS: $ => "+",
+
+      RIGHT_PAREN: $ => ")",
+
+      SEMICOLON: $ => ";",
+
+      SLASH: $ => "/",
+
+      SLASH_EQUAL: $ => "/=",
+
+      STAR: $ => "*",
+
+      COMMENT: $ => token(seq("--", /.*/)),
+
+      IDENTIFIER: $ => /[$a-zA-Z\u{80}-\u{10FFFF}][0-9a-zA-Z_\u{80}-\u{10FFFF}]*/u,
+
+      word: $ => $.IDENTIFIER,
+
+      NUMERIC_LITERAL: $ => /[0-9]+/,
+
+      compilation_unit: $ => seq($.expression, $.SEMICOLON),
+
+      expression: $ => choice($.primary, prec('unary', seq($.unary_operator, $.expression)), prec.left('binary_relational', seq($.expression, field('operator', $.relational_op), $.expression)), prec.left('binary_and', seq($.expression, field('operator', $.AND), $.expression)), prec.left('binary_or', seq($.expression, field('operator', $.or_op), $.expression)), prec.left('binary_multiply', seq($.expression, field('operator', $.multiply_op), $.expression)), prec.left('binary_add', seq($.expression, field('operator', $.add_op), $.expression))),
+
+      unary_operator: $ => choice($.NOT, $.PLUS, $.MINUS),
+
+      relational_op: $ => prec('binary_relational', choice($.EQUAL, $.SLASH_EQUAL, $.LESS, $.LESS_EQUAL, $.GREATER, $.GREATER_EQUAL)),
+
+      or_op: $ => prec('binary_or', choice($.OR, $.XOR)),
+
+      multiply_op: $ => prec('binary_multiply', choice($.STAR, $.SLASH)),
+
+      add_op: $ => prec('binary_add', choice($.PLUS, $.MINUS)),
+
+      primary: $ => choice($.NUMERIC_LITERAL, $.IDENTIFIER, seq($.LEFT_PAREN, $.expression, $.RIGHT_PAREN)),
+
+  },
+  extras: $ => [
+      $.COMMENT,
+      /\s|\\\r?\n/,
+  ],
+}
+);

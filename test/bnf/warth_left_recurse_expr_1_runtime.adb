@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2020 - 2022 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2023 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,7 +18,7 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    ----------
    --  Public subprograms, declaration order
 
-   overriding procedure Reset (Data : in out User_Data_Type)
+   procedure Reset (Data : in out User_Data_Type)
    is begin
       --  Preserve Lexer, Terminals
       Data.Stack.Clear;

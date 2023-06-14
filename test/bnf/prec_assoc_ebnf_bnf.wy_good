@@ -1,0 +1,145 @@
+;;; generated from prec_assoc_ebnf.wy -*- buffer-read-only:t -*-
+;;;
+;;; Testing specifying precedence and associativity in ebnf syntax.
+;;
+;; This is a small subset of the Ada grammar, describing expressions,
+;; but using precedence and associativity rather than multiple syntax
+;; rules.
+;;
+;; Tested in test_prec_assoc.adb, which parses expressions, inserts
+;; parentheses, and compares to the Ada equivalent expressions.
+
+%code copyright_license %{
+;;  Copyright (C) 2023 Free Software Foundation, Inc.
+;;
+;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;
+;;  This file is part of WisiToken.
+;;
+;;  WisiToken is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
+;;
+;;  WisiToken is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%generate LALR Ada re2c
+%generate Tree_Sitter Ada tree_sitter
+
+%meta_syntax BNF
+
+;; Tree_Sitter requires all keywords declared explicitly; Ada keywords
+;; are case insensitive.
+%keyword AND 'and'
+%keyword NOT 'not'
+%keyword OR 'or'
+%keyword XOR 'xor'
+
+;; All tokens that consist of characters with punctuation syntax; we
+;; need an Ada identifier compatible name.
+%token <punctuation> EQUAL "="
+%token <punctuation> GREATER ">"
+%token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> LEFT_PAREN "("
+%token <punctuation> LESS "<"
+%token <punctuation> LESS_EQUAL "<="
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> RIGHT_PAREN ")"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> SLASH_EQUAL "/="
+%token <punctuation> STAR "*"
+
+%non_grammar <comment-new-line> COMMENT "--"
+
+%if lexer = re2c
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE
+
+%elsif lexer = tree_sitter
+%token <symbol> IDENTIFIER %[ /[$a-zA-Z\u{80}-\u{10FFFF}][0-9a-zA-Z_\u{80}-\u{10FFFF}]*/u ]%
+
+;; 'word' is required for wisi tree-sitter; see FIXME: (comment in
+;; wisitoken-generate-tree_sitter.adb should be in user guide.)
+word
+  : IDENTIFIER
+  ;
+
+%token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
+
+
+%end if
+
+%start compilation_unit_list
+
+%precedence unary binary_relational binary_and binary_or binary_multiply binary_add
+
+compilation_unit
+  : expression SEMICOLON
+  ;
+
+compilation_unit_list
+  : compilation_unit
+  | compilation_unit_list compilation_unit
+  ;
+
+expression
+  : primary
+  | <prec=unary> unary_operator expression
+  | <assoc=left><prec=binary_relational> expression relational_op expression
+  | <assoc=left><prec=binary_and> expression AND expression
+  | <assoc=left><prec=binary_or> expression or_op expression
+  | <assoc=left><prec=binary_multiply> expression multiply_op expression
+  | <assoc=left><prec=binary_add> expression add_op expression
+  ;
+
+unary_operator
+  : NOT
+  | PLUS
+  | MINUS
+  ;
+
+relational_op
+<prec=binary_relational>
+  : EQUAL
+  | SLASH_EQUAL
+  | LESS
+  | LESS_EQUAL
+  | GREATER
+  | GREATER_EQUAL
+  ;
+or_op
+<prec=binary_or>
+  : OR
+  | XOR
+  ;
+multiply_op
+<prec=binary_multiply>
+  : STAR
+  | SLASH
+  ;
+add_op
+<prec=binary_add>
+  : PLUS
+  | MINUS
+  ;
+
+primary
+  : NUMERIC_LITERAL
+  | IDENTIFIER
+  | LEFT_PAREN expression RIGHT_PAREN
+  ;
+
+;;; end of file

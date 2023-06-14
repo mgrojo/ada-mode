@@ -433,4 +433,4 @@ State 23:
 
 3 states with conflicts: 7 19 21
 
- 7 rules, 0 user actions, 0 checks, 24 states
+ 7 rules, 0 post_parse actions, 0 in_parse actions, 24 states

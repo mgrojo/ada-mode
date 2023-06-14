@@ -51,7 +51,11 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Hashed_Maps;
+with Ada.Containers.Vectors;
 with Ada.Streams;
+with Ada.Strings.Equal_Case_Insensitive;
+with Ada.Strings.Hash_Case_Insensitive;
 with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -501,6 +505,47 @@ package WisiToken is
 
    ----------
    --  Misc
+
+   type Associativity is (Left, Right, None);
+
+   type Base_Precedence_ID is range 0 .. 255;
+   subtype Precedence_ID is Base_Precedence_ID range 1 .. 255;
+   No_Precedence : constant Base_Precedence_ID := 0;
+
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Precedence_ID);
+
+   type Precedence_List_ID is range 1 .. 255;
+
+   package Precedence_Maps is new Ada.Containers.Indefinite_Hashed_Maps
+     (Key_Type        => String,
+      Element_Type    => Precedence_ID,
+      Hash            => Ada.Strings.Hash_Case_Insensitive,
+      Equivalent_Keys => Ada.Strings.Equal_Case_Insensitive);
+
+   package Precedence_Inverse_Maps is new Ada.Containers.Vectors
+     (Index_Type   => Precedence_ID,
+      Element_Type => Ada.Strings.Unbounded.Unbounded_String,
+      "="          => Ada.Strings.Unbounded."=");
+
+   package Precedence_Lists is new Ada.Containers.Doubly_Linked_Lists (Precedence_ID);
+
+   package Precedence_Lists_Arrays is new Ada.Containers.Vectors
+     (Precedence_List_ID, Precedence_Lists.List, Precedence_Lists."=");
+   --  Actual precedence relation is given by order of two Precedence_IDs
+   --  in a Precedence_List; earlier ID has higher precedence.
+
+   procedure Put
+     (Lists : in Precedence_Lists_Arrays.Vector;
+      Map   : in Precedence_Maps.Map);
+   --  Put Lists, Map to Ada.Text_IO.Current_Ouput, for debugging.
+
+   type Precedence_Compare_Result is (Left, Right, None);
+
+   function Compare
+     (Left        : in Precedence_ID;
+      Right       : in Precedence_ID;
+      Precedences : in Precedence_Lists_Arrays.Vector)
+     return Precedence_Compare_Result;
 
    type Cache_Version is mod 2**16;
 

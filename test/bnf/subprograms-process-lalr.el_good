@@ -1,7 +1,7 @@
-;;; subprograms-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
+;;; subprograms-process-lalr.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 
-;;  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 
 (require 'wisi-process-parse)
 
-(defconst subprograms-process-token-table
+(defconst subprograms-process-lalr-token-table
   [WHITESPACE
    NEW_LINE
    COMMENT_1
@@ -30,9 +30,12 @@
    FUNCTION
    IN
    LOOP
+   OF
+   PARALLEL
    PROCEDURE
-   WHEN
+   REVERSE
    USE
+   WHEN
    LEFT_PAREN
    RIGHT_PAREN
    COLON
@@ -43,21 +46,24 @@
    Wisi_EOI
    wisitoken_accept
    block
+   formal_part
    compilation_unit
    declaration
    loop_statement
+   iteration_scheme
+   iterator_specification
+   chunk_specification
    name
    name_list
    parameter_list
    subprogram
    subtype
    use_clause
-   declaration_list
-   nonterminal_014
+   nonterminal_022
    Wisi_SOI
    ])
 
-(defconst subprograms-process-face-table
+(defconst subprograms-process-lalr-face-table
   [
    font-lock-keyword-face
    font-lock-type-face
@@ -65,7 +71,7 @@
    nil
    ])
 
-(defconst subprograms-process-repair-image
+(defconst subprograms-process-lalr-repair-image
   '(
    (BEGIN . "begin")
    (END . "end")
@@ -74,9 +80,12 @@
    (FUNCTION . "function")
    (IN . "in")
    (LOOP . "loop")
+   (OF . "of")
+   (PARALLEL . "parallel")
    (PROCEDURE . "procedure")
-   (WHEN . "when")
+   (REVERSE . "reverse")
    (USE . "use")
+   (WHEN . "when")
    (LEFT_PAREN . "(")
    (RIGHT_PAREN . ")")
    (COLON . ":")
@@ -86,4 +95,4 @@
    (SYMBOL . "bogus_symbol")
    ))
 
-(provide 'subprograms-process)
+(provide 'subprograms-process-lalr)

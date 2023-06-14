@@ -1222,4 +1222,4 @@ State 85:
 
 75 states with minimal_complete_actions; 83 total minimal_complete_actions.
 
- 13 rules, 0 user actions, 0 checks, 86 states
+ 13 rules, 0 post_parse actions, 0 in_parse actions, 86 states

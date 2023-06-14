@@ -204,6 +204,13 @@ package body WisiToken.BNF is
       Put_Line (Comment_Syntax);
    end Put_File_Header;
 
+   function Image (Item : in Labeled_Token) return String
+   is
+      use Ada.Strings.Unbounded;
+   begin
+      return (if Length (Item.Label) > 0 then -Item.Label & "=" else "") & (-Item.Identifier);
+   end Image;
+
    function Is_Present (List : in WisiToken.BNF.String_Pair_Lists.List; Name : in String) return Boolean
    is
       use all type Ada.Strings.Unbounded.Unbounded_String;

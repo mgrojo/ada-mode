@@ -2,7 +2,7 @@
 --
 --  Translate a wisitoken grammar file to a tree-sitter grammar file.
 --
---  Copyright (C) 2020, 2021, 2022 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2023 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,10 +19,13 @@ with WisiToken_Grammar_Runtime;
 package WisiToken.Generate.Tree_Sitter is
 
    procedure Eliminate_Empty_Productions
-     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree);
-   --  Edit Tree to eliminate productions that can be empty, which are
-   --  forbidden by the tree-sitter generator.
+     (Data     : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree     : in out WisiToken.Syntax_Trees.Tree;
+      No_Empty : in     Boolean);
+   --  If No_Empty, raise Grammar_Error if Tree has productions that can
+   --  be empty, which are forbidden by the tree-sitter generator.
+   --
+   --  Otherwise, edit Tree to eliminate productions that can be empty.
    --
    --  Also processes %if, so subsequent passes don't have to.
 

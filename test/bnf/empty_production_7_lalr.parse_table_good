@@ -13,16 +13,13 @@ Tokens:
 
 Productions:
 6.0: wisitoken_accept <= object_declaration_list Wisi_EOI
-7.0: object_declaration_list <= object_declaration_list object_declaration ; (1 => Direct_Left)
+7.0: object_declaration_list <= object_declaration_list object_declaration
 7.1: object_declaration_list <= object_declaration
 8.0: object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON
 9.0: aliased_opt <= ALIASED
 9.1: aliased_opt <=
 10.0: constant_opt <= CONSTANT
 10.1: constant_opt <=
-
-Recursions:
-1 => (7 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -46,7 +43,7 @@ State 1:
 
    aliased_opt             goto state 5
 
-   Minimal_Complete_Actions => (0 aliased_opt 9.1)
+   Minimal_Complete_Actions => 
 
 State 2:
       6.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI
@@ -67,7 +64,7 @@ State 3:
    Wisi_EOI                => reduce 1 tokens to object_declaration_list 7.1
    default                 => ERROR
 
-   Minimal_Complete_Actions => (1 object_declaration_list 7.1)
+   Minimal_Complete_Actions => 
 
 State 4:
       9.0:aliased_opt <= ALIASED ^
@@ -76,7 +73,7 @@ State 4:
    SEMICOLON               => reduce 1 tokens to aliased_opt 9.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (1 aliased_opt 9.0)
+   Minimal_Complete_Actions => 
 
 State 5:
       8.0:object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON
@@ -87,7 +84,7 @@ State 5:
 
    constant_opt            goto state 8
 
-   Minimal_Complete_Actions => (0 constant_opt 10.1)
+   Minimal_Complete_Actions => 
 
 State 6:
       7.0:object_declaration_list <= object_declaration_list object_declaration ^
@@ -96,7 +93,7 @@ State 6:
    Wisi_EOI                => reduce 2 tokens to object_declaration_list 7.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (2 object_declaration_list 7.0)
+   Minimal_Complete_Actions => 
 
 State 7:
      10.0:constant_opt <= CONSTANT ^
@@ -104,7 +101,7 @@ State 7:
    SEMICOLON               => reduce 1 tokens to constant_opt 10.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (1 constant_opt 10.0)
+   Minimal_Complete_Actions => 
 
 State 8:
       8.0:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON
@@ -112,7 +109,7 @@ State 8:
    SEMICOLON               => shift and goto state 9 8.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON 8.0)
+   Minimal_Complete_Actions => 
 
 State 9:
       8.0:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^
@@ -121,8 +118,8 @@ State 9:
    Wisi_EOI                => reduce 4 tokens to object_declaration 8.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (4 object_declaration 8.0)
+   Minimal_Complete_Actions => 
 
-8 states with minimal_complete_actions; 8 total minimal_complete_actions.
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
 
- 4 rules, 0 user actions, 0 checks, 10 states
+ 4 rules, 0 post_parse actions, 0 in_parse actions, 10 states

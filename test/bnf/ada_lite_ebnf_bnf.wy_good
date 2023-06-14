@@ -45,11 +45,14 @@
       null;
    end Handle_Aspect;
 }%
+
 %end if
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+
+;; See note in ada_lite.wy about 'Tree_Sitter None'
+%generate Tree_Sitter None tree_sitter
 
 %meta_syntax BNF
 
@@ -137,6 +140,7 @@ word
 
 %token <number> NUMERIC_LITERAL %[ /[0-9]+/ ]%
 
+
 %end if
 
 %start compilation_unit_list
@@ -209,6 +213,7 @@ word
 %mckenzie_cost_insert EXIT 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
+
 %end if
 
 %conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
@@ -241,6 +246,7 @@ word
 
 %elsif parser = Tree_Sitter
 %conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+
 %end if
 
 ;;;; grammar rules
@@ -283,10 +289,10 @@ block_label_opt
   ;
 
 block_statement
-  : T1=block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
+  : T1=block_label_opt T2=DECLARE T3=declarative_part T4=BEGIN T5=handled_sequence_of_statements T6=END T7=identifier_opt T8=SEMICOLON
     %()%
     %(return Match_Names (Tree, Tokens, T1, T7, End_Name_Optional);)%
-  | T1=block_label_opt BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
+  | T1=block_label_opt T4=BEGIN T5=handled_sequence_of_statements T6=END T7=identifier_opt T8=SEMICOLON
     %()%
     %(return Match_Names (Tree, Tokens, T1, T7, End_Name_Optional);)%
   ;
@@ -479,16 +485,16 @@ object_declaration
 
 ;; Test optional item with label.
 package_body
-  : PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_2=name_opt SEMICOLON
+  : T1=PACKAGE T2=BODY name_1=name aspect_1=aspect_specification T5=IS T6=declarative_part T7=BEGIN T8=handled_sequence_of_statements T9=END name_2=name_opt T11=SEMICOLON
     %(Handle_Aspect (aspect_1);)%
     %(return Match_Names (Tree, Tokens, name_1, name_2, End_Name_Optional);)%
-  | PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part END name_2=name_opt SEMICOLON
+  | T1=PACKAGE T2=BODY name_1=name aspect_1=aspect_specification T5=IS T6=declarative_part T9=END name_2=name_opt T11=SEMICOLON
     %(Handle_Aspect (aspect_1);)%
     %(return Match_Names (Tree, Tokens, name_1, name_2, End_Name_Optional);)%
-  | PACKAGE BODY name_1=name IS declarative_part BEGIN handled_sequence_of_statements END name_2=name_opt SEMICOLON
+  | T1=PACKAGE T2=BODY name_1=name T5=IS T6=declarative_part T7=BEGIN T8=handled_sequence_of_statements T9=END name_2=name_opt T11=SEMICOLON
     %(Handle_Aspect (aspect_1);)%
     %(return Match_Names (Tree, Tokens, name_1, name_2, End_Name_Optional);)%
-  | PACKAGE BODY name_1=name IS declarative_part END name_2=name_opt SEMICOLON
+  | T1=PACKAGE T2=BODY name_1=name T5=IS T6=declarative_part T9=END name_2=name_opt T11=SEMICOLON
     %(Handle_Aspect (aspect_1);)%
     %(return Match_Names (Tree, Tokens, name_1, name_2, End_Name_Optional);)%
   ;
@@ -596,10 +602,10 @@ statement
   ;
 
 subprogram_body
-  : Name_1=subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
+  : Name_1=subprogram_specification T2=aspect_specification T3=IS T4=declarative_part T5=BEGIN T6=handled_sequence_of_statements T7=END Name_2=name_opt T9=SEMICOLON
     %()%
     %(return Match_Names (Tree, Tokens, Name_1, Name_2, End_Name_Optional);)%
-  | Name_1=subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
+  | Name_1=subprogram_specification T3=IS T4=declarative_part T5=BEGIN T6=handled_sequence_of_statements T7=END Name_2=name_opt T9=SEMICOLON
     %()%
     %(return Match_Names (Tree, Tokens, Name_1, Name_2, End_Name_Optional);)%
   ;

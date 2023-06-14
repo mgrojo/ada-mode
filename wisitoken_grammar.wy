@@ -1,6 +1,6 @@
 ;;; WisiToken grammar for WisiToken grammar, for wisitoken-bnf-generate.
 ;;
-;;  wisitoken_grammar-mode uses the same grammar for parsing .wy
+;;  wisitoken-grammar-mode uses the same grammar for parsing .wy
 ;;  files, but with different actions.
 ;;  (ediff "wisitoken_grammar_1.wy" "../org.wisitoken/wisitoken_grammar.wy")
 ;;
@@ -17,7 +17,7 @@
 ;;    https://github.com/antlr/grammars-v4/tree/master/java
 ;;
 ;;  - the Ada grammar given in the Ada Language Reference Manual Annex
-;;    P; see http://ada-auth.org/arm.html
+;;    P; see https://ada-auth.org/arm.html
 ;;
 ;;  This file uses only plain BNF syntax, to simplify working on the
 ;;  EBNF syntax.
@@ -40,7 +40,7 @@
 ;;  GNU General Public License for more details.
 ;;
 ;;  You should have received a copy of the GNU General Public License
-;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 }%
 
 %code actions body context %{
@@ -49,6 +49,13 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 %generate LALR Ada re2c
 %start compilation_unit_list
+
+;; _not_ %case_insensitive; that makes ada.wy "%keyword IF" collide
+;; with this IF.
+;;
+;; 'reduce' and 'shift' are case insenstive, because error messages
+;; contain them in uppercase, and we allow people to either type them
+;; in lower case or just copy them from the error message.
 
 %keyword ACCEPT_I 'accept_it'
 %keyword CODE "code"
@@ -106,13 +113,6 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <comment-new-line> COMMENT ";;"
-
-%elisp_face font-lock-constant-face
-%elisp_face font-lock-function-name-face
-%elisp_face font-lock-keyword-face
-%elisp_face font-lock-string-face
-%elisp_face font-lock-type-face
-%elisp_face nil
 
 ;; No error recovery, because this grammar is not intended for
 ;; interactive use, and to keep wisitoken-bnf-generate independent of
@@ -209,8 +209,13 @@ declaration_item_list
   | declaration_item_list declaration_item
   ;
 
+;; These attribute_lists apply to the following rhs_list
 nonterminal
   : IDENTIFIER COLON rhs_list semicolon_opt
+    %(Add_Nonterminal (User_Data, Tree, Nonterm);)%
+  | IDENTIFIER attribute_list COLON rhs_list semicolon_opt
+    %(Add_Nonterminal (User_Data, Tree, Nonterm);)%
+  | IDENTIFIER attribute_list COLON_COLON_EQUAL rhs_list semicolon_opt
     %(Add_Nonterminal (User_Data, Tree, Nonterm);)%
   | IDENTIFIER COLON_COLON_EQUAL rhs_list semicolon_opt
     %(Add_Nonterminal (User_Data, Tree, Nonterm);)%
@@ -231,15 +236,25 @@ rhs_list
   | rhs_list PERCENT END IF
   ;
 
+;; These attribute_lists apply to the following rhs_item_list
 rhs
   : ;; empty
   | rhs_item_list
+  | attribute_list rhs_item_list
   | rhs_item_list ACTION
+  | attribute_list rhs_item_list ACTION
   | rhs_item_list ACTION ACTION
+  | attribute_list rhs_item_list ACTION ACTION
   ;
 
-rhs_attribute
+attribute
+  ;; precedence or associativity
   : LESS IDENTIFIER EQUAL IDENTIFIER GREATER
+  ;
+
+attribute_list
+  : attribute_list attribute
+  | attribute
   ;
 
 rhs_element
@@ -248,15 +263,13 @@ rhs_element
   ;
 
 rhs_item_list
-  : rhs_element
-  | rhs_item_list rhs_element
+  : rhs_item_list rhs_element
+  | rhs_element
   ;
 
 rhs_item
   : IDENTIFIER
   | STRING_LITERAL_SINGLE   ;; value of token
-    %(Check_EBNF (User_Data, Tree, Nonterm, 1);)%
-  | rhs_attribute ;; ANTLR attribute
     %(Check_EBNF (User_Data, Tree, Nonterm, 1);)%
   | rhs_optional_item
     %(Check_EBNF (User_Data, Tree, Nonterm, 1);)%
@@ -287,13 +300,18 @@ rhs_multiple_item
   | LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS ;; not empty
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS  ;; not empty
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR  ;; can be empty
-  | IDENTIFIER PLUS
-  | IDENTIFIER STAR
+  | IDENTIFIER PLUS ;; not empty
+  | IDENTIFIER STAR ;; can be empty
   ;
 
 rhs_alternative_list
-  : rhs_item_list
-  | rhs_alternative_list BAR rhs_item_list
+  : attribute_list rhs_alternative_list_1
+  | rhs_alternative_list_1
+  ;
+
+rhs_alternative_list_1
+  : rhs_alternative_list_1 BAR rhs_item_list
+  | rhs_item_list
   ;
 
 ;; We don't enforce a complete order, nor require all parts, so
@@ -304,8 +322,8 @@ compilation_unit
   ;
 
 compilation_unit_list
-  : compilation_unit
-  | compilation_unit_list compilation_unit
+  : compilation_unit_list compilation_unit
+  | compilation_unit
   ;
 
 ;; end of file

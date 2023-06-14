@@ -1,15 +1,5 @@
 // generated from ada_lite_ebnf.wy -*- buffer-read-only:t js-indent-level:3 -*-
 
-const reserved = regex => token(prec(2, new RegExp(regex)));
-const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
-const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
-
-module.exports = grammar({
-   name: 'Ada_Lite_Ebnf',
-
-   rules: {
-      compilation_unit_list: $ => choice($.compilation_unit, seq($.compilation_unit_list, $.compilation_unit)),
-
 // 
 // ;;  Copyright (C) 2017 - 2023 Free Software Foundation, Inc.
 // ;;
@@ -29,6 +19,16 @@ module.exports = grammar({
 // ;;
 // ;;  You should have received a copy of the GNU General Public License
 // ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+const reserved = regex => token(prec(2, new RegExp(regex)));
+const caseInsensitive = word => word.split('') .map(letter => `[${letter}${letter.toUpperCase()}]`) .join('');
+const reservedInsensitive = word => alias(reserved(caseInsensitive(word)), word) ;
+
+module.exports = grammar({
+   name: 'Ada_Lite_Ebnf',
+
+   rules: {
+      compilation_unit_list: $ => choice($.compilation_unit, seq($.compilation_unit_list, $.compilation_unit)),
+
       AND: $ => reservedInsensitive('and'),
 
       BEGIN: $ => reservedInsensitive('begin'),
@@ -151,7 +151,7 @@ module.exports = grammar({
 
       block_label_opt: $ => seq($.IDENTIFIER, ':'),
 
-      block_statement: $ => seq(optional($.block_label_opt), optional(seq($.DECLARE, optional($.declarative_part))), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.identifier_opt), ';'),
+      block_statement: $ => seq(field('T1', optional($.block_label_opt)), optional(seq($.DECLARE, optional($.declarative_part))), $.BEGIN, $.handled_sequence_of_statements, $.END, field('T7', optional($.identifier_opt)), ';'),
 
       body_g: $ => choice($.proper_body, $.body_stub),
 
@@ -217,7 +217,7 @@ module.exports = grammar({
 
       object_declaration: $ => seq($.IDENTIFIER, ':', $.subtype_indication, optional(seq(':=', $.expression)), ';'),
 
-      package_body: $ => seq($.PACKAGE, $.BODY, $.name, optional($.aspect_specification), $.IS, optional($.declarative_part), optional(seq($.BEGIN, $.handled_sequence_of_statements)), $.END, optional($.name_opt), ';'),
+      package_body: $ => seq($.PACKAGE, $.BODY, field('name_1', $.name), field('aspect_1', optional($.aspect_specification)), $.IS, optional($.declarative_part), optional(seq($.BEGIN, $.handled_sequence_of_statements)), $.END, field('name_2', optional($.name_opt)), ';'),
 
       parameter_and_result_profile: $ => choice(seq($.formal_part, $.RETURN, $.IDENTIFIER), seq($.RETURN, $.IDENTIFIER)),
 
@@ -257,7 +257,7 @@ module.exports = grammar({
 
       statement: $ => choice($.simple_statement, $.compound_statement, $.pragma_g),
 
-      subprogram_body: $ => seq($.subprogram_specification, optional($.aspect_specification), $.IS, optional($.declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, optional($.name_opt), ';'),
+      subprogram_body: $ => seq(field('Name_1', $.subprogram_specification), optional($.aspect_specification), $.IS, optional($.declarative_part), $.BEGIN, $.handled_sequence_of_statements, $.END, field('Name_2', optional($.name_opt)), ';'),
 
       subprogram_body_stub: $ => seq($.subprogram_specification, $.IS, $.SEPARATE, ';'),
 

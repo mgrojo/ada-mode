@@ -3,7 +3,7 @@
 ;; Test translate elisp wisi actions to Ada, auto token labels
 
 %code copyright_license %{
-;;  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -22,12 +22,16 @@
 %meta_syntax BNF
 
 %generate LALR Ada_Emacs re2c Process
+%generate Tree_Sitter Ada_Emacs Tree_Sitter Process
 ;; We don't do packrat here; that would require too many changes to
 ;; the grammar, breaking what this is testing.
 
 %start compilation_unit
 
+%if parser = LALR
 %max_parallel 10
+
+%end if
 
 %keyword BEGIN "begin"
 %keyword END "end"
@@ -36,9 +40,12 @@
 %keyword FUNCTION "function"
 %keyword IN "in"
 %keyword LOOP "loop"
+%keyword OF "of"
+%keyword PARALLEL "parallel"
 %keyword PROCEDURE "procedure"
-%keyword WHEN "when"
+%keyword REVERSE "reverse"
 %keyword USE "use"
+%keyword WHEN "when"
 
 %token <left-paren> LEFT_PAREN "("
 %token <right-paren> RIGHT_PAREN ")"
@@ -48,18 +55,40 @@
 %token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
 
+%if lexer = re2c
 %token <symbol> SYMBOL %[ [a-zA-Z][0-9a-zA-Z_]* ]% "bogus_symbol"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment-new-line> COMMENT_1 %[ "--" ]%
-%non_grammar <comment-new-line> COMMENT_2 %[ "//" ]%
 
+%elsif lexer = Tree_Sitter
+%token <symbol> SYMBOL %[ /[a-zA-Z][0-9a-zA-Z_]*/ ]% "bogus_symbol"
+
+
+%end if
+
+%non_grammar <comment-new-line> COMMENT_1 "--"
+%non_grammar <comment-new-line> COMMENT_2 "//"
+
+%conflict REDUCE formal_part | REDUCE parameter_list on token SEMICOLON
+
+%conflict REDUCE iterator_specification | REDUCE subtype on token LOOP
+
+%if parser = Tree_Sitter
+
+;; It's not at all clear why tree-sitter reports this conflict.
+;; IMPROVEME; post an issue on tree-sitter github.
+%conflict subprogram
+%end if
+
+%if parser = LALR
 %mckenzie_check_limit 3
 %mckenzie_zombie_limit 3
 %mckenzie_check_delta_limit 200
 %mckenzie_enqueue_limit 10_000
 %mckenzie_cost_default 4 4 4 4
+
+%end if
 
 ;; elisp names in face actions
 %elisp_face font-lock-keyword-face
@@ -70,26 +99,26 @@
 ;; language-specific elisp names in indent actions
 %elisp_indent subp-indent-function_1 Function_1 2 1
 %elisp_indent subp-indent-function_2 Function_2 0
-%elisp_indent subp-indent-function_3 Function_2 2 2
+%elisp_indent subp-indent-function_3 Function_3 3 2 3
 
 ;; language-specific elisp action
 %elisp_action face wisi-mmmify-token MMMify_Token
 
-;; Auto generated token labels with holes in indent args
+;; Auto generated token labels with holes in indent args; preserve one manual label
 block
-  : T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END T9=SYMBOL
+  : name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END T9=SYMBOL
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
-  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END
+  | name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
-  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END T9=SYMBOL
+  | name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END T9=SYMBOL
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
-  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END
+  | name=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
@@ -109,14 +138,29 @@ block
     %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
       (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
     %((wisi-match-names 1 9))%
+  | T1=name parameter_profile=formal_part T3=SEMICOLON
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
+  | T1=name T3=SEMICOLON
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
-;; No automatic token labels needed; {declaration} is replaced by declaration_list.
+formal_part
+  : LEFT_PAREN SYMBOL RIGHT_PAREN
+  ;
+
+;; No automatic token labels are needed; declaration+ is expanded in
+;; this nonterm, and no token is referenced in the action. But
+;; wisitoken doesn't examine the action to determine that, and is not
+;; smart enough to take advantage of the simple expansion, so it
+;; generates an automatic label.
 compilation_unit
-  : T1=declaration_list
+  : G4=declaration
     %()%
     %((wisi-terminate-partial-parse))%
-  | ;; empty
+  | compilation_unit G4=declaration
+    %()%
+    %((wisi-terminate-partial-parse))%
+  | compilation_unit compilation_unit
   ;
 
 declaration
@@ -126,13 +170,67 @@ declaration
 
 ;; No automatic token labels needed; manual labels preserved.
 loop_statement
-  : FOR SYMBOL IN nam=subtype LOOP SEMICOLON
+  : iteration_scheme LOOP SEMICOLON
+    %((wisi-indent-action [nil 0 nil]))%
+  ;
+
+iteration_scheme
+  : FOR SYMBOL IN nam=subtype
     %((wisi-face-remove-action [nam])
-      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent 0 0]))%
+      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent]))%
+  | T1=PARALLEL T2=LEFT_PAREN T3=chunk_specification T4=RIGHT_PAREN T5=FOR T6=iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  | T1=PARALLEL T5=FOR T6=iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  | T5=FOR T6=iterator_specification
+    %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
+  ;
+
+iterator_specification
+  : defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=IN T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=IN nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=OF T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=OF nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=IN T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=IN nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=OF T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=OF nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  ;
+
+chunk_specification
+  : SYMBOL
   ;
 
 name
-  : pre=name DOT suf=SYMBOL
+  : pre=name T2=DOT suf=SYMBOL
     %((wisi-face-mark-action [pre prefix suf suffix]))%
     %((wisi-merge-names pre suf))%
   | suf=SYMBOL
@@ -151,7 +249,7 @@ name_list
   ;
 
 parameter_list
-  : T1=LEFT_PAREN T2=SYMBOL T3=RIGHT_PAREN
+  : T1=LEFT_PAREN arg=SYMBOL T3=RIGHT_PAREN
     %((wisi-statement-action [2 misc])
       (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
   | T1=LEFT_PAREN T3=RIGHT_PAREN
@@ -171,6 +269,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION nam=name par=parameter_list sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -182,6 +281,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION nam=name blo=block sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -193,6 +293,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION nam=name sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -204,6 +305,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION par=parameter_list blo=block sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -215,6 +317,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION par=parameter_list sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -226,6 +329,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION blo=block sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -237,6 +341,7 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | fun=FUNCTION sem=SEMICOLON
     %(;; An example of each supported action, with somewhat complex
       ;; parameter syntax, and optional tokens.
@@ -248,23 +353,27 @@ subprogram
                            (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
+
   | PROCEDURE name parameter_list END name SEMICOLON
 ;; No manual or automatic token labels
     %((wisi-statement-action [1 statement-start 2 name 6 statement-end])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0]))%
-  | T1=FUNCTION T2=name T3=parameter_list T4=block T5=SEMICOLON
-;; Test elisp indent function with automatic token labels
-    %((wisi-indent-action [nil
-                           [(subp-indent-function_3 'FUNCTION 2) subp-indent-broken]
-                           (subp-indent-function_1 2 (* 2 subp-indent-broken))
+
+  | T1=FUNCTION name=name T3=parameter_list T4=block T5=SEMICOLON
+;; Custom elisp indent function and mixed manual and automatic token labels
+    %((wisi-statement-action [1 statement-start 2 name 5 statement-end])
+      (wisi-indent-action [nil
+                           [(subp-indent-function_3 'FUNCTION 1 name) subp-indent-broken]
+                           (subp-indent-function_1 name (* 2 subp-indent-broken))
                            (subp-indent-function_2)
                            nil]))%
-  | T1=FUNCTION T2=name T3=parameter_list T5=SEMICOLON
-;; Test elisp indent function with automatic token labels
-    %((wisi-indent-action [nil
-                           [(subp-indent-function_3 'FUNCTION 2) subp-indent-broken]
-                           (subp-indent-function_1 2 (* 2 subp-indent-broken))
+  | T1=FUNCTION name=name T3=parameter_list T5=SEMICOLON
+;; Custom elisp indent function and mixed manual and automatic token labels
+    %((wisi-statement-action [1 statement-start 2 name 5 statement-end])
+      (wisi-indent-action [nil
+                           [(subp-indent-function_3 'FUNCTION 1 name) subp-indent-broken]
+                           (subp-indent-function_1 name (* 2 subp-indent-broken))
                            (subp-indent-function_2)
                            nil]))%
   ;
@@ -276,17 +385,12 @@ subtype
 
 use_clause
 ;; simple group item to test auto token labels
-  : T1=USE G4=nonterminal_014 T3=SEMICOLON
+  : T1=USE T2=nonterminal_022 T3=SEMICOLON
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%
   ;
 
 ;; end of file
-declaration_list
-  : declaration
-  | declaration_list declaration
-  | declaration_list declaration_list
-  ;
-nonterminal_014
-  : T2=name_list
+nonterminal_022
+  : name_list
   ;

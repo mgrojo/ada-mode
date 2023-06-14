@@ -517,4 +517,4 @@ State 35:
 
 2 states with conflicts: 8 17
 
- 11 rules, 0 user actions, 0 checks, 36 states
+ 11 rules, 0 post_parse actions, 0 in_parse actions, 36 states

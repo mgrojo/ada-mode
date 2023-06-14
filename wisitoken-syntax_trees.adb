@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -223,6 +223,11 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       Prev_Terminal.Ref.Node.Following_Deleted.Append (Deleted_Node);
+
+      for Node of Deleted_Node.Following_Deleted loop
+         Prev_Terminal.Ref.Node.Following_Deleted.Append (Node);
+      end loop;
+      Deleted_Node.Following_Deleted.Clear;
 
       --  We need to move the non_grammar now, so they are correct for later
       --  error recover sessions. test_incremental.adb : Edit_String_10
@@ -1919,7 +1924,7 @@ package body WisiToken.Syntax_Trees is
 
    function Copy_Augmented
      (User_Data : in User_Data_Type;
-      Augmented : in Augmented_Class_Access)
+      Augmented : in not null Augmented_Class_Access)
      return Augmented_Class_Access
    is begin
       raise SAL.Programmer_Error;
@@ -1940,6 +1945,13 @@ package body WisiToken.Syntax_Trees is
    is
       use all type Error_Data_Lists.List;
       New_Node : Node_Access;
+      Actual_Error_List : constant Error_List_Access :=
+        (if Set_Error_List
+         then New_Error_List
+         else
+           (if Node.Error_List = null
+            then null
+            else new Error_Data_Lists.List'(Node.Error_List.all)));
    begin
       case Node.Label is
       when Source_Terminal =>
@@ -1957,13 +1969,7 @@ package body WisiToken.Syntax_Trees is
               (if Node.Augmented = null or User_Data = null
                then null
                else Copy_Augmented (User_Data.all, Node.Augmented)),
-            Error_List        =>
-              (if Set_Error_List
-               then New_Error_List
-               else
-                 (if Node.Error_List = null
-                  then null
-                  else new Error_Data_Lists.List'(Node.Error_List.all))),
+            Error_List        => Actual_Error_List,
             Non_Grammar       => Node.Non_Grammar,
             Sequential_Index  => Node.Sequential_Index,
             Following_Deleted => Valid_Node_Access_Lists.Empty_List);
@@ -1994,7 +2000,7 @@ package body WisiToken.Syntax_Trees is
               (if Node.Augmented = null or User_Data = null
                then null
                else Copy_Augmented (User_Data.all, Node.Augmented)),
-            Error_List       => New_Error_List,
+            Error_List       => Actual_Error_List,
             Non_Grammar      => Node.Non_Grammar,
             Sequential_Index => Node.Sequential_Index,
             Insert_Location  => Node.Insert_Location);
@@ -2012,7 +2018,7 @@ package body WisiToken.Syntax_Trees is
               (if Node.Augmented = null or User_Data = null
                then null
                else Copy_Augmented (User_Data.all, Node.Augmented)),
-            Error_List       => New_Error_List,
+            Error_List       => Actual_Error_List,
             Non_Grammar      => Node.Non_Grammar,
             Sequential_Index => Node.Sequential_Index,
             Identifier       => Node.Identifier,
@@ -2044,7 +2050,7 @@ package body WisiToken.Syntax_Trees is
                  (if Node.Augmented = null or User_Data = null
                   then null
                   else Copy_Augmented (User_Data.all, Node.Augmented)),
-               Error_List       => New_Error_List,
+               Error_List       => Actual_Error_List,
                Virtual          => Node.Virtual,
                Recover_Conflict => Node.Recover_Conflict,
                RHS_Index        => Node.RHS_Index,
@@ -2502,7 +2508,7 @@ package body WisiToken.Syntax_Trees is
          --  terminal of a nonterm.
          --
          --  So we assume the worst case, and use first/last terminal
-         --  sequential_index to guide the search when descenting a subtree.
+         --  sequential_index to guide the search when descending a subtree.
 
          Result.Ref.Ref := (Stream, (Cur => Parse_Stream.Stack_Top), Element (Parse_Stream.Stack_Top).Node);
          Last_Terminal  := Result.Ref;
@@ -8225,7 +8231,9 @@ package body WisiToken.Syntax_Trees is
      (Tree         : in Syntax_Trees.Tree;
       Root         : in Node_Access := Invalid_Node_Access;
       Line_Numbers : in Boolean     := False;
-      Non_Grammar  : in Boolean     := False)
+      Non_Grammar  : in Boolean     := False;
+      Augmented    : in Boolean     := False;
+      Safe_Only    : in Boolean     := False)
    is
       procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
       is begin
@@ -8233,13 +8241,15 @@ package body WisiToken.Syntax_Trees is
             Tree.Lexer.Trace.Put ("| ", Prefix => False);
          end loop;
          Tree.Lexer.Trace.Put
-           (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
-                   Line_Numbers => Line_Numbers, Non_Grammar => Non_Grammar),
-            Prefix => False);
-
-         if Node.Augmented /= null then
-            Tree.Lexer.Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
-         end if;
+           (Image (Tree, Node,
+                   Children     => False,
+                   RHS_Index    => True,
+                   Node_Numbers => True,
+                   Line_Numbers => Line_Numbers,
+                   Non_Grammar  => Non_Grammar,
+                   Augmented    => Augmented,
+                   Safe_Only    => Safe_Only),
+            Prefix              => False);
 
          Tree.Lexer.Trace.New_Line;
          if Node.Label = Nonterm then
@@ -9788,7 +9798,8 @@ package body WisiToken.Syntax_Trees is
                     (Node,
                      Image (Tree, Node,
                             Children     => False,
-                            Node_Numbers => True)));
+                            Node_Numbers => True,
+                            Safe_Only    => True)));
 
                Node_Image_Output := True;
             end if;
@@ -9801,9 +9812,13 @@ package body WisiToken.Syntax_Trees is
          --  Source_Terminal since that is set by lexer. Node_Index on Virtual
          --  terminals not checked.
 
-         if not (for some N of Tree.Nodes => N = Node) then
-            Put_Error ("node " & Tree.Image (Node, Node_Numbers => True) & " not in Tree.Nodes");
-         end if;
+         --  For some reason, this loop hangs in some cases
+         --  (ada_mode-recover_partial_28.adb). it hasn't caught a bug in a
+         --  while, so we're leaving it out.
+         --
+         --  if not (for some N of Tree.Nodes => N = Node) then
+         --     Put_Error ("node " & Tree.Image (Node, Node_Numbers => True) & " not in Tree.Nodes");
+         --  end if;
 
          if Node = Real_Root then
             if Node.Parent /= null then

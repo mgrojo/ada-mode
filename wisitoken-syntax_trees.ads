@@ -565,9 +565,6 @@ package WisiToken.Syntax_Trees is
    type User_Data_Access is access all User_Data_Type'Class;
    type User_Data_Access_Constant is access constant User_Data_Type'Class;
 
-   procedure Reset (User_Data : in out User_Data_Type) is null;
-   --  Reset to start a new parse.
-
    procedure Initialize_Actions
      (User_Data : in out User_Data_Type;
       Tree      : in     Syntax_Trees.Tree'Class)
@@ -589,9 +586,8 @@ package WisiToken.Syntax_Trees is
 
    function Copy_Augmented
      (User_Data : in User_Data_Type;
-      Augmented : in Augmented_Class_Access)
-     return Augmented_Class_Access
-   with Pre => Augmented /= null;
+      Augmented : in not null Augmented_Class_Access)
+     return Augmented_Class_Access;
    --  Default implementation raises SAL.Programmer_Error.
 
    function Insert_After
@@ -687,8 +683,10 @@ package WisiToken.Syntax_Trees is
             null;
 
          when Error =>
-            Begin_Name : Positive_Index_Type;
-            End_Name   : Positive_Index_Type;
+            Begin_Name : SAL.Base_Peek_Type;
+            End_Name   : SAL.Base_Peek_Type;
+            --  Begin, End are 0 if the corresponding token is absent (not just
+            --  empty) in the production.
          end case;
       end record;
 
@@ -2415,7 +2413,7 @@ package WisiToken.Syntax_Trees is
      Tree.Valid_Stream_Node_Parents (Prev_Terminal) and
      Prev_Terminal.Ref.Stream /= Tree.Shared_Stream and
      Tree.Label (Prev_Terminal.Ref.Node) = Source_Terminal;
-   --  Copy Prev_Terminal.Ref.Node, add Deleted_Node to
+   --  Copy Prev_Terminal.Ref.Node and any ancestors, add Deleted_Node to
    --  Prev_Terminal.Ref.Node.Following_Deleted. Update Prev_Terminal to
    --  point to copied node. Move any non_grammar from Deleted_Node to
    --  Prev_Terminal.Ref.Node.
@@ -2827,7 +2825,8 @@ package WisiToken.Syntax_Trees is
       Expecting             : in Boolean := False;
       Safe_Only             : in Boolean := False)
      return String;
-   --  If Safe_Only, assume Node is not in tree, so can't use Prev_/Next_ anything.
+   --  If Safe_Only, assume Node is not in tree or some children were
+   --  deleted, so can't use Prev_/Next_ anything.
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
@@ -2959,7 +2958,9 @@ package WisiToken.Syntax_Trees is
      (Tree         : in Syntax_Trees.Tree;
       Root         : in Node_Access := Invalid_Node_Access;
       Line_Numbers : in Boolean     := False;
-      Non_Grammar  : in Boolean     := False);
+      Non_Grammar  : in Boolean     := False;
+      Augmented    : in Boolean     := False;
+      Safe_Only    : in Boolean     := False);
    --  Print tree rooted at Root (default Tree.Root) to
    --  Tree.Lexer.Trace, for debugging.
    --

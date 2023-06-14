@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2021, 2023 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -18,16 +18,16 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-package Subprograms_Process_Actions is
+package Subprograms_Process_LALR_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 4,
-      Last_Terminal       => 21,
-      First_Nonterminal   => 22,
-      Last_Nonterminal    => 34,
-      SOI_ID              => 35,
-      EOI_ID              => 21,
-      Accept_ID           => 22,
+      Last_Terminal       => 24,
+      First_Nonterminal   => 25,
+      Last_Nonterminal    => 40,
+      SOI_ID              => 41,
+      EOI_ID              => 24,
+      Accept_ID           => 25,
       Case_Insensitive    => False,
       New_Line_ID         => 1,
       String_1_ID         => 32767,
@@ -44,9 +44,12 @@ package Subprograms_Process_Actions is
          new String'("FUNCTION"),
          new String'("IN"),
          new String'("LOOP"),
+         new String'("OF"),
+         new String'("PARALLEL"),
          new String'("PROCEDURE"),
-         new String'("WHEN"),
+         new String'("REVERSE"),
          new String'("USE"),
+         new String'("WHEN"),
          new String'("LEFT_PAREN"),
          new String'("RIGHT_PAREN"),
          new String'("COLON"),
@@ -57,21 +60,24 @@ package Subprograms_Process_Actions is
          new String'("Wisi_EOI"),
          new String'("wisitoken_accept"),
          new String'("block"),
+         new String'("formal_part"),
          new String'("compilation_unit"),
          new String'("declaration"),
          new String'("loop_statement"),
+         new String'("iteration_scheme"),
+         new String'("iterator_specification"),
+         new String'("chunk_specification"),
          new String'("name"),
          new String'("name_list"),
          new String'("parameter_list"),
          new String'("subprogram"),
          new String'("subtype"),
          new String'("use_clause"),
-         new String'("declaration_list"),
-         new String'("nonterminal_014"),
+         new String'("nonterminal_022"),
          new String'("Wisi_SOI")),
       Terminal_Image_Width => 11,
-      Image_Width          => 16,
-      Last_Lookahead       => 22);
+      Image_Width          => 22,
+      Last_Lookahead       => 25);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -85,9 +91,12 @@ package Subprograms_Process_Actions is
       FUNCTION_ID,
       IN_ID,
       LOOP_ID,
+      OF_ID,
+      PARALLEL_ID,
       PROCEDURE_ID,
-      WHEN_ID,
+      REVERSE_ID,
       USE_ID,
+      WHEN_ID,
       LEFT_PAREN_ID,
       RIGHT_PAREN_ID,
       COLON_ID,
@@ -98,17 +107,20 @@ package Subprograms_Process_Actions is
       Wisi_EOI_ID,
       wisitoken_accept_ID,
       block_ID,
+      formal_part_ID,
       compilation_unit_ID,
       declaration_ID,
       loop_statement_ID,
+      iteration_scheme_ID,
+      iterator_specification_ID,
+      chunk_specification_ID,
       name_ID,
       name_list_ID,
       parameter_list_ID,
       subprogram_ID,
       subtype_ID,
       use_clause_ID,
-      declaration_list_ID,
-      nonterminal_014_ID,
+      nonterminal_022_ID,
       Wisi_SOI_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;
@@ -151,7 +163,79 @@ package Subprograms_Process_Actions is
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure block_8
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure block_9
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure loop_statement_0
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iteration_scheme_0
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iteration_scheme_1
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iteration_scheme_2
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iteration_scheme_3
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_0
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_1
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_2
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_3
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_4
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_5
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_6
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_7
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_8
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_9
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_10
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure iterator_specification_11
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
@@ -237,13 +321,55 @@ package Subprograms_Process_Actions is
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function block_1_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function block_2_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function block_3_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function block_4_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function block_5_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function block_6_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function block_7_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function compilation_unit_0_check
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
+     Recover_Active : in     Boolean)
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+   function compilation_unit_1_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
@@ -263,4 +389,4 @@ package Subprograms_Process_Actions is
     return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    Partial_Parse_Active    : aliased Boolean := False;
    Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
-end Subprograms_Process_Actions;
+end Subprograms_Process_LALR_Actions;
