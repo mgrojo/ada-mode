@@ -859,7 +859,7 @@ package body Wisi is
    overriding
    function Copy_Augmented
      (User_Data : in Parse_Data_Type;
-      Augmented : in Syntax_Trees.Augmented_Class_Access)
+      Augmented : in not null Syntax_Trees.Augmented_Class_Access)
      return Syntax_Trees.Augmented_Class_Access
    is
       Old_Aug : constant Augmented_Access := Augmented_Access (Augmented);
