@@ -72,11 +72,13 @@
 
 %conflict REDUCE formal_part | REDUCE parameter_list on token SEMICOLON
 
-%if parser = LALR
-%conflict SHIFT name | REDUCE in_of on token SYMBOL
+%conflict REDUCE iterator_specification | REDUCE subtype on token LOOP
 
-%elsif parser = Tree_Sitter
-%conflict iteration_scheme in_of%conflict subprogram
+%if parser = Tree_Sitter
+
+;; It's not at all clear why tree-sitter reports this conflict.
+;; IMPROVEME; post an issue on tree-sitter github.
+%conflict subprogram
 %end if
 
 %if parser = LALR
@@ -184,22 +186,41 @@ iteration_scheme
     %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
   ;
 
-in_of
-  : IN
-  | OF
-  ;;; split out for actions
-
 iterator_specification
-  : defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=in_of T5=REVERSE nam=name
+  : defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=IN T5=REVERSE nam=name
     %((wisi-face-remove-action [nam])
       (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
-  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=in_of nam=name
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=IN nam=name
     %((wisi-face-remove-action [nam])
       (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
-  | defining_identifier=SYMBOL T4=in_of T5=REVERSE nam=name
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=OF T5=REVERSE nam=name
     %((wisi-face-remove-action [nam])
       (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
-  | defining_identifier=SYMBOL T4=in_of nam=name
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T4=OF nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T2=COLON T3=SYMBOL nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=IN T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=IN nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=OF T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T4=OF nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL T5=REVERSE nam=name
+    %((wisi-face-remove-action [nam])
+      (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
+  | defining_identifier=SYMBOL nam=name
     %((wisi-face-remove-action [nam])
       (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
   ;

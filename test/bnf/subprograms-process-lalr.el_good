@@ -51,7 +51,6 @@
    declaration
    loop_statement
    iteration_scheme
-   in_of
    iterator_specification
    chunk_specification
    name

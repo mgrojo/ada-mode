@@ -456,7 +456,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                if Item.Shift_Count = 0 then
                   --  Parse did not process any Deletes from Insert_Delete; Fast_Forward
                   --  did that. So the very first token caused an error, and Config is
-                  --  unchanged. Just set the error.
+                  --  unchanged. Just set the error. FIXME:
+                  --  ada_mode-recover_repair_2.adb language_fixes solution is pure
+                  --  delete; we get here, and should enqueue for another Language_Fixes
+                  --  try. But in other cases fast_forward was a pure no-op. Enqueue in
+                  --  fast_forward if pure delete?
                   Config.Error_Token  := Item.Config.Error_Token;
                   Config.In_Parse_Action_Status := (Label => Ok);
                   return Continue;

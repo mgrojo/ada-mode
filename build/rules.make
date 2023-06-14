@@ -100,7 +100,7 @@ clean :: test-clean
 	rm -rf obj bin devel_obj
 	rm -rf obj_pro exec_pro
 	rm -f error_correction_algorithm.ps
-	rm -f bindings src Cargo.toml package.json
+	rm -rf bindings src Cargo.toml package.json
 
 # don't delete prj.el, release_process.text
 test-clean :

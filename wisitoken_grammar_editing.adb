@@ -906,11 +906,16 @@ package body WisiToken_Grammar_Editing is
                end case;
 
             when rhs_alternative_list_1_ID =>
+               --  Translate_RHS_Optional_Item creates one new RHS for each
+               --  alternative, so they all start with the same token index. See
+               --  subprograms.wy iterator_specification ['in' | 'of'].
                declare
+                  Init_Index : constant SAL.Base_Peek_Type := Last_Token_Index;
                   Alt_List : constant Constant_List := Creators.Create_List
                     (Tree, Node, +rhs_alternative_list_1_ID, +rhs_item_list_ID);
                begin
                   for Item_List of Alt_List loop
+                     Last_Token_Index := Init_Index;
                      Add_Token_Labels_1 (Item_List);
                   end loop;
                end;
@@ -930,7 +935,7 @@ package body WisiToken_Grammar_Editing is
                      begin
                         if Tree.Child_Count (Element) = 3 then
                            --  Already has a manual label; preserve it, and preserve
-                           --  auto label numbering. Also set Orig_Token_Index.
+                           --  auto label numbering.
                            Last_Token_Index := @ + 1;
                            Add_Orig_Token_Index (Element);
 
@@ -967,7 +972,7 @@ package body WisiToken_Grammar_Editing is
                                  when 0 .. 3 =>
                                     --  If there is only one rhs_element in the multiple_item, it will be
                                     --  replaced by a list nonterm; the label must be on that. See
-                                    --  subprograms.wy compilation_unit. IMPROVME: there are probably
+                                    --  subprograms.wy compilation_unit. IMPROVEME: there are probably
                                     --  other cases like this.
                                     declare
                                        RHS_Alt_List   : constant Valid_Node_Access := Tree.Child (Mult_Item, 2);

@@ -380,6 +380,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  parser recovered from the error.
                      Parser_State.Set_Verb (Shift);
 
+                     --  We do this now so Parser_State tracks changes to the current error
+                     --  node when we apply ops like Delete.
                      Parser_State.Set_Current_Error_Features (Tree);
 
                      pragma Assert (Parser_State.Current_Recover_Op = No_Insert_Delete);
@@ -1725,7 +1727,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        +" " & Tree.Trimmed_Image (Parser_Label) & ": " & --  leading space for consistency with existing tests.
+        --  Leading space for consistency with existing tests. Add space to
+        --  other messages for consistency.
+        " " & (+Tree.Trimmed_Image (Parser_Label)) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
       Result := Result & Natural'Image (Config.Cost);

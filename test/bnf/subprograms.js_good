@@ -79,9 +79,7 @@ module.exports = grammar({
 
       iteration_scheme: $ => choice(seq($.FOR, $.SYMBOL, $.IN, field('nam', $.subtype)), seq(optional(seq($.PARALLEL, optional(seq('(', $.chunk_specification, ')')))), $.FOR, $.iterator_specification)),
 
-      in_of: $ => choice($.IN, $.OF),
-
-      iterator_specification: $ => seq(field('defining_identifier', $.SYMBOL), optional(seq(':', $.SYMBOL)), $.in_of, optional($.REVERSE), field('nam', $.name)),
+      iterator_specification: $ => seq(field('defining_identifier', $.SYMBOL), optional(seq(':', $.SYMBOL)), optional(choice($.IN, $.OF)), optional($.REVERSE), field('nam', $.name)),
 
       chunk_specification: $ => $.SYMBOL,
 
@@ -100,7 +98,7 @@ module.exports = grammar({
   },
   conflicts: $ => [
       [$.formal_part, $.parameter_list, ],
-      [$.iteration_scheme, $.in_of, ],
+      [$.iterator_specification, $.subtype, ],
       [$.subprogram, ],
   ],
   extras: $ => [

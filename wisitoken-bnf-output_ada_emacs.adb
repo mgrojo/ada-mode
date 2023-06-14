@@ -1170,16 +1170,33 @@ is
          Label_Second      : constant String  := Get_Label (Params (Second + 1 .. Params'Last - 1));
          Label_Used_First  : constant Boolean := Label_Used (Label_First);
          Label_Used_Second : constant Boolean := Label_Used (Label_Second);
+
+         Result : Unbounded_String := +" (Tree, Tokens, ";
       begin
-         if Label_Used_First and Label_Used_Second then
-            return " (Tree, Tokens, " &
-              Label_First & ", " & Label_Second & ", " &
-              (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
-               then -Input_Data.Language_Params.End_Names_Optional_Option
-               else "False") & ")";
+         --  Match_Names accepts 0 for absent token
+
+         if Label_Used_First then
+            Append (Result, Label_First);
          else
-            return "";
+            Append (Result, "0");
          end if;
+         Append (Result, ", ");
+
+         if Label_Used_Second then
+            Append (Result, Label_Second);
+         else
+            Append (Result, "0");
+         end if;
+         Append (Result, ", ");
+
+         if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0 then
+            Append (Result, -Input_Data.Language_Params.End_Names_Optional_Option);
+         else
+            Append (Result, "False");
+         end if;
+         Append (Result, ")");
+
+         return -Result;
       end Match_Names_Params;
 
       function Language_Action_Params (Params : in String; Action_Name : in String) return String

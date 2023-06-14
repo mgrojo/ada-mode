@@ -68,11 +68,9 @@
 
 %conflict REDUCE formal_part | REDUCE parameter_list on token SEMICOLON
 
-%if parser = LALR
-%conflict SHIFT name | REDUCE in_of on token SYMBOL
+%conflict REDUCE iterator_specification | REDUCE subtype on token LOOP
 
-%elsif parser = Tree_Sitter
-%conflict iteration_scheme in_of
+%if parser = Tree_Sitter
 
 ;; It's not at all clear why tree-sitter reports this conflict.
 ;; IMPROVEME; post an issue on tree-sitter github.
@@ -144,10 +142,8 @@ iteration_scheme
     %((wisi-indent-action [nil nil nil nil (- subp-indent) nil]]))%
   ;
 
-in_of : 'in' | 'of' ; ;; split out for actions
-
 iterator_specification
-  : defining_identifier=SYMBOL [':' SYMBOL] in_of ['reverse'] nam=name
+  : defining_identifier=SYMBOL [':' SYMBOL] ['in' | 'of'] ['reverse'] nam=name
     %((wisi-face-remove-action [nam])
       (wisi-indent-action [0 nil nil (- subp-indent subp-indent-broken) nil subp-indent]))%
   ;
