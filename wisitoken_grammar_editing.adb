@@ -1000,8 +1000,10 @@ package body WisiToken_Grammar_Editing is
                               end;
 
                            when rhs_group_item_ID =>
-                              --  The group is always replaced by a nonterm, so just label the nonterm.
-                              --  ada_annex_p.wy object_declaration
+                              --  The group is either replaced by a nonterm (label the nonterm), or
+                              --  expanded in a list of RHS (apply the label here; it is copied in
+                              --  Translate_RHS_Group_Item). ada_annex_p.wy object_declaration,
+                              --  subtype_declaration.
                               Add_Token_Label (Element);
                               Add_Orig_Token_Index (Element);
 
@@ -2162,48 +2164,260 @@ package body WisiToken_Grammar_Editing is
          --  | | | rhs_alternative_list: Child (Node, 2)
          --  | | | RIGHT_PAREN
 
-         RHS              : constant Valid_Node_Access := Tree.Find_Ancestor (Node, +rhs_ID);
-         Has_Actions      : constant Boolean           := +ACTION_ID =
+         --  If Node contains a simple alternative list, and is not contained
+         --  in a nested alternative list, expand it into a list of RHSs.
+         --  Otherwise replace it by a nonterminal. ada_ebnf.wy
+         --  subtype_declaration.
+
+         use LR_Utils;
+         use LR_Utils.Creators;
+
+         RHS         : constant Valid_Node_Access := Tree.Find_Ancestor (Node, +rhs_ID);
+         Has_Actions : constant Boolean           := +ACTION_ID =
            Tree.ID (Tree.Child (RHS, Tree.Child_Count (RHS)));
-         Element_Content  : constant String            := Get_Text (Data, Tree, Tree.Child (Node, 2));
-         Right_Paren_Node : constant Valid_Node_Access := Tree.Child (Node, 3);
-         Found_Unit       : constant Node_Access       :=
-           (if Has_Actions then Invalid_Node_Access
-            else Find_Nonterminal
-              (Element_Content, Nonterm_Content_Equal'Unrestricted_Access));
-         New_Ident        : Base_Identifier_Index     := Invalid_Identifier_Index;
-      begin
-         if Found_Unit = Invalid_Node_Access then
-            New_Ident := Next_Nonterm_Name;
-            New_Nonterminal ("group item", New_Ident, Tree.Child (Node, 2));
-         else
+
+         function Is_Simple (List_Node : in Valid_Node_Access) return Boolean
+         with Pre => Tree.ID (List_Node) = +rhs_alternative_list_ID
+         is begin
+            if Tree.ID (Tree.Find_Ancestor (Node, (+rhs_ID, +rhs_alternative_list_ID))) = +rhs_alternative_list_ID then
+               --  Nested.
+               return False;
+            end if;
+
+            if +attribute_list_ID = Tree.ID (Tree.Child (List_Node, 1)) then
+               --  We assume these do not map to the alternatives individually.
+               return False;
+            end if;
+
             declare
-               Name_Node : constant Node_Access := Tree.Child (Tree.Child (Found_Unit, 1), 1);
+               Alt_List : constant Constant_List := Create_List
+                 (Tree, Tree.Child (List_Node, Tree.Child_Count (List_Node)),
+                  +rhs_alternative_list_1_ID, +rhs_item_list_ID);
             begin
-               case Tree.Label (Name_Node) is
-               when Source_Terminal =>
-                  New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
-               when Virtual_Identifier =>
-                  New_Ident := Tree.Identifier (Name_Node);
-               when others =>
-                  WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("translate_rhs_group_item", Tree, Name_Node);
-               end case;
+               for Item_List_Node of Alt_List loop
+                  declare
+                     Item_List : constant Constant_List := Create_List
+                       (Tree, Item_List_Node, +rhs_item_list_ID, +rhs_element_ID);
+                  begin
+                     if Item_List.Count /= 1 then
+                        return False;
+                     end if;
+                     declare
+                        El   : constant Valid_Node_Access := Element (Item_List.First);
+                        Item : constant Valid_Node_Access := Tree.Child (El, Tree.Child_Count (El));
+                     begin
+                        if not (To_Token_Enum (Tree.ID (Tree.Child (Item, 1))) in
+                                  IDENTIFIER_ID | STRING_LITERAL_SINGLE_ID)
+                        then
+                           return False;
+                        end if;
+                     end;
+                  end;
+               end loop;
             end;
-            Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
+            return True;
+         end Is_Simple;
+      begin
+         if Is_Simple (Tree.Child (Node, 2)) then
+            --  Expand into a list of RHSs.
+            --
+            --  IMPROVEME: Much of this is similar to Translate_RHS_Optional_Item;
+            --  factor out common parts.
+            --
+            --  Source looks like:
+            --
+            --  | A (B) C
+            --
+            --  B contains a simple rhs_alternative_list.
+            --
+            --  For each alternative in B, splice together rhs_item_lists A,
+            --  B_i, C, copying A, C on all after the first:
+            --  | A B_i C
+            --
+            --  current tree:
+            --
+            --  rhs_list:
+            --  | rhs:
+            --  | | rhs_item_list
+            --  | | | rhs_item_list
+            --  | | ...
+            --  | | | | | rhs_element: A.last
+            --  | | | | | | rhs_item:
+            --  | | | | rhs_element:
+            --  | | | | | rhs_item: contains
+            --  | | | | | | rhs_group_item: B
+            --  | | | | | | | LEFT_PAREN: B.Children (1)
+            --  | | | | | | | rhs_alternative_list: B.Children (2)
+            --  | | | | | | | RIGHT_PAREN: B.Children (3)
+            --  | | | rhs_element: C.first
+            --  | | | | rhs_item:
+            --  ...
+
+            --  tests: ada_ebnf.wy subtype_declaration, java_expressions_antlr.wy
+            --  expression, java_ebnf.wy expression, python_ebnf.wy testlist_comp,
+            --  dictorsetmaker
+            if Trace_Generate_EBNF > Extra then
+               Ada.Text_IO.Put_Line ("... simple");
+            end if;
+
+            declare
+               B : Valid_Node_Access renames Node; -- same as Translate_RHS_Optional_Item
+
+               Group_Label : constant Node_Access :=
+                 (if +IDENTIFIER_ID = Tree.ID (Tree.Child (Tree.Parent (Node, 2), 1))
+                  then Tree.Child (Tree.Parent (Node, 2), 1)
+                  else Invalid_Node_Access);
+               --  We assume this label maps to the alternatives.
+
+               RHS_List : LR_Utils.List := Create_From_Element
+                 (Tree, RHS,
+                  List_ID      => +rhs_list_ID,
+                  Element_ID   => +rhs_ID,
+                  Separator_ID => +BAR_ID);
+
+               RHS_Cur : Cursor := RHS_List.Find (RHS);
+
+               ABC_List : List := Create_From_Element
+                 (Tree, Tree.Parent (B, 2),
+                  List_ID      => +rhs_item_list_ID,
+                  Element_ID   => +rhs_element_ID,
+                  Separator_ID => Invalid_Token_ID);
+
+               ABC_Iter : constant Iterator := ABC_List.Iterate;
+
+               ABC_B_Cur   : constant Cursor := ABC_List.To_Cursor (Tree.Parent (B, 2));
+               ABC_A_Last  : constant Cursor := ABC_Iter.Previous (ABC_B_Cur);
+               ABC_C_First : constant Cursor := ABC_Iter.Next (ABC_B_Cur);
+
+               B_Alt_List : constant Valid_Node_Access := Tree.Child (B, 2);
+               B_Alternative_List : constant Constant_List := Create_List
+                 (Tree, Tree.Child (B_Alt_List, Tree.Child_Count (B_Alt_List)),
+                  +rhs_alternative_list_1_ID, +rhs_item_list_ID);
+            begin
+               for B_Item_List_Root of reverse B_Alternative_List loop
+                  declare
+                     B_Item_List_List : constant Constant_List := Create_List
+                       (Tree, B_Item_List_Root, +rhs_item_list_ID, +rhs_element_ID);
+
+                     B_El : constant Valid_Node_Access := Element (B_Item_List_List.First);
+
+                     New_ABC : List := Empty_List (ABC_List);
+                  begin
+                     if Has_Element (ABC_A_Last) then
+                        Copy (Source_List => ABC_List,
+                              Source_Last => ABC_A_Last,
+                              Dest_List   => New_ABC,
+                              User_Data   => Data_Access);
+                     end if;
+
+                     declare
+                        --  Use appropriate label for B item.
+
+                        function Create_New_B_El return Valid_Node_Access
+                        with Post => Tree.ID (Create_New_B_El'Result) = +rhs_element_ID
+                        is begin
+                           if +IDENTIFIER_ID = Tree.ID (Tree.Child (B_El, 1)) --  Already has a label; preserve it.
+                             or Group_Label = Invalid_Node_Access --  No label
+                           then
+                              return Tree.Copy_Subtree (B_El, User_Data => Data_Access);
+
+                           else
+                              --  Add group label
+                              declare
+                                 New_B_Item : constant Valid_Node_Access := Tree.Copy_Subtree
+                                   (Tree.Child (B_El, 1), User_Data => Data_Access);
+                              begin
+                                 return Add_RHS_Element
+                                   (Tree, New_B_Item, To_Identifier_Token (Group_Label, Tree));
+                              end;
+                           end if;
+                        end Create_New_B_El;
+
+                     begin
+                        New_ABC.Append (Create_New_B_El);
+                     end;
+
+                     if Has_Element (ABC_C_First) then
+                        Copy (ABC_List, Source_First => ABC_C_First, Dest_List => New_ABC, User_Data => Data_Access);
+                     end if;
+
+                     Insert_RHS
+                       (RHS_List,
+                        New_ABC.Root,
+                        After             => Element (RHS_Cur),
+                        Orig_EBNF_RHS     => True,
+                        Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B));
+
+                     Record_Copied_EBNF_Nodes (New_ABC.Root);
+                  end;
+               end loop;
+
+               Erase_Deleted_EBNF_Nodes (Element (RHS_Cur));
+               --  This includes B, so we don't do 'Clear_EBNF_Node (B)'.
+
+               RHS_List.Delete (RHS_Cur);
+
+               if Trace_Generate_EBNF > Extra then
+                  declare
+                     Nonterm : constant Valid_Node_Access := Tree.Find_Ancestor (RHS_List.Root, +nonterminal_ID);
+                  begin
+                     Ada.Text_IO.New_Line;
+                     Ada.Text_IO.Put_Line ("edited group item containing nonterm:");
+                     Ada.Text_IO.Put_Line (Get_Text (Data, Tree, Nonterm));
+                     Tree.Print_Tree (Nonterm, Augmented => True);
+                  end;
+               end if;
+            end;
+
+         else
+            if Trace_Generate_EBNF > Extra then
+               Ada.Text_IO.Put_Line ("... not simple");
+            end if;
+
+            --  Create or find a nonterm for the content, replace the group item by
+            --  the nonterm name.
+            declare
+               Element_Content  : constant String            := Get_Text (Data, Tree, Tree.Child (Node, 2));
+               Right_Paren_Node : constant Valid_Node_Access := Tree.Child (Node, 3);
+               Found_Unit       : constant Node_Access       :=
+                 (if Has_Actions then Invalid_Node_Access
+                  else Find_Nonterminal
+                    (Element_Content, Nonterm_Content_Equal'Unrestricted_Access));
+               New_Ident        : Base_Identifier_Index     := Invalid_Identifier_Index;
+            begin
+               if Found_Unit = Invalid_Node_Access then
+                  New_Ident := Next_Nonterm_Name;
+                  New_Nonterminal ("group item", New_Ident, Tree.Child (Node, 2));
+               else
+                  declare
+                     Name_Node : constant Node_Access := Tree.Child (Tree.Child (Found_Unit, 1), 1);
+                  begin
+                     case Tree.Label (Name_Node) is
+                     when Source_Terminal =>
+                        New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
+                     when Virtual_Identifier =>
+                        New_Ident := Tree.Identifier (Name_Node);
+                     when others =>
+                        WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+                          ("translate_rhs_group_item", Tree, Name_Node);
+                     end case;
+                  end;
+                  Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
+               end if;
+
+               declare
+                  Ident_Node : constant Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, New_Ident);
+                  Item_Node  : Valid_Node_Access    := Tree.Parent (Node, 1);
+               begin
+                  Tree.Set_Children (Item_Node, (+rhs_item_ID, 0), (1 => Ident_Node));
+                  Copy_Non_Grammar (Right_Paren_Node, Ident_Node);
+
+                  --  Add_Token_Labels has already set the right label. ada_annex_p.wy
+                  --  object_declaration.
+               end;
+            end;
+            Clear_EBNF_Node (Node);
          end if;
-
-         declare
-            Ident_Node : constant Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, New_Ident);
-            Item_Node  : Valid_Node_Access    := Tree.Parent (Node, 1);
-         begin
-            Tree.Set_Children (Item_Node, (+rhs_item_ID, 0), (1 => Ident_Node));
-            Copy_Non_Grammar (Right_Paren_Node, Ident_Node);
-
-            --  Add_Token_Labels has already set the right label. ada_annex_p.wy
-            --  object_declaration.
-         end;
-
-         Clear_EBNF_Node (Node);
       end Translate_RHS_Group_Item;
 
       procedure Translate_RHS_Multiple_Item (B : in Valid_Node_Access)

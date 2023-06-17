@@ -34,27 +34,28 @@ atom
   : NAME
   | NUMBER
 
-;; This nonterminal matches part of dictorsetmaker
+;; testlist_comp matches part of dictorsetmaker
   ;
 testlist_comp
-  : nonterminal_023 nonterminal_025
+  : test nonterminal_029
+  | star_expr nonterminal_029
   ;
 dictorsetmaker
-  : nonterminal_031
-
+  : nonterminal_026
+  | nonterminal_030
   ;
 comp_for
   : FOR expr IN test
 
   ;
 expr_stmt
-  : testlist_star_expr nonterminal_035
+  : testlist_star_expr nonterminal_034
   | testlist_star_expr
   ;
 
 ;; Simplified has a similar problem
 expr_stmt_2
-  : testlist_star_expr nonterminal_037
+  : testlist_star_expr yield_expr_list
   | testlist_star_expr
   ;
 
@@ -74,8 +75,8 @@ decorators
 
 ;; end of file
 nonterminal_023
-  : test
-  | star_expr
+  : test COLON test
+  | STAR_STAR expr
   ;
 COMMA_nonterminal_023_list
   : COMMA nonterminal_023
@@ -89,50 +90,46 @@ nonterminal_025
   | ;; empty
   ;
 nonterminal_026
-  : test COLON test
-  | STAR_STAR expr
+  : nonterminal_023 nonterminal_025
   ;
-COMMA_nonterminal_026_list
-  : COMMA nonterminal_026
-  | COMMA_nonterminal_026_list COMMA nonterminal_026
+nonterminal_027
+  : test
+  | star_expr
   ;
-nonterminal_028
+COMMA_nonterminal_027_list
+  : COMMA nonterminal_027
+  | COMMA_nonterminal_027_list COMMA nonterminal_027
+  ;
+nonterminal_029
   : comp_for
-  | COMMA_nonterminal_026_list COMMA
-  | COMMA_nonterminal_026_list
+  | COMMA_nonterminal_027_list COMMA
+  | COMMA_nonterminal_027_list
   | COMMA
   | ;; empty
   ;
-nonterminal_029
-  : nonterminal_026 nonterminal_028
+nonterminal_030
+  : nonterminal_027 nonterminal_029
   ;
 nonterminal_031
-  : nonterminal_029
-  | testlist_comp
-  ;
-nonterminal_032
   : yield_expr
   | testlist
   ;
-nonterminal_033
+nonterminal_032
   : yield_expr
   | testlist_star_expr
   ;
-EQUAL_nonterminal_033_list
-  : EQUAL nonterminal_033
-  | EQUAL_nonterminal_033_list EQUAL nonterminal_033
+EQUAL_nonterminal_032_list
+  : EQUAL nonterminal_032
+  | EQUAL_nonterminal_032_list EQUAL nonterminal_032
   ;
-nonterminal_035
+nonterminal_034
   : annassign
-  | augassign nonterminal_032
-  | EQUAL_nonterminal_033_list
+  | augassign nonterminal_031
+  | EQUAL_nonterminal_032_list
   ;
 yield_expr_list
   : yield_expr
   | yield_expr_list yield_expr
-  ;
-nonterminal_037
-  : yield_expr_list
   ;
 NAME_COMMA_list
   : NAME

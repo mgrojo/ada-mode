@@ -98,7 +98,9 @@ package WisiToken_Grammar_Runtime is
       Orig_EBNF_RHS : Boolean := False;
       --  Valid in an rhs node; True if this RHS is either an unedited RHS,
       --  or the only edits were to substitute token literals and keep
-      --  optional items.
+      --  optional items or items from a simple group. This means the token
+      --  count is the same as in the original, which is used by
+      --  Output_Ada_Emacs to map tokens to actions.
 
       EBNF_RHS_Index : Natural := Natural'Last;
       --  Valid in an rhs node; Index of RHS containing EBNF RHS that this

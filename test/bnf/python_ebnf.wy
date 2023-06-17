@@ -21,7 +21,7 @@ star_expr: '*' expr
 expr: atom
 atom:  NAME | NUMBER
 
-;; This nonterminal matches part of dictorsetmaker
+;; testlist_comp matches part of dictorsetmaker
 testlist_comp: (test|star_expr) ( comp_for | (',' (test|star_expr))* [','] )
 dictorsetmaker: ( ((test ':' test | '**' expr)
                    (comp_for | (',' (test ':' test | '**' expr))* [','])) |
@@ -40,7 +40,7 @@ expr_stmt_2: testlist_star_expr (yield_expr*) ;
 ;; This was recognized as a canonical list, and 'nonlocal' left out.
 nonlocal_stmt: 'nonlocal' NAME (',' NAME)* ;
 
-file_input : (NEWLINE | stmt)* 
+file_input : (NEWLINE | stmt)*
 
 decorators: decorator+ ;
 

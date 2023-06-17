@@ -7,7 +7,7 @@
 
 %code copyright_license %{
 ;;  [The "BSD licence"]
-;;  Copyright (c) 2018 - 2021 Stephen Leake (translate to WisiToken)
+;;  Copyright (c) 2018 - 2021, 2023 Stephen Leake (translate to WisiToken)
 ;;  Copyright (c) 2017 Ivan Kochurkin (upgrade to Java 8)
 ;;  Copyright (c) 2013 Terence Parr, Sam Harwell
 ;;  All rights reserved.
@@ -99,16 +99,15 @@ BOOL_LITERAL
 
 %token <symbol> IDENTIFIER %[ Letter LetterOrDigit* ]%
 
-%conflict SHIFT expression | REDUCE expression on token LBRACK
+%conflict SHIFT expression | REDUCE expression on token ADD
+%conflict SHIFT expression | REDUCE expression on token DEC
+%conflict SHIFT expression | REDUCE expression on token DIV
 %conflict SHIFT expression | REDUCE expression on token DOT
-
-%conflict SHIFT nonterminal_029 | REDUCE expression on token INC
-%conflict SHIFT nonterminal_029 | REDUCE expression on token DEC
-%conflict SHIFT nonterminal_032 | REDUCE expression on token ADD
-%conflict SHIFT nonterminal_032 | REDUCE expression on token SUB
-%conflict SHIFT nonterminal_031 | REDUCE expression on token MUL
-%conflict SHIFT nonterminal_031 | REDUCE expression on token DIV
-%conflict SHIFT nonterminal_031 | REDUCE expression on token MOD
+%conflict SHIFT expression | REDUCE expression on token INC
+%conflict SHIFT expression | REDUCE expression on token LBRACK
+%conflict SHIFT expression | REDUCE expression on token MOD
+%conflict SHIFT expression | REDUCE expression on token MUL
+%conflict SHIFT expression | REDUCE expression on token SUB
 
 literal
   : DECIMAL_LITERAL
@@ -128,14 +127,23 @@ methodCall
 
 expression
   : primary
-  | expression bop=DOT nonterminal_028
+  | expression bop=DOT IDENTIFIER
+  | expression bop=DOT methodCall
+  | expression bop=DOT THIS
   | expression LBRACK expression RBRACK
   | methodCall
   | LPAREN typeType RPAREN expression
-  | expression postfix=nonterminal_029
-  | prefix=nonterminal_030 expression
-  | expression bop=nonterminal_031 expression
-  | expression bop=nonterminal_032 expression
+  | expression postfix=INC
+  | expression postfix=DEC
+  | prefix=ADD expression
+  | prefix=SUB expression
+  | prefix=INC expression
+  | prefix=DEC expression
+  | expression bop=MUL expression
+  | expression bop=DIV expression
+  | expression bop=MOD expression
+  | expression bop=ADD expression
+  | expression bop=SUB expression
   ;
 
 primary
@@ -156,30 +164,6 @@ primitiveType
   | INT
   ;
 ;;; end of file
-nonterminal_028
-  : IDENTIFIER
-  | methodCall
-  | THIS
-  ;
-nonterminal_029
-  : INC
-  | DEC
-  ;
-nonterminal_030
-  : ADD
-  | SUB
-  | INC
-  | DEC
-  ;
-nonterminal_031
-  : MUL
-  | DIV
-  | MOD
-  ;
-nonterminal_032
-  : ADD
-  | SUB
-  ;
 LBRACK_RBRACK_list
   : LBRACK RBRACK
   | LBRACK_RBRACK_list LBRACK RBRACK

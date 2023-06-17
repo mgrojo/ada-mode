@@ -207,7 +207,7 @@ subtype
   ;
 
 use_clause
-  ;; simple group item to test auto token labels
+  ;; simple group item to test auto token labels, inlining
   : USE (name_list) SEMICOLON
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%

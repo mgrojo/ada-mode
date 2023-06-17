@@ -158,10 +158,42 @@ ReturnStatement
 expression
   : primary
   | expression bop=DOT nonterminal_056
-  | expression postfix=nonterminal_057
+  | expression postfix=INC
+  | expression postfix=DEC
+  | <assoc=right> expression bop=ASSIGN expression
 
-;; attribute with more than one item following
-  | <assoc=right> expression bop=nonterminal_058 expression
+;; attribute with one item following
+  | <assoc=right> expression bop=ADD_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=SUB_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=MUL_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=DIV_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=AND_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=OR_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=XOR_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=RSHIFT_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=URSHIFT_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=LSHIFT_ASSIGN expression
+
+;; attribute with one item following
+  | <assoc=right> expression bop=MOD_ASSIGN expression
 
 ;; attribute with one item following
   | <assoc=right> expression
@@ -169,19 +201,19 @@ expression
 
 ;; non-trivial group item
 arrayCreatorRest
-  : LBRACK nonterminal_062
+  : LBRACK nonterminal_060
   ;
 
 ;; another non-trivial group item, and lots of copies
 interfaceMethodDeclaration
-  : interfaceMethodModifier_list nonterminal_065 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
-  | interfaceMethodModifier_list nonterminal_065 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
-  | interfaceMethodModifier_list nonterminal_065 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
-  | interfaceMethodModifier_list nonterminal_065 IDENTIFIER formalParameters methodBody
-  | nonterminal_065 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
-  | nonterminal_065 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
-  | nonterminal_065 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
-  | nonterminal_065 IDENTIFIER formalParameters methodBody
+  : interfaceMethodModifier_list nonterminal_063 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
+  | interfaceMethodModifier_list nonterminal_063 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
+  | interfaceMethodModifier_list nonterminal_063 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | interfaceMethodModifier_list nonterminal_063 IDENTIFIER formalParameters methodBody
+  | nonterminal_063 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
+  | nonterminal_063 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
+  | nonterminal_063 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | nonterminal_063 IDENTIFIER formalParameters methodBody
   ;
 
 ;; trailing optional with multiple tokens
@@ -239,24 +271,6 @@ nonterminal_056
   | SUPER superSuffix
   | explicitGenericInvocation
   ;
-nonterminal_057
-  : INC
-  | DEC
-  ;
-nonterminal_058
-  : ASSIGN
-  | ADD_ASSIGN
-  | SUB_ASSIGN
-  | MUL_ASSIGN
-  | DIV_ASSIGN
-  | AND_ASSIGN
-  | OR_ASSIGN
-  | XOR_ASSIGN
-  | RSHIFT_ASSIGN
-  | URSHIFT_ASSIGN
-  | LSHIFT_ASSIGN
-  | MOD_ASSIGN
-  ;
 RBRACK_LBRACK_list
   : RBRACK
   | RBRACK_LBRACK_list LBRACK RBRACK
@@ -269,7 +283,7 @@ LBRACK_RBRACK_list
   : LBRACK RBRACK
   | LBRACK_RBRACK_list LBRACK RBRACK
   ;
-nonterminal_062
+nonterminal_060
   : RBRACK_LBRACK_list arrayInitializer
   | expression RBRACK LBRACK_expression_list LBRACK_RBRACK_list
   | expression RBRACK LBRACK_expression_list
@@ -283,7 +297,7 @@ annotation_list
   : annotation
   | annotation_list annotation
   ;
-nonterminal_065
+nonterminal_063
   : typeTypeOrVoid
   | typeParameters annotation_list typeTypeOrVoid
   | typeParameters typeTypeOrVoid

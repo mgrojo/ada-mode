@@ -5,7 +5,7 @@
 
 %code copyright_license %{
 ;;  [The "BSD licence"]
-;;  Copyright (c) 2018 - 2021 Stephen Leake (translate to WisiToken)
+;;  Copyright (c) 2018 - 2021, 2023 Stephen Leake (translate to WisiToken)
 ;;  Copyright (c) 2017 Ivan Kochurkin (upgrade to Java 8)
 ;;  Copyright (c) 2013 Terence Parr, Sam Harwell
 ;;  All rights reserved.
@@ -98,16 +98,15 @@ BOOL_LITERAL:       TRUE
 
 %token <symbol> IDENTIFIER %[ Letter LetterOrDigit* ]%
 
-%conflict SHIFT expression | REDUCE expression on token LBRACK
+%conflict SHIFT expression | REDUCE expression on token ADD
+%conflict SHIFT expression | REDUCE expression on token DEC
+%conflict SHIFT expression | REDUCE expression on token DIV
 %conflict SHIFT expression | REDUCE expression on token DOT
-
-%conflict SHIFT nonterminal_029 | REDUCE expression on token INC
-%conflict SHIFT nonterminal_029 | REDUCE expression on token DEC
-%conflict SHIFT nonterminal_032 | REDUCE expression on token ADD
-%conflict SHIFT nonterminal_032 | REDUCE expression on token SUB
-%conflict SHIFT nonterminal_031 | REDUCE expression on token MUL
-%conflict SHIFT nonterminal_031 | REDUCE expression on token DIV
-%conflict SHIFT nonterminal_031 | REDUCE expression on token MOD
+%conflict SHIFT expression | REDUCE expression on token INC
+%conflict SHIFT expression | REDUCE expression on token LBRACK
+%conflict SHIFT expression | REDUCE expression on token MOD
+%conflict SHIFT expression | REDUCE expression on token MUL
+%conflict SHIFT expression | REDUCE expression on token SUB
 
 literal
   : DECIMAL_LITERAL

@@ -651,7 +651,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Item : Cursor          := (if Source_First = No_Element then Source_List.First else Source_First);
       Last : constant Cursor := (if Source_Last = No_Element then Source_List.Last else Source_Last);
    begin
-      for N of Source_List loop
+      loop
          exit when not Has_Element (Item);
 
          Dest_List.Append (Dest_List.Tree.Copy_Subtree (Item.Node, User_Data));

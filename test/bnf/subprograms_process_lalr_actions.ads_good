@@ -24,8 +24,8 @@ package Subprograms_Process_LALR_Actions is
      (First_Terminal    => 4,
       Last_Terminal       => 24,
       First_Nonterminal   => 25,
-      Last_Nonterminal    => 40,
-      SOI_ID              => 41,
+      Last_Nonterminal    => 39,
+      SOI_ID              => 40,
       EOI_ID              => 24,
       Accept_ID           => 25,
       Case_Insensitive    => False,
@@ -73,7 +73,6 @@ package Subprograms_Process_LALR_Actions is
          new String'("subprogram"),
          new String'("subtype"),
          new String'("use_clause"),
-         new String'("nonterminal_022"),
          new String'("Wisi_SOI")),
       Terminal_Image_Width => 11,
       Image_Width          => 22,
@@ -120,7 +119,6 @@ package Subprograms_Process_LALR_Actions is
       subprogram_ID,
       subtype_ID,
       use_clause_ID,
-      nonterminal_022_ID,
       Wisi_SOI_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;

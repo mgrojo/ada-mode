@@ -10,6 +10,12 @@
 
 %generate None
 
-generic_formal_part ::= 'generic' {generic_formal_parameter_declaration | use_clause}
+%token <punctuation> SEMICOLON ";"
+
+generic_formal_part ::= 'generic' {generic_formal_parameter_declaration | use_clause} ;
+
+subtype_declaration
+  : 'subtype' IDENTIFIER 'is' typename=(name | subtype_indication) ';'
+  ;
 
 ;; end of file

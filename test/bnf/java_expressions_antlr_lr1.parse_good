@@ -1,18 +1,18 @@
  3 tokens lexed
  0: 0: (-1, 1:(LPAREN, (55 . 55))) : shift and goto state 7
- 0: 7: (-1, 2:(IDENTIFIER, (56 . 56))) : shift and goto state 28
- 0: 28: (-1, 3:(Wisi_EOI, (59 . 58))) : ERROR
- 0: 28: expecting: LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD
+ 0: 7: (-1, 2:(IDENTIFIER, (56 . 56))) : shift and goto state 31
+ 0: 31: (-1, 3:(Wisi_EOI, (59 . 58))) : ERROR
+ 0: 31: expecting: LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD
  0: zombie
 
  McKenzie error recovery
 
-parser 0: State 28 Current_Token (0, 2;4:(Wisi_EOI, (59 . 58), parser ERROR))
+parser 0: State 31 Current_Token (0, 2;4:(Wisi_EOI, (59 . 58), parser ERROR))
 Parser_Action
  0: succeed 2, enqueue 36, check  5, cost:  1
 spawn 1 from 0 (2 active)
- 1:  1, ( 0 0 1 0 0 0 0 0 0), (57 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58), parser ERROR)\((INSERT, RPAREN, 2))
- 0:  1, ( 0 0 3 0 0 0 0 0 0), (57 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58), parser ERROR)\((INSERT, LPAREN, 2), (INSERT, RPAREN, 2), (INSERT, RPAREN, 2))
+ 1:  1, ( 0 0 1 0 0 0 0 0 0), (64 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58), parser ERROR)\((INSERT, RPAREN, 2))
+ 0:  1, ( 0 0 3 0 0 0 0 0 0), (64 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58), parser ERROR)\((INSERT, LPAREN, 2), (INSERT, RPAREN, 2), (INSERT, RPAREN, 2))
 
 recover: succeed, parser count 2
  1: stack/stream:
@@ -20,7 +20,7 @@ recover: succeed, parser count 2
 -1;0:(Wisi_SOI, (1 . 1))),
 (7, 
 0;1:(LPAREN, (55 . 55))),
-^(28, 
+^(31, 
 1;2:(IDENTIFIER, (56 . 56))),
 (-1, 
 -6:(RPAREN)),
@@ -35,7 +35,7 @@ recover: succeed, parser count 2
 -1;0:(Wisi_SOI, (1 . 1))),
 (7, 
 0;1:(LPAREN, (55 . 55))),
-^(28, 
+^(31, 
 1;2:(IDENTIFIER, (56 . 56))),
 (-1, 
 -8:(LPAREN)),
@@ -46,32 +46,32 @@ recover: succeed, parser count 2
     recover_insert_delete:((INSERT, RPAREN, 2), (INSERT, RPAREN, 2))
     resume_active: True, token goal 6
 
- 1: 28: (1, -6:(RPAREN)) : reduce 1 tokens to primary
+ 1: 31: (1, -6:(RPAREN)) : reduce 1 tokens to primary
 (primary_3, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56))))
- ... goto state 33
- 0: 28: (0, -8:(LPAREN)) : shift and goto state 56
- 1: 33: (1, -6:(RPAREN)) : reduce 1 tokens to expression
+ ... goto state 36
+ 0: 31: (0, -8:(LPAREN)) : shift and goto state 63
+ 1: 36: (1, -6:(RPAREN)) : reduce 1 tokens to expression
 (expression_0, (56 . 56) <= ((primary_3, (56 . 56))))
- ... goto state 32
- 1: 32: (1, -6:(RPAREN)) : shift and goto state 57
- 1: 57: (1, 2;5:(Wisi_EOI, (59 . 58), parser ERROR)) : reduce 3 tokens to primary
+ ... goto state 35
+ 1: 35: (1, -6:(RPAREN)) : shift and goto state 64
+ 1: 64: (1, 2;5:(Wisi_EOI, (59 . 58), parser ERROR)) : reduce 3 tokens to primary
 (primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression_0, (56 . 56)), -6:(RPAREN)))
  ... goto state 17
- 0: 56: (0, -12:(RPAREN)) : shift and goto state 111
+ 0: 63: (0, -12:(RPAREN)) : shift and goto state 126
  1: 17: (1, 2;5:(Wisi_EOI, (59 . 58), parser ERROR)) : reduce 1 tokens to expression
 (expression_0, (55 . 56) <= ((primary_0, (55 . 56))))
  ... goto state 16
  1: 16: (1, 2;5:(Wisi_EOI, (59 . 58), parser ERROR)) : accept it
 (wisitoken_accept_0, (55 . 56) <= ((expression_0, (55 . 56))))
- 0: 111: (0, -17:(RPAREN)) : reduce 3 tokens to methodCall
+ 0: 126: (0, -17:(RPAREN)) : reduce 3 tokens to methodCall
 (methodCall_1, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56)), -8:(LPAREN), -12:(RPAREN)))
- ... goto state 31
- 0: 31: (0, -17:(RPAREN)) : reduce 1 tokens to expression
-(expression_3, (56 . 56) <= ((methodCall_1, (56 . 56))))
- ... goto state 32
- 0: 32: (0, -17:(RPAREN)) : shift and goto state 57
- 0: 57: (0, 2;8:(Wisi_EOI, (59 . 58), parser ERROR)) : reduce 3 tokens to primary
-(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression_3, (56 . 56)), -17:(RPAREN)))
+ ... goto state 34
+ 0: 34: (0, -17:(RPAREN)) : reduce 1 tokens to expression
+(expression_5, (56 . 56) <= ((methodCall_1, (56 . 56))))
+ ... goto state 35
+ 0: 35: (0, -17:(RPAREN)) : shift and goto state 64
+ 0: 64: (0, 2;8:(Wisi_EOI, (59 . 58), parser ERROR)) : reduce 3 tokens to primary
+(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression_5, (56 . 56)), -17:(RPAREN)))
  ... goto state 17
  0: 17: (0, 2;8:(Wisi_EOI, (59 . 58), parser ERROR)) : reduce 1 tokens to expression
 (expression_0, (55 . 56) <= ((primary_0, (55 . 56))))

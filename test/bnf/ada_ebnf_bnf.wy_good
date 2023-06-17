@@ -10,13 +10,24 @@
 ;; translation from EBNF to BNF.
 %meta_syntax BNF
 
+%keyword IS "is"
+%keyword SUBTYPE "subtype"
 %keyword GENERIC "generic"
 %generate None
+
+%token <punctuation> SEMICOLON ";"
 
 generic_formal_part
   : GENERIC generic_formal_parameter_declaration_use_clause_list
   | GENERIC
   ;
+
+subtype_declaration
+  : SUBTYPE IDENTIFIER IS typename=name SEMICOLON
+  | SUBTYPE IDENTIFIER IS typename=subtype_indication SEMICOLON
+  ;
+
+;; end of file
 generic_formal_parameter_declaration_use_clause
   : generic_formal_parameter_declaration
   | use_clause
