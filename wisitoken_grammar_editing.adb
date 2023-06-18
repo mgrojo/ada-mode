@@ -2302,6 +2302,27 @@ package body WisiToken_Grammar_Editing is
                      B_El : constant Valid_Node_Access := Element (B_Item_List_List.First);
 
                      New_ABC : List := Empty_List (ABC_List);
+
+                     function Is_Orig_EBNF_RHS return Boolean
+                     is begin
+                        --  Consider subprograms.wy iteration_scheme, which has a nested
+                        --  rhs_optional_item. Translating the nested optional gives an
+                        --  rhs_alternative_list with two elements, which are copied to two
+                        --  RHSs when translating the outer optional item; the first has all
+                        --  the tokens (and thus Orig_EBNF_RHS is True), the second is missing
+                        --  some (and thus Orig_EBNF_RHS is False).
+                        if B_Item_List_Root /= Element (First (B_Alternative_List)) then
+                           return False;
+                        end if;
+
+                        if Tree.Augmented (RHS) = null then
+                           --  This is an edited RHS with some optional left out.
+                           return False;
+                        else
+                           return WisiToken_Grammar_Runtime.Augmented
+                             (Tree.Augmented (RHS).all).Orig_EBNF_RHS;
+                        end if;
+                     end Is_Orig_EBNF_RHS;
                   begin
                      if Has_Element (ABC_A_Last) then
                         Copy (Source_List => ABC_List,
@@ -2345,7 +2366,7 @@ package body WisiToken_Grammar_Editing is
                        (RHS_List,
                         New_ABC.Root,
                         After             => Element (RHS_Cur),
-                        Orig_EBNF_RHS     => True,
+                        Orig_EBNF_RHS     => Is_Orig_EBNF_RHS,
                         Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B));
 
                      Record_Copied_EBNF_Nodes (New_ABC.Root);
