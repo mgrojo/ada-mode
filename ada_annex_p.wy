@@ -407,8 +407,7 @@ word : IDENTIFIER ;
 ;;; conflicts
 
 %if parser in LALR
-;; LR1, tree-sitter do not report this conflict.
-%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
+%conflict REDUCE discrete_range | REDUCE primary on token RIGHT_PAREN
 %end if
 
 %if parser in LALR | LR1
@@ -416,9 +415,8 @@ word : IDENTIFIER ;
 ;;
 ;; FIXME: resolve these or doc why not:
 %conflict REDUCE discrete_choice | REDUCE component_choice_list on token EQUAL_GREATER
+%conflict REDUCE discrete_range | REDUCE primary on token COMMA
 %conflict REDUCE name | REDUCE component_choice_list_1 on token EQUAL_GREATER
-%conflict REDUCE subtype_indication | REDUCE primary on token COMMA
-%conflict REDUCE subtype_indication | REDUCE primary on token EQUAL_GREATER
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token FUNCTION
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PACKAGE
 %conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PROCEDURE
@@ -516,9 +514,15 @@ word : IDENTIFIER ;
 ;;                 => case ( array_component_association ^ , array_component_association ) is ...
 ;;
 ;; At a higher level, aggregates are illegal as case expressions, but
-;; that's in the grammar. WisiToken does both in parallel until we get
+;; they are permitted in the grammar. WisiToken does both in parallel until we get
 ;; to 'case expression', then eliminates one due to duplicate state.
 ;; FIXME: what does tree_sitter do?
+;;
+;; Consider 'T1 => (False ^, ...'
+;;
+;; record_component_association <= expression ;
+;; expression_list <= expression ;
+;;
 ;; FIXME: derive expression_list
 %conflict REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
 
@@ -527,7 +531,6 @@ word : IDENTIFIER ;
 
 ;; FIXME: derive these
 %conflict REDUCE name | REDUCE component_choice_list_1 on token BAR
-%conflict REDUCE subtype_indication | REDUCE primary on token BAR
 
 ;; Consider 'A [ B ^ ] ...'
 ;;
@@ -748,7 +751,7 @@ type_definition
   ;
 
 subtype_declaration
-  : 'subtype' subtype_defining_identifier=IDENTIFIER 'is' subtype_indication [aspect_specification] ';'
+  : 'subtype' subtype_defining_identifier=IDENTIFIER 'is' (name | subtype_indication) [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 6 statement-end])
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])
@@ -760,7 +763,11 @@ subtype_declaration
   ;
 
 subtype_indication
-  : [null_exclusion] subtype_mark=name [constraint] ;;:edited; subtype_mark inlined
+  ;; We delete the production that is just 'name' here, to reduce
+  ;; conflicts; all places that use subtype_indication use (name |
+  ;; subtype_indication) or equivalent.
+  : [null_exclusion] subtype_mark=name constraint
+  | null_exclusion subtype_mark=name
   ;
 
 ;; subtype_mark ::= subtype_name=name ;;:inlined
@@ -784,7 +791,7 @@ assign_value ;;:new; split out from object_declaration assignment_statement, and
 
 object_declaration
   : defining_identifier_list ':' ['aliased'] ['constant']
-      (subtype_indication | access_definition | array_type_definition) [assign_value] [aspect_specification] ';'
+      (name | subtype_indication | access_definition | array_type_definition) [assign_value] [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
@@ -813,7 +820,8 @@ number_declaration
   ;
 
 derived_type_definition
-  : ['abstract'] ['limited'] 'new' parent_subtype_indication=subtype_indication [['and' interface_list] record_extension_part] ;
+  : ['abstract'] ['limited'] 'new' parent_subtype_indication=(name | subtype_indication) [['and' interface_list] record_extension_part]
+  ;
 
 range_constraint ::= 'range' range_g ;
 
@@ -884,12 +892,14 @@ discrete_subtype_definition_list : discrete_subtype_definition {',' discrete_sub
 ;; constrained_array_definition ::= array (discrete_subtype_definition {, discrete_subtype_definition}) of component_definition ;;:inlined
 
 discrete_subtype_definition
-  : discrete_subtype_indication=subtype_indication
+  : discrete_subtype_indication=name
+  | discrete_subtype_indication=subtype_indication
   | range_g
   ;
 
-component_definition ::=
-    ['aliased'] subtype_indication
+component_definition
+  : ['aliased'] name
+  | ['aliased'] subtype_indication
   | ['aliased'] access_definition
   ;
 
@@ -898,7 +908,9 @@ index_constraint
   ;
 
 discrete_range
-  : discrete_subtype_indication=subtype_indication
+  : discrete_subtype_indication=name
+    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
+  | discrete_subtype_indication=subtype_indication
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   | range_g
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
@@ -995,7 +1007,7 @@ discrete_choice_list
   ;
 
 discrete_choice
-  : expression ;;:edited choice_expression -> expression
+  : expression ;;:edited choice_expression -> expression; includes 'name'
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   | subtype_indication
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
@@ -1033,7 +1045,7 @@ access_type_definition
   | [null_exclusion] 'access' ['protected'] access_to_subprogram_definition ;;:edited
   ;
 
-access_to_object_definition ::= 'access' [general_access_modifier] subtype_indication ;
+access_to_object_definition ::= 'access' [general_access_modifier] (name | subtype_indication) ;
 
 general_access_modifier ::= 'all' | 'constant' ;
 
@@ -1219,8 +1231,7 @@ record_aggregate
 ;; always parsed as a record aggregate and array aggregate. Requiring
 ;; it to have two or more elements while also allowing named
 ;; association to follow position causes other conflicts (with
-;; expression_list, for example), so we just live with it. FIXME: does
-;; this lead to combinatoric explosion in nested aggregates?
+;; expression_list, for example), so we just live with it.
 record_component_association_list
   : record_component_association {',' record_component_association}
   | 'null' 'record'
@@ -1731,7 +1742,7 @@ iterator_specification ;; merged with loop_parameter_specification
       discrete_subtype_definition [iterator_filter]
   ;
 
-loop_parameter_subtype_indication ::= subtype_indication | access_definition ;
+loop_parameter_subtype_indication ::= name | subtype_indication | access_definition ;
 
 procedural_iterator
   : iterator_parameter_specification 'of' function_call [iterator_filter] ;;:edited iterator_procedure_call => function_call
@@ -2012,7 +2023,7 @@ extended_return_statement
                            ada-indent-broken ada-indent-broken]))%
   ;
 
-return_subtype_indication : subtype_indication | access_definition ;
+return_subtype_indication : name | subtype_indication | access_definition ;
 
 null_procedure_declaration
   : [overriding_indicator] procedure_specification 'is' 'null' [aspect_specification] ';'
@@ -2087,7 +2098,7 @@ private_type_declaration
 
 private_extension_declaration
   : 'type' defining_identifier=IDENTIFIER [discriminant_part] 'is' ['abstract'] ['limited' | 'synchronized'] 'new'
-    subtype_indication ['and' interface_list] 'with' 'private' [aspect_specification] ';'
+    (name | subtype_indication) ['and' interface_list] 'with' 'private' [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 14 statement-end])
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])

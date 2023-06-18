@@ -30,7 +30,7 @@ endif
 # export Standard_Common_Build := Debug
 # export Standard_Common_Assertions := Off
 
-all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test docs
+all : update compile-ada-test-clean compile-ada-test test-clean test docs
 
 # 'pub' does not do install, because 'build-elpa' uses the last
 # commit, not the current workspace.
@@ -98,7 +98,7 @@ benchmark :
 # For running a test with ELPA build
 #ADA_MODE_DIR := -L c:/Projects/elpa_release/ada-mode -l c:/Projects/elpa_release/ada-mode/autoloads.el -L c:/Projects/elpa_release/wisi -l c:/Projects/elpa_release/wisi/autoloads.el -l exclude-elpa.el
 
-TEST_FILE ?= ada_mode-child_procedure.adb
+one :: TEST_FILE ?= ada_mode-child_procedure.adb
 #one :: ELISP ?= (setq-default debug-on-error t save-parser-log (list (list "*EGLOT (_default_/(ada-mode)) events*" "/Projects/org.emacs.ada-mode/debug-1.log")))
 one :: ELISP ?= (setq-default save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 #one :: ELISP ?= (setq-default debug-on-error t)
@@ -146,7 +146,7 @@ two : ../run_ada_lalr_parse.exe
 two-lr1 : LOG_ARGS ?= > debug-lr1.log 2>&1
 two-lr1 : TEST_FILE ?= debug_edited-1_030
 two-lr1 : ACTION ?= none
-two-lr1 : VERBOSITY ?= "debug=1 parse=1 mckenzie=1"
+two-lr1 : VERBOSITY ?= debug=1 parse=1 mckenzie=1
 two-lr1 : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0" # end name optional nil
 #two-lr1 : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1" # end name optional t
 two-lr1 : RUN_ARGS ?= parse_partial $(ACTION) $(TEST_FILE) $(LANG_PARAMS) --verbosity '$(VERBOSITY)'
@@ -224,9 +224,9 @@ test-ada-lalr-partial-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(
 
 test-ada-lalr-partial-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
+	echo "test-ada-lalr-partial-process-gpr_query" >> test.log
 	$(MAKE) test-ada-lalr-partial-process-gpr_query
 	touch $@
-	echo "test-ada-lalr-partial-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-lalr-incremental-process-gpr_query : RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
@@ -234,9 +234,9 @@ test-ada-lalr-incremental-process-gpr_query : $(addsuffix .diff, $(subst subdir/
 
 test-ada-lalr-incremental-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
+	echo "test-ada-lalr-incremental-process-gpr_query" >> test.log
 	$(MAKE) test-ada-lalr-incremental-process-gpr_query
 	touch $@
-	echo "test-ada-lalr-incremental-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 ifeq ($(shell uname),Linux)

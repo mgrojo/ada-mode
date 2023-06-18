@@ -42,8 +42,8 @@ o.e.a.stephe-7 (): available
   (xgit . "/Projects/org.wisitoken.stephe-1")
   (xgit . "/Projects/elpa/packages/gnat-compiler")
   (xgit . "/Projects/elpa/packages/gpr-query")
-  (xgit . "/Projects/org.emacs.wisi.stephe-4")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-4")
+  (xgit . "/Projects/org.emacs.wisi.stephe-1")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")
   ;; (xgit . "/Projects/eglot-stephe")
   ))
 
@@ -55,13 +55,6 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-test gpr-mode
-test wisitoken-grammar-mode
-
-fix "too many parsers" in aggregates
-    subprograms_process_actions.adb
-    %conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
-
 Add output_dir option to w-b-gen
 
 see FIXME: in ada_annex_p.wy aggregate
