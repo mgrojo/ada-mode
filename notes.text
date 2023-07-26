@@ -55,17 +55,18 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
-navigate bug
-    wisitoken-bnf-output_ada_emacs.adb
-    point on 'begin' of Create_Ada_Action
-    wisi-reset-parser
-    sal-ada-next-declaration;
-        should find Any_Motion_Actions, instead goes to eob
+ada_mode-ancestor.adb
+    handle empty declarative_part
+    non_empty_declarative_part appears in:
+        block_statement 'declare' [non_empty_declarative_part]] 'begin'
+        subprogram_body 'is' [non_empty_declarative_part] 'begin'
+        package_body ""
+        task_body    ""
+        entry_body 'is' [non_empty_declarative_part] 'begin'
 
-    sal-ada-get-declaration-region wrong;
-        starts in Output_Ada_Emacs, ends after Create_Ada_Action
-
-    need smaller test case, show full tree
+    ada-mode.el ada-declarative-region edited
+        test in 'procedure B' fails, because it finds the empty 'procedure B' region
+            goto-statement-start first, if on statement source token?
 
 test Manuel Gomez use case
     his former invocation: (ada-set-default-project-file "project.gpr")

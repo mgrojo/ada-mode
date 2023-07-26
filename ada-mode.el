@@ -629,6 +629,8 @@ See `ff-other-file-alist'.")
 	     "\\_>")))
     result))
 
+(declare-function "eglot.el" eglot--server-capable)
+
 (defun ada-which-function (&optional include-type)
   "Return name of subprogram/task/package containing point.
 Also sets `ff-function-name' for `ff-pre-load-hook'."
@@ -878,6 +880,47 @@ the file name."
     (speedbar-add-supported-extension spec)
     (speedbar-add-supported-extension body))
   )
+
+(defun ada-declarative-region (pos)
+  "Return (BEGIN . END) of declaration region containing POS.
+Does not contain trailing non_grammar."
+  ;; First we check whether to do 'wisi-statement-start'. Consider
+  ;; test/ada_mode-ancestor.adb; if pos is on 'begin' of procedure B,
+  ;; we want the declarative region of Ada_Mode.Ancestor, so move to
+  ;; 'procedure' before querying for the block ancestor.
+  (let ((query-result (wisi-parse-tree-query wisi-parser-shared 'node pos)))
+    (if
+  (let ((query-result (wisi-parse-tree-query
+		       wisi-parser-shared 'ancestor pos
+		       '(non_empty_declarative_part
+			 block_statement
+			 subprogram_body
+			 package_body
+			 task_body
+			 entry_body))))
+      (unless query-result
+	(user-error "no declarative region found"))
+
+      (cl-ecase (wisi-tree-node-id query-result)
+	(non_empty_declarative_part
+	 (wisi-tree-node-char-region query-result))
+
+	((block_statement subprogram_body package_body task_body entry_body)
+	 ;;  Declarative region is empty; return end of previous token
+	 ;;  ('declare' or 'is').
+	 (let* ((nonterm (wisi-tree-node-address query-result))
+		(child-index 1)
+		(child (wisi-parse-tree-query wisi-parser-shared 'child nonterm child-index))
+		(child-char-region (wisi-tree-node-char-region child)))
+
+	   (while (not (memq (wisi-tree-node-id child) '(DECLARE IS)))
+	     (setq child-index (1+ child-index))
+	     (setq child (wisi-parse-tree-query wisi-parser-shared 'child nonterm child-index))
+	     (setq child-char-region (wisi-tree-node-char-region child)))
+
+	   (cons (1+ (cdr child-char-region)) (1+ (cdr child-char-region)))))
+	)
+      ))
 
 (defun ada-goto-declaration-start-1 (include-type)
   "Subroutine of `ada-goto-declaration-start'."
