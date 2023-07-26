@@ -30,6 +30,8 @@
 
 (eval-when-compile
   (unless (file-readable-p "wisitoken_grammar_1-process.el")
+    ;; Run Alire to create wisitoken_grammar_1-process.el and the parser.
+    ;;
     ;; Compile-Log may already be created with a different default-directory
     (let ((pkg-dir default-directory))
       (with-current-buffer (get-buffer-create "*Compile-Log*")
