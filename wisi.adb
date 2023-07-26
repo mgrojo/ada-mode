@@ -1970,6 +1970,15 @@ package body Wisi is
                         return;
                      end if;
 
+                     if Query.Label = Ancestor then
+                        --  Handle LR list; return list root.
+                        loop
+                           exit when Tree.Parent (Result) = Invalid_Node_Access or else
+                             Tree.ID (Tree.Parent (Result)) /= Tree.ID (Result);
+                           Result := Tree.Parent (Result);
+                        end loop;
+                     end if;
+
                      Char_Region := Tree.Char_Region (Result, Trailing_Non_Grammar => False);
 
                   when Containing_Statement =>
