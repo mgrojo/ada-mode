@@ -35,7 +35,21 @@ Alire.make
 
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
-
+ current work
+fixing install-elpa
+    fix wisi byte-compile bugs; wisi 4.2.3
+
+wisitoken_grammar_1-process.el not found
+    because generated, so not in git. sigh.
+    apparently there is a way to get the byte-compile process to run a shell script/make
+
+bump wisitoken-grammar-mode version to 1.3.1 to include fixes
+
+ after release:
+Move all files to elpa, drop org.wisitoken-grammar-mode.
+    use ELPA.make, Alire.make; not Makefile
+    put all files used by alire in .elpaignore
+
 try tree-sitter?
     has some support for disjoint text
 
@@ -60,7 +74,7 @@ editing ada_lite.wy
         syntax errors, rest of file has comment face
 
  release process
-See ada-mode/notes.text for full details; only wisitoken-grammar specifics here.
+See ../org.emacs.ada-mode/notes.text for full details; only wisitoken-grammar specifics here.
 
 update NEWS.text
     ;; no release branch

@@ -128,23 +128,14 @@ ELPA_WGM := $(ELPA_ROOT)/packages/wisitoken-grammar-mode
 
 pub-wisitoken-grammar : wisitoken_grammar.gpr force
 	rm -f $(ELPA_WGM)/*
-	cp wisitoken-grammar-mode.el $(ELPA_WGM)
-	cp wisitoken_grammar_1-process.el $(ELPA_WGM)
-	cp *wisitoken_grammar*.ad? $(ELPA_WGM)
-	cp wisitoken_grammar.gpr.gp wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_WGM)
-	cp build.sh install.sh $(ELPA_WGM)
+	cp wisitoken-grammar-mode.el simple-indent-mode.el  $(ELPA_WGM)
 
-# assume wisi built, installed (from ada-mode Makefile)
+# wisitoken-grammar-mode does not have separate devel/release
+# branches. This builds both a devel and release version.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive
-	rm -rf $(ELPA_ROOT)/archive-tmp
-	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_WGM) $(ELPA_ROOT)/archive-tmp/packages
-	make -C $(ELPA_ROOT)/ process-archive
-
-# For testing ELPA build with ada-mode Makefile
-copy-archive : force
-	cp -a $(ELPA_WGM) $(ELPA_ROOT)/archive-tmp/packages
+	rm -rf $(ELPA_ROOT)/archive-devel
+	make -C $(ELPA_ROOT)/ build/wisi build/wisitoken-grammar-mode
 
 uninstall-elpa :
 	$(EMACS_EXE) -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'

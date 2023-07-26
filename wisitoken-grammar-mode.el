@@ -6,7 +6,7 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;; Version: 1.3.0
-;; package-requires: ((wisi "4.2.2") (emacs "25.3") (mmm-mode "0.5.7"))
+;; package-requires: ((wisi "4.2.3") (emacs "25.3") (mmm-mode "0.5.7"))
 ;; url: https://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
@@ -28,7 +28,22 @@
 ;;
 ;;; Commentary:
 
-(require 'cl-lib)
+(eval-when-compile
+  (unless (file-readable-p "wisitoken_grammar_1-process.el")
+    ;; Compile-Log may already be created with a different default-directory
+    (let ((pkg-dir default-directory))
+      (with-current-buffer (get-buffer-create "*Compile-Log*")
+	(goto-char (point-max))
+	(let ((inhibit-read-only t)
+	      (default-directory pkg-dir))
+	  (insert ?\C-l "\n")
+	  (insert "alr get emacs_wisitoken_grammar_mode\n")
+	  (call-process "alr" nil t nil "get" "emacs_wisitoken_grammar_mode")
+	  (let ((default-directory (expand-file-name (file-name-completion "emacs_wisitoken_grammar_mode_" pkg-dir))))
+	    (call-process "alr" nil t nil "build" "--release")
+	    (copy-file "wisitoken_grammar_1-process.el" (expand-file-name "../wisitoken_grammar_1-process.el")))
+	  )))))
+
 (require 'mmm-mode)
 (require 'simple-indent-mode)
 (require 'xref)
