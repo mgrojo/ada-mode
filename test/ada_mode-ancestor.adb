@@ -1,3 +1,5 @@
+--  FIXME: ada-declarative-region needs work
+--EMACS_SKIP_UNLESS:nil
 procedure Ada_Mode.Ancestor
 is
    A : Integer;

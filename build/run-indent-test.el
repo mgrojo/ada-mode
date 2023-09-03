@@ -80,6 +80,8 @@
 (setq-default compare-tree-text t)
 (setq-default wisi-process-time-out 30.0) ;; running with debug/assert is slow, ada_mode-recover_30.adb
 
+(add-to-list 'exec-path (expand-file-name "~/.local/bin")) ;; for gpr_query, other installed executables
+
 (setq wisi-debug 1) ;; abort on non-syntax errors
 
 (provide 'run-indent-test)

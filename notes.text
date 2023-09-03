@@ -29,11 +29,11 @@ o.e.a.stephe-7 (): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"    . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"           . "../org.wisitoken.stephe-3")
+   ("../org.wisitoken"           . "../org.wisitoken.stephe-1")
 ;;   ("../org.emacs.gnat-compiler" . "../elpa_work/packages/gnat-compiler")
 ;;   ("../org.emacs.gpr-query"     . "../elpa_work/packages/gpr-query")
-   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-4")
-   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-4")))
+   ("../org.emacs.wisi"          . "../org.emacs.wisi.stephe-1")
+   ("../org.emacs.ada-mode"      . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -939,26 +939,35 @@ to test compiling info files:
 if package is not published, check https://elpa.gnu.org/devel/<package>-build-failure.log
 
  release process
+keep status in ~/projects.text
+    dependency releases done below, after tests that test all of them.
+
 Do everything on Debian
     required for Alire
     git is faster
 
-upgrade debian (to avoid eventually needing to reinstall from scratch)
+update debian (to avoid eventually needing to reinstall from scratch)
+    as root: aptitude update; aptitude full-upgrade --without-recommends
 
-keep status in ~/projects.text
-    dependency releases done below, after tests that test all of them.
+update emacs master
+    cd /Projects/emacs/master
+    git pull
+    make -j8 bootstrap
 
 sync Windows with Debian
     Windows:
     (dvc-state-multiple "/Projects" t)
     (dvc-push "/Projects/elpa")
     (dvc-push "/Projects/org.emacs.ada-mode")
+    (dvc-push "/Projects/emacs_stephe.main")
 
     Debian:
     (dvc-sync-run "/Projects/org.emacs.ada-mode")
     (dvc-sync-review "/Projects/org.emacs.ada-mode")
     (dvc-sync-run "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
+    (dvc-sync-run "/Projects/emacs_stephe.main")
+    (dvc-sync-review "/Projects/emacs_stephe.main")
 
 update benchmark_results.text
 
@@ -980,18 +989,8 @@ check emacs buglist
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
 
-update to current emacs master
-    (dvc-pull "/Projects/emacs/master")
-    (dvc-sync-review "/Projects/emacs/master")
-    exit emacs; in mingw shell:
-        cd /c/Projects/emacs/master
-        make
-
-run codespell
-    not an elpa package
-
 run all tests without elpa:
-    build/Makefile byte-compile test byte-compile-clean
+    build/Makefile byte-compile compile-ada-test test byte-compile-clean
 
     - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat

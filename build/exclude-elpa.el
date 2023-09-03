@@ -5,6 +5,7 @@
 (push '(gnat-compiler . nil) package-load-list)
 (push '(gpr-mode . nil) package-load-list)
 (push '(gpr-query . nil) package-load-list)
+(push '(wisitoken-grammar-mode . nil) package-load-list)
 
 ;; FIXME: testing devel eglot
 (push '(eglot . nil) package-load-list)

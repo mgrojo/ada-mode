@@ -1,5 +1,9 @@
 --  From a real editing session. Used to get Bad_Config in recover,
 --  from an in-parse-error language fix.
+--
+--  FIXME: as of ada-mode 8.1, this requires increasing
+--  mckenzie_enqueue_limit to 120_000.
+--
 --EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 --EMACSCMD:(setq skip-reindent-test t skip-recase-test t)
 package body Ada_Mode.Recover_50 is
@@ -896,4 +900,5 @@ package body Ada_Mode.Recover_50 is
 end Ada_Mode.Recover_50;
 --  Local Variables:
 --  ada-case-strict: nil
+--  wisi-mckenzie-enqueue-limit : 120000
 --  End:
