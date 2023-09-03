@@ -69,7 +69,7 @@ can be dumped to a file via the tree query dump-prev."
   )
 
 (cl-defstruct (wisi--parse-error-repair)
-  pos ;; position (integer) in buffer where insert/delete is done.
+  pos ;; position (integer or marker) in buffer where insert/delete is done.
   inserted ;; list of token IDs that were inserted before pos
   deleted  ;; list of token IDs that were deleted after pos
   deleted-region ;; buffer (cons FIRST LAST) region deleted

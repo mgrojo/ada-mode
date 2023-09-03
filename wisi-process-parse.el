@@ -671,19 +671,20 @@ PARSER will respond with one or more Query messages."
 	       (edit-pos (aref (aref sexp i) 1))
 	       (err (wisi-process-parse--find-err error-pos (wisi-parser-local-parse-errors wisi-parser-local))))
           (when err
-	    (cl-nsubst
-	     (push
-	      (make-wisi--parse-error-repair
-	       :pos (copy-marker edit-pos)
-	       :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
-	       :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 3))
-	       :deleted-region (aref (aref sexp i) 4))
-	      (wisi--parse-error-repair err)) ;; new
-	     err ;; old
-	     (wisi-parser-local-parse-errors wisi-parser-local) ;; tree
-	     :test (lambda (old _el)
-	             (= (wisi--parse-error-pos old)
-	                (wisi--parse-error-pos err)))))
+	    (with-no-warnings ;; byte-compiler complains that "result of cl-nsubst is not used", but it's not useful!
+	     (cl-nsubst
+	      (push
+	       (make-wisi--parse-error-repair
+		:pos (copy-marker edit-pos)
+		:inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
+		:deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 3))
+		:deleted-region (aref (aref sexp i) 4))
+	       (wisi--parse-error-repair err)) ;; new
+	      err ;; old
+	      (wisi-parser-local-parse-errors wisi-parser-local) ;; tree
+	      :test (lambda (old _el)
+	              (= (wisi--parse-error-pos old)
+	                 (wisi--parse-error-pos err))))))
 	   )))
     ))
 
@@ -929,7 +930,7 @@ Source buffer is current."
         (source-buffer (wisi-process--parser-source-buffer parser))
 	log-start)
     (defvar w32-pipe-read-delay)
-    (condition-case err
+    (condition-case-unless-debug err
 	(let* ((process (wisi-process--parser-process parser))
 	       (w32-pipe-read-delay 0) ;; fastest subprocess read
 	       response

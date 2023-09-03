@@ -883,7 +883,7 @@ Run the parser first if needed."
 	  (when (get-buffer-window wisi-error-buffer)
 	    (delete-window (get-buffer-window wisi-error-buffer)))))
 
-      (condition-case err
+      (condition-case-unless-debug err
 	  (save-excursion
 	    (cond
 	     (partial-parse-p
