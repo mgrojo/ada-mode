@@ -3,6 +3,6 @@
 include build/alire_rules.make
 
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (load-file "prj-eglot.el"))
+# eval: (unless dvc-doing-ediff-p (load-file "prj-alire.el"))
 # End:
 # end of file

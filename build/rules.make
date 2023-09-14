@@ -21,6 +21,8 @@ SPARK_FILES += prove_bounded_definite_vectors_sorted.ads
 clean :: test-clean
 clean :: profile-clean
 clean :: prove-clean
+clean :: do-alire-clean
+clean :: sal-misc-clean
 
 test-clean ::
 	rm -f *.config
@@ -35,5 +37,11 @@ profile-clean ::
 prove-clean :
 	rm -rf gnatprove
 	rm -rf devel_obj/gnatprove
+
+do-alire-clean :
+	make -C .. -f Makefile alire-clean
+
+sal-misc-clean :
+	rm -rf devel_obj
 
 # end of file

@@ -7,9 +7,9 @@ alire-build : force
 alire-env :
 	GPR_PROJECT_PATH= ;  alr $(ALIRE_ARGS) printenv
 
+# there's no point in doing 'alr clean' here; 'rm' is faster, better, less error-prone.
 alire-clean :
-	alr clean
-	rm -rf alire build/obj/release build/obj/development
+	rm -rf alire config build/obj/release build/obj/development
 
 .PHONY : force
 

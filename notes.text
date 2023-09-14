@@ -17,6 +17,7 @@ https://www.adacore.com/books/implementation-guidance-spark
 
  Release process:
 no separate aunit_ext or makerules release
+    aunit_ext not in Alire yet, makerules for Alire is sal/build/alire_rules.make
 
 (dvc-state-multiple
   '((xgit . ".")
@@ -29,9 +30,9 @@ build/Makefile
         # check for missing clean actions
 
 build/Makefile all
+    if no 'gnatprove', then just test_all_harness.diff
 
 Makefile
-    alire-clean
     alire-build
 
 source/sal.html
@@ -45,7 +46,7 @@ bump version
         ZIP_VERSION
 
     source/sal.adb
-        Version
+        Version (leave out the patch number)
 
     alire.toml
         Version
@@ -60,9 +61,9 @@ On Debian - alr publish --tar broken on Windows (alr version 1.2.1)
     scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
     # link is https://download.savannah.nongnu.org/releases/ada-mode/stephes_ada_library-3.7.0.tgz
 
-build/Makefile zip tag
+build/Makefile tag
 
-upload to savannah for Emacs Ada mode:
+upload to savannah for users to run tests (not in Alire):
     in Cygwin or msys2 console (for gpg prompts):
     cd /cygdrive/c/Projects/org.stephe_leake.sal/build/
     rm org.stephe_leake.sal-<old>.*
