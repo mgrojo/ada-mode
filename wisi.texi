@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 @node Top
 @top Top
 
-Wisi Version 4.2
+Wisi Version 4.3
 @end ifnottex
 
 @menu

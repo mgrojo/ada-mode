@@ -73,23 +73,6 @@ else
   TAR_FILE := $(BRANCH)
 endif
 
-zip :
-	rm -rf ../../$(TAR_FILE)
-	mtn checkout --branch $(BRANCH) ../../$(TAR_FILE)
-	tar jcf $(TAR_FILE).tar.bz2 --exclude .git -C ../.. $(TAR_FILE)
-
-
-# tarball of ELPA package source, for sending to customers with their
-# own CM but without good network access
-DATE := $(shell date +%Y-%m-%d)
-elpa-zip : wisi-elpa-$(DATE).tar.gz
-
-wisi-elpa-$(DATE).tar.gz :
-	tar zcf wisi-elpa-$(DATE).tar.gz -C $(ELPA_ROOT)/packages wisi
-
-# tarball to create local ELPA archive
-elpa-archive-zip : wisi-elpa-archive-$(DATE).tar.bz2
-
 MANUALS := wisi
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))

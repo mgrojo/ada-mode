@@ -13,7 +13,6 @@ org.emacs.wisi.stephe-4 (): available
   (xgit . "/Projects/org.stephe_leake.sal")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.wisitoken")
-;;  (xgit . "/Projects/elpa/packages uniquify-files)
   (xgit . "/Projects/org.emacs.wisi/")))
 
 (dvc-propagate-multiple
@@ -49,6 +48,7 @@ build/Makefile pub
 /Projects/elpa/packages/wisi/ELPA.make all
 
 (ediff-directories "/Projects/elpa_release/packages/wisi" "/Projects/elpa/packages/wisi" nil)
+    Update NEWS
 
 bump versions
     NEWS
@@ -60,6 +60,15 @@ bump versions
     wisi.texi
     README
     alire.toml
+        version, depends-on versions
+
+# dvc-state-multiple above
+
+~/bin/alire-publish-git.sh
+
+After Alire pull request accepted:
+
+build/Makefile pub
 
 (dvc-propagate-one "/Projects/elpa/packages/wisi" "/Projects/elpa_release/packages/wisi")
 (dvc-sync-run "/Projects/elpa/packages/wisi")
