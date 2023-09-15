@@ -54,22 +54,21 @@ bump version
 # dvc-state-multiple above
 
 On Debian - alr publish --tar broken on Windows (alr version 1.2.1)
-    alr publish --tar
-    # at "upload and enter url" prompt; in mys2
-    cd /Projects/org.stephe-leake.sal/alire/archives
-    gpg -b *.tgz
-    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    # link is https://download.savannah.nongnu.org/releases/ada-mode/stephes_ada_library-3.7.0.tgz
+    ~/bin/alire-publish-git.sh
 
-build/Makefile tag
+do alire pull request
+    when accepted:
+    git tag <branch>-alire-<version>
 
-upload to savannah for users to run tests (not in Alire):
+upload tarball to savannah for users to run tests (not in Alire):
+    Makefile zip tag
     in Cygwin or msys2 console (for gpg prompts):
     cd /cygdrive/c/Projects/org.stephe_leake.sal/build/
     rm org.stephe_leake.sal-<old>.*
     gpg -b *.tar.bz2
 
     scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+
 
 Update web:
     ~/Web/Makefile sal sync
