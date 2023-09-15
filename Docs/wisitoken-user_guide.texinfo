@@ -32,7 +32,7 @@ section entitled "GNU Free Documentation License".
 @contents
 
 @node Top
-@top WisiToken User Guide version 4.1
+@top WisiToken User Guide version 4.2
 
 @ifnottex
 @insertcopying
@@ -210,7 +210,7 @@ example:
 ``Keywords'' are reserved words or symbols in the target language; the
 lexers recognize them by the given string.
 
-The keyword is Case insensisitive if the string delimiters are single
+The keyword is case insensisitive if the string delimiters are single
 quotes or the @code{case_insensitive} declaration is present.
 
 @node Tokens

@@ -9867,7 +9867,7 @@ package body WisiToken.Syntax_Trees is
 
                            --  If node_index_order is changed, so is line_number order, but not
                            --  vice-versa; normally due to %if in grammar, or grammar
-                           --  re-writting. See wisitoikent-generate-tree_sitter.adb
+                           --  re-writting. See wisitoken-generate-tree_sitter.adb
                            if (Line_Number_Order and Node_Index_Order) and then Token.Line_Region.First /= Last_Line
                            then
                               Put_Error ("line_number missing/out of order");

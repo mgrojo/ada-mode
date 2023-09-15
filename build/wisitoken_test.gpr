@@ -201,17 +201,34 @@ project WisiToken_Test is
 
    package Linker is
       for Default_Switches ("Ada") use
-        ("-L", "d:/msys64/mingw64/lib/", --  FIXME: this is Windows-specific
+        (
+         "-L", "d:/msys64/mingw64/lib/",
          "-ltree-sitter");
-      -- Not all execs need tree-sitter, but it doesn't hurt.
-      -- Tree-sitter runtime library provided by a system package libtree-sitter Debian, msys2 package
-      -- mingw-w64-x86_64-tree-sitter on Windows.
+      -- The tree-sitter runtime is used to run the tree-sitter
+      -- generated parsers for tests. It is provided by a system
+      -- package:
       --
-      -- tree-sitter generator exec provided by same msys2 package on
-      -- Windows; also requires nodejs, but the mingw-w64-i686-nodejs
+      -- On Debian: libtree-sitter-dev
+      --
+      -- On Windows: msys2 package mingw-w64-x86_64-tree-sitter. The
+      -- gnat compiler installed by the community installer does not
+      -- know about it - on Debian, we must delete that -L entry.
+      -- FIXME: need to detect OS, use 'case'.
+      --
+      -- The tree-sitter generator is used to generate the tree-sitter
+      -- parser C code, after wisitoken-bnf-generate.exe generates the
+      -- tree-sitter grammar file. This is needed for WisiToken tests,
+      -- and for user grammars.
+      --
+      -- On Windows: it is in the same msys2 package as runtime, but
+      -- that also requires nodejs, and the mingw-w64-i686-nodejs
       -- package seems to be broken (as of Jan 2023), so get the
-      -- binary installer from https://nodejs.org/en/. On Debian use
-      -- 'cargo install tree-sitter' (includes 'nodejs').
+      -- nodejs binary installer from https://nodejs.org/en/.
+      --
+      -- On Debian: 'cargo install tree-sitter-cli' (includes
+      -- 'nodejs'). If that's broken, get binary from
+      -- https://github.com/tree-sitter/tree-sitter releases, and
+      -- 'aptitude install nodejs'
 
    end Linker;
 

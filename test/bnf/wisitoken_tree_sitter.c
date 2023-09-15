@@ -1,6 +1,6 @@
 // Function to run the tree-sitter parser, given a language object and input file name.
 //
-//  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+//  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2021, 2023 Free Software Foundation, Inc.
 //
 //  This file is part of the WisiToken package.
 //
@@ -11,6 +11,7 @@
 //  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 //  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+#include <errno.h>
 #include <stdio.h>
 #include "tree_sitter/api.h"
 #include "tree_sitter/parser.h"
