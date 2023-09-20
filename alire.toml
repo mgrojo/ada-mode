@@ -1,7 +1,7 @@
 name = "emacs_gpr_mode"
 description = "parser for Emacs gpr mode"
 tags = ["indent", "highlight", "parser", "gpr", "emacs"]
-version = "1.0.3"
+version = "1.0.4"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -28,7 +28,7 @@ command = ["make", "-f", "Alire.make", "gpr_re2c.c"]
 [[depends-on]]
 stephes_ada_library = "~3.7.2"
 wisitoken = "~4.1.0"
-emacs_wisi = "~4.2.0"
+emacs_wisi = "~4.3.0"
 
 # MSYS has 2.2; Debian, MacOS have 3.0 (oct 2022) 
 re2c = ">=2.2"
