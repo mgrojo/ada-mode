@@ -26,7 +26,7 @@ type = "pre-build"
 command = ["make", "-f", "Alire.make", "gpr_re2c.c"]
 
 [[depends-on]]
-stephes_ada_library = "~3.7.2"
+stephes_ada_library = "~3.7.3"
 wisitoken = "~4.1.0"
 emacs_wisi = "~4.3.0"
 
