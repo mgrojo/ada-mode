@@ -9,7 +9,7 @@ alire-env :
 
 # there's no point in doing 'alr clean' here; 'rm' is faster, better, less error-prone.
 alire-clean :
-	rm -rf alire config build/obj/release build/obj/development
+	rm -rf alire config build/obj/release build/obj/development build/lib
 
 .PHONY : force
 
