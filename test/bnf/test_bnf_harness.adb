@@ -47,7 +47,7 @@ is
 
 begin
    if Argument_Count >= 1 then
-      if Argument (1)(1 .. 6) = "bnf_wy" then
+      if Argument (1)'Length >= 6 and then Argument (1)(1 .. 6) = "bnf_wy" then
          --  Allow bnf_wy_errors_test
          Filter.Test_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (1));
       else

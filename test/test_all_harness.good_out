@@ -34,6 +34,8 @@ OK bnf_wy_test.adb optimized_conflict_03 : Run_Test
 OK bnf_wy_test.adb optimized_conflict_04 : Run_Test
 OK bnf_wy_test.adb optimized_list : Run_Test
 OK bnf_wy_test.adb optimized_list_ebnf : Run_Test
+OK bnf_wy_test.adb prec_assoc : Run_Test
+OK bnf_wy_test.adb prec_assoc_ebnf prec_assoc : Run_Test
 OK bnf_wy_test.adb python_ebnf : Run_Test
 OK bnf_wy_test.adb range_conflict : Run_Test
 OK bnf_wy_test.adb skip_to_grammar : Run_Test
@@ -312,7 +314,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   312
-Successful Tests:  312
+Total Tests Run:   314
+Successful Tests:  314
 Failed Assertions: 0
 Unexpected Errors: 0

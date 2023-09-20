@@ -287,9 +287,13 @@ package WisiToken.BNF is
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
 
    type Labeled_Token is record
-      Label            : Ada.Strings.Unbounded.Unbounded_String;
+      Label : Ada.Strings.Unbounded.Unbounded_String;
+
       Orig_Token_Index : SAL.Base_Peek_Type := 0;
-      Identifier       : Ada.Strings.Unbounded.Unbounded_String;
+      --  Index of this token in Orig_EBNF_RHS; 0 if this is that RHS, or if
+      --  this token is added by translating to BNF.
+
+      Identifier : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    package Labeled_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors

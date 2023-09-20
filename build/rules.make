@@ -152,7 +152,7 @@ wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.% : wisitoken-parse-lr-mckenzi
 	gnatprep -b -r -T -DADA_LITE="Ada_Lite_Ebnf" $^ $@
 
 %.out : %.exe
-	./$*.exe $(RUN_ARGS) > $*.out
+	./$(*F).exe $(RUN_ARGS) > $*.out
 	dos2unix -q $*.out
 
 DIFF_OPT := -u -w

@@ -24,12 +24,12 @@ incremental_parse-pre-config.input_stream o.w.s-2
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-3")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-3"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
 wisitoken-bnf-output_ada_emacs.adb: change _check to _in_parse, other to _post_parse

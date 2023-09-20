@@ -2345,11 +2345,21 @@ package body WisiToken_Grammar_Editing is
                            else
                               --  Add group label
                               declare
-                                 New_B_Item : constant Valid_Node_Access := Tree.Copy_Subtree
+                                 New_B_Item    : constant Valid_Node_Access := Tree.Copy_Subtree
                                    (Tree.Child (B_El, 1), User_Data => Data_Access);
+                                 Containing_El : constant Valid_Node_Access := Tree.Find_Ancestor (B, +rhs_element_ID);
+
                               begin
+                                 --  Copy Orig_Token_Index from parent rhs_element
                                  return Add_RHS_Element
-                                   (Tree, New_B_Item, To_Identifier_Token (Group_Label, Tree));
+                                   (Tree, New_B_Item, To_Identifier_Token (Group_Label, Tree),
+                                    Augmented =>
+                                      (if Tree.Augmented (Containing_El) = null
+                                       then null
+                                       else new WisiToken_Grammar_Runtime.Augmented'
+                                         (Orig_Token_Index  => Augmented_Access_Constant
+                                            (Tree.Augmented (Containing_El)).Orig_Token_Index,
+                                          others => <>)));
                               end;
                            end if;
                         end Create_New_B_El;
