@@ -5,17 +5,34 @@
 ;;
 ;; Also syntax that revealed bugs discovered during development.
 ;;
-;; Note that the only *.*_good file is ada_ebnf_bnf.wy_good, and that
-;; this file does not declare all used tokens; we are only testing the
-;; translation from EBNF to BNF.
+;; We are testing the translation from EBNF to BNF, and mapping the
+;; tokens to actions.
 %meta_syntax BNF
 
+%keyword USE "use"
+%keyword RANGE "range"
+%keyword CONSTANT "constant"
 %keyword IS "is"
 %keyword SUBTYPE "subtype"
 %keyword GENERIC "generic"
-%generate None
+%generate LALR Ada_Emacs re2c Process
 
+%start compilation_unit
+
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUAL ":="
 %token <punctuation> SEMICOLON ";"
+%token <punctuation> TICK "'"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%conflict SHIFT assign_value | REDUCE subtype_indication on token COLON_EQUAL
+%conflict SHIFT subtype_declaration | REDUCE subtype_indication on token SEMICOLON
+%conflict SHIFT object_declaration | REDUCE subtype_indication on token SEMICOLON
+
+assign_value
+  : COLON_EQUAL expression
+  ;
 
 generic_formal_part
   : GENERIC generic_formal_parameter_declaration_use_clause_list
@@ -25,6 +42,97 @@ generic_formal_part
 subtype_declaration
   : SUBTYPE IDENTIFIER IS typename=name SEMICOLON
   | SUBTYPE IDENTIFIER IS typename=subtype_indication SEMICOLON
+  ;
+
+object_declaration
+  : T1=IDENTIFIER T2=COLON T3=CONSTANT T4=name T5=assign_value T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T3=CONSTANT T4=name T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T3=CONSTANT T4=subtype_indication T5=assign_value T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T3=CONSTANT T4=subtype_indication T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T4=name T5=assign_value T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T4=name T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T4=subtype_indication T5=assign_value T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  | T1=IDENTIFIER T2=COLON T4=subtype_indication T6=SEMICOLON
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
+                               ada-indent-broken]))%
+  ;
+
+compilation_unit
+  : generic_formal_part
+  | subtype_declaration
+  | object_declaration
+  ;
+
+;; Stubs
+constraint
+  : RANGE IDENTIFIER TICK IDENTIFIER
+  ;
+
+generic_formal_parameter_declaration
+  : name SEMICOLON
+  ;
+
+use_clause
+  : USE name SEMICOLON
+  ;
+
+subtype_indication
+  : name constraint
+  | name
+  ;
+
+name
+  : IDENTIFIER
+  ;
+
+expression
+  : IDENTIFIER
   ;
 
 ;; end of file

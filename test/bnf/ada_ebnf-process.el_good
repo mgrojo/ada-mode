@@ -1,0 +1,55 @@
+;;; ada_ebnf-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/ada_ebnf.wy
+
+(require 'wisi-process-parse)
+
+(defconst ada_ebnf-process-token-table
+  [USE
+   RANGE
+   CONSTANT
+   IS
+   SUBTYPE
+   GENERIC
+   COLON
+   COLON_EQUAL
+   SEMICOLON
+   TICK
+   IDENTIFIER
+   Wisi_EOI
+   wisitoken_accept
+   assign_value
+   generic_formal_part
+   subtype_declaration
+   object_declaration
+   compilation_unit
+   constraint
+   generic_formal_parameter_declaration
+   use_clause
+   subtype_indication
+   name
+   expression
+   generic_formal_parameter_declaration_use_clause
+   generic_formal_parameter_declaration_use_clause_list
+   Wisi_SOI
+   ])
+
+(defconst ada_ebnf-process-face-table
+  [
+   ])
+
+(defconst ada_ebnf-process-repair-image
+  '(
+   (USE . "use")
+   (RANGE . "range")
+   (CONSTANT . "constant")
+   (IS . "is")
+   (SUBTYPE . "subtype")
+   (GENERIC . "generic")
+   (COLON . ":")
+   (COLON_EQUAL . ":=")
+   (SEMICOLON . ";")
+   (TICK . "'")
+   (IDENTIFIER .  [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* )
+   ))
+
+(provide 'ada_ebnf-process)

@@ -1,0 +1,207 @@
+--  generated parser support file. -*- buffer-read-only:t  -*-
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/ada_ebnf.wy
+--
+
+with SAL;
+with Wisi; use Wisi;
+with Wisi.Ada_Ebnf; use Wisi.Ada_Ebnf;
+package body Ada_Ebnf_Process_Actions is
+
+
+   procedure object_declaration_0
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      T5 : constant SAL.Peek_Type := 5;
+      T6 : constant SAL.Peek_Type := 6;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T3 => (False, (Simple, (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int,
+         Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T5 => (False, (Hanging_1, (Anchored_1, T5, Ada_Indent_Broken),
+         (Anchored_1, T5, 2 * Ada_Indent_Broken))), T6 => (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_0;
+
+   procedure object_declaration_1
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      T6 : constant SAL.Peek_Type := 5;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T3 => (False, (Simple, (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int,
+         Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T6 => (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_1;
+
+   procedure object_declaration_2
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      T5 : constant SAL.Peek_Type := 5;
+      T6 : constant SAL.Peek_Type := 6;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T3 => (False, (Simple, (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int,
+         Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T5 => (False, (Hanging_1, (Anchored_1, T5, Ada_Indent_Broken),
+         (Anchored_1, T5, 2 * Ada_Indent_Broken))), T6 => (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_2;
+
+   procedure object_declaration_3
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+      T4 : constant SAL.Peek_Type := 4;
+      T6 : constant SAL.Peek_Type := 5;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T3 => (False, (Simple, (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int,
+         Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T6 => (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_3;
+
+   procedure object_declaration_4
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T4 : constant SAL.Peek_Type := 3;
+      T5 : constant SAL.Peek_Type := 4;
+      T6 : constant SAL.Peek_Type := 5;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int, Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T5
+         => (False, (Hanging_1, (Anchored_1, T5, Ada_Indent_Broken), (Anchored_1, T5, 2 * Ada_Indent_Broken))), T6 =>
+         (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_4;
+
+   procedure object_declaration_5
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T4 : constant SAL.Peek_Type := 3;
+      T6 : constant SAL.Peek_Type := 4;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int, Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T6
+         => (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_5;
+
+   procedure object_declaration_6
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T4 : constant SAL.Peek_Type := 3;
+      T5 : constant SAL.Peek_Type := 4;
+      T6 : constant SAL.Peek_Type := 5;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int, Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T5
+         => (False, (Hanging_1, (Anchored_1, T5, Ada_Indent_Broken), (Anchored_1, T5, 2 * Ada_Indent_Broken))), T6 =>
+         (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_6;
+
+   procedure object_declaration_7
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T4 : constant SAL.Peek_Type := 3;
+      T6 : constant SAL.Peek_Type := 4;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, ((T1, Statement_Start), (T6, Statement_End)));
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, (T1 => (False, (Simple, (Label => None))), T2 => (False, (Simple,
+         (Int, Ada_Indent_Broken))), T4 => (False, (Hanging_2, (Int, Ada_Indent_Broken), (Int, Ada_Indent_Broken))), T6
+         => (False, (Simple, (Int, Ada_Indent_Broken)))));
+      end case;
+   end object_declaration_7;
+
+end Ada_Ebnf_Process_Actions;

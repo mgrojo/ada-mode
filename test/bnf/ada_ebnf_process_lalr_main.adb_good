@@ -1,0 +1,364 @@
+--  generated parser support file. -*- buffer-read-only:t  -*-
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/ada_ebnf.wy
+--
+
+with SAL;
+with WisiToken.Lexer.re2c;
+with ada_ebnf_re2c_c;
+with WisiToken.Parse.LR;
+with Ada_Ebnf_Process_Actions; use Ada_Ebnf_Process_Actions;
+package body Ada_Ebnf_Process_LALR_Main is
+
+   function Is_Block_Delimited (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when others => return False;
+      end case;
+   end Is_Block_Delimited;
+
+   function Same_Block_Delimiters (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when others => return False;
+      end case;
+   end Same_Block_Delimiters;
+
+   function Escape_Delimiter_Doubled (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when others => return False;
+      end case;
+   end Escape_Delimiter_Doubled;
+
+   function Start_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer
+   is begin
+      case To_Token_Enum (ID) is
+      when others => raise SAL.Programmer_Error; return 0;
+      end case;
+   end Start_Delimiter_Length;
+
+   function End_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer
+   is begin
+      case To_Token_Enum (ID) is
+      when others => raise SAL.Programmer_Error; return 0;
+      end case;
+   end End_Delimiter_Length;
+
+   function New_Line_Is_End_Delimiter (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      return
+        (case To_Token_Enum (ID) is
+         when others => raise SAL.Programmer_Error);
+   end New_Line_Is_End_Delimiter;
+
+   function Find_End_Delimiter
+     (Source      : in WisiToken.Lexer.Source;
+      ID          : in WisiToken.Token_ID;
+      Token_Start : in WisiToken.Buffer_Pos)
+     return WisiToken.Buffer_Pos
+   is
+      pragma Unreferenced (Source, Token_Start);
+   begin
+      return
+        (case To_Token_Enum (ID) is
+         when others => raise SAL.Programmer_Error);
+   end Find_End_Delimiter;
+
+   function Find_Scan_End
+     (Source   : in WisiToken.Lexer.Source;
+      ID       : in WisiToken.Token_ID;
+      Region   : in WisiToken.Buffer_Region;
+      Inserted : in Boolean;
+      Start    : in Boolean)
+     return WisiToken.Buffer_Pos
+   is
+      pragma Unreferenced (Source, Region, Inserted, Start);
+   begin
+      return
+        (case To_Token_Enum (ID) is
+         when others => raise SAL.Programmer_Error);
+   end Find_Scan_End;
+
+   function Contains_End_Delimiter
+     (Source : in WisiToken.Lexer.Source;
+      ID     : in WisiToken.Token_ID;
+      Region : in WisiToken.Buffer_Region)
+     return WisiToken.Base_Buffer_Pos
+   is
+      use WisiToken;
+      pragma Unreferenced (Source, Region);
+   begin
+      return
+        (case To_Token_Enum (ID) is
+         when others => raise SAL.Programmer_Error);
+   end Contains_End_Delimiter;
+
+   function Line_Begin_Char_Pos
+    (Source : in WisiToken.Lexer.Source;
+     Token  : in WisiToken.Lexer.Token;
+     Line   : in WisiToken.Line_Number_Type)
+   return WisiToken.Buffer_Pos
+   is
+      pragma Unreferenced (Source, Token, Line);
+   begin
+      return WisiToken.Invalid_Buffer_Pos;
+   end Line_Begin_Char_Pos;
+
+   function Can_Contain_New_Line (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when others => return False;
+      end case;
+   end Can_Contain_New_Line;
+
+   function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when others => return False;
+      end case;
+   end Terminated_By_New_Line;
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (ada_ebnf_re2c_c.New_Lexer,
+      ada_ebnf_re2c_c.Free_Lexer,
+      ada_ebnf_re2c_c.Reset_Lexer,
+      ada_ebnf_re2c_c.Set_Verbosity,
+      ada_ebnf_re2c_c.Set_Position,
+      ada_ebnf_re2c_c.Next_Token,
+      Is_Block_Delimited,
+      Same_Block_Delimiters,
+      Escape_Delimiter_Doubled,
+      Start_Delimiter_Length,
+      End_Delimiter_Length,
+      New_Line_Is_End_Delimiter,
+      Find_End_Delimiter,
+      Contains_End_Delimiter,
+      Find_Scan_End,
+      Line_Begin_Char_Pos,
+      Can_Contain_New_Line,
+      Terminated_By_New_Line);
+
+   function Create_Parse_Table
+     return WisiToken.Parse.LR.Parse_Table_Ptr
+   is
+      use WisiToken.Parse.LR;
+      Table : constant Parse_Table_Ptr := new Parse_Table
+        (State_First       => 0,
+         State_Last        => 50,
+         First_Terminal    => 0,
+         Last_Terminal     => 11,
+         First_Nonterminal => 12,
+         Last_Nonterminal  => 25);
+   begin
+      declare
+         procedure Subr_1
+         is begin
+            Table.States (0).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (0), 4, (15, 0), 1);
+            Add_Action (Table.States (0), 5, (14, 0), 2);
+            Add_Action (Table.States (0), 10, (16, 0), 3);
+            Table.States (0).Goto_List.Set_Capacity (4);
+            Add_Goto (Table.States (0), 14, 4);
+            Add_Goto (Table.States (0), 15, 5);
+            Add_Goto (Table.States (0), 16, 6);
+            Add_Goto (Table.States (0), 17, 7);
+            Table.States (1).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (1), 10, (15, 0), 8);
+            Table.States (2).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (2), 0, (20, 0), 9);
+            Add_Action (Table.States (2), 10, (22, 0), 10);
+            Add_Action (Table.States (2), 11, Reduce, (14, 1),  1);
+            Table.States (2).Goto_List.Set_Capacity (5);
+            Add_Goto (Table.States (2), 19, 11);
+            Add_Goto (Table.States (2), 20, 12);
+            Add_Goto (Table.States (2), 22, 13);
+            Add_Goto (Table.States (2), 24, 14);
+            Add_Goto (Table.States (2), 25, 15);
+            Table.States (3).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (3), 6, (16, 0), 16);
+            Table.States (4).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (4), (1 =>  11), (17, 0),  1);
+            Table.States (5).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (5), (1 =>  11), (17, 1),  1);
+            Table.States (6).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (6), (1 =>  11), (17, 2),  1);
+            Table.States (7).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (7), 11, Accept_It, (12, 0),  1);
+            Table.States (8).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (8), 3, (15, 0), 17);
+            Table.States (9).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (9), 10, (22, 0), 10);
+            Table.States (9).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (9), 22, 18);
+            Table.States (10).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (10), (1, 7, 8), (22, 0),  1);
+            Table.States (11).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (11), (0, 10, 11), (24, 0),  1);
+            Table.States (12).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (12), (0, 10, 11), (24, 1),  1);
+            Table.States (13).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (13), 8, (19, 0), 19);
+            Table.States (14).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (14), (0, 10, 11), (25, 0),  1);
+            Table.States (15).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (15), 0, (20, 0), 9);
+            Add_Action (Table.States (15), 10, (22, 0), 10);
+            Add_Action (Table.States (15), 11, Reduce, (14, 0),  2);
+            Table.States (15).Goto_List.Set_Capacity (4);
+            Add_Goto (Table.States (15), 19, 11);
+            Add_Goto (Table.States (15), 20, 12);
+            Add_Goto (Table.States (15), 22, 13);
+            Add_Goto (Table.States (15), 24, 20);
+            Table.States (16).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (16), 2, (16, 0), 21);
+            Add_Action (Table.States (16), 10, (22, 0), 10);
+            Table.States (16).Goto_List.Set_Capacity (2);
+            Add_Goto (Table.States (16), 21, 22);
+            Add_Goto (Table.States (16), 22, 23);
+            Table.States (17).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (17), 10, (22, 0), 10);
+            Table.States (17).Goto_List.Set_Capacity (2);
+            Add_Goto (Table.States (17), 21, 24);
+            Add_Goto (Table.States (17), 22, 25);
+            Table.States (18).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (18), 8, (20, 0), 26);
+            Table.States (19).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (19), (0, 10, 11), (19, 0),  2);
+            Table.States (20).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (20), (0, 10, 11), (25, 1),  2);
+            Table.States (21).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (21), 10, (22, 0), 10);
+            Table.States (21).Goto_List.Set_Capacity (2);
+            Add_Goto (Table.States (21), 21, 27);
+            Add_Goto (Table.States (21), 22, 28);
+            Table.States (22).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (22), 7, (13, 0), 29);
+            Add_Action (Table.States (22), 8, (16, 7), 30);
+            Table.States (22).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (22), 13, 31);
+            Table.States (23).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (23), 1, (18, 0), 32);
+            Add_Action (Table.States (23), 7, (13, 0), 29);
+            Add_Conflict (Table.States (23), 7, (21, 1),  1);
+            Add_Action (Table.States (23), 8, (16, 5), 33);
+            Add_Conflict (Table.States (23), 8, (21, 1),  1);
+            Table.States (23).Goto_List.Set_Capacity (2);
+            Add_Goto (Table.States (23), 13, 34);
+            Add_Goto (Table.States (23), 18, 35);
+            Table.States (24).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (24), 8, (15, 1), 36);
+            Table.States (25).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (25), 1, (18, 0), 32);
+            Add_Action (Table.States (25), 8, (15, 0), 37);
+            Add_Conflict (Table.States (25), 8, (21, 1),  1);
+            Table.States (25).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (25), 18, 35);
+            Table.States (26).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (26), (0, 10, 11), (20, 0),  3);
+            Table.States (27).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (27), 7, (13, 0), 29);
+            Add_Action (Table.States (27), 8, (16, 3), 38);
+            Table.States (27).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (27), 13, 39);
+            Table.States (28).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (28), 1, (18, 0), 32);
+            Add_Action (Table.States (28), 7, (13, 0), 29);
+            Add_Conflict (Table.States (28), 7, (21, 1),  1);
+            Add_Action (Table.States (28), 8, (16, 1), 40);
+            Add_Conflict (Table.States (28), 8, (21, 1),  1);
+            Table.States (28).Goto_List.Set_Capacity (2);
+            Add_Goto (Table.States (28), 13, 41);
+            Add_Goto (Table.States (28), 18, 35);
+            Table.States (29).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (29), 10, (23, 0), 42);
+            Table.States (29).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (29), 23, 43);
+            Table.States (30).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (30), (1 =>  11), (16, 7),  4);
+            Table.States (31).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (31), 8, (16, 6), 44);
+            Table.States (32).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (32), 10, (18, 0), 45);
+            Table.States (33).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (33), (1 =>  11), (16, 5),  4);
+            Table.States (34).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (34), 8, (16, 4), 46);
+            Table.States (35).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (35), (7, 8), (21, 0),  2);
+            Table.States (36).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (36), (1 =>  11), (15, 1),  5);
+            Table.States (37).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (37), (1 =>  11), (15, 0),  5);
+            Table.States (38).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (38), (1 =>  11), (16, 3),  5);
+            Table.States (39).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (39), 8, (16, 2), 47);
+            Table.States (40).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (40), (1 =>  11), (16, 1),  5);
+            Table.States (41).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (41), 8, (16, 0), 48);
+            Table.States (42).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (42), (1 =>  8), (23, 0),  1);
+            Table.States (43).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (43), (1 =>  8), (13, 0),  2);
+            Table.States (44).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (44), (1 =>  11), (16, 6),  5);
+            Table.States (45).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (45), 9, (18, 0), 49);
+            Table.States (46).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (46), (1 =>  11), (16, 4),  5);
+            Table.States (47).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (47), (1 =>  11), (16, 2),  6);
+            Table.States (48).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (48), (1 =>  11), (16, 0),  6);
+            Table.States (49).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (49), 10, (18, 0), 50);
+            Table.States (50).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (50), (7, 8), (18, 0),  4);
+         end Subr_1;
+      begin
+         Subr_1;
+         Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);
+      end;
+
+      Table.Max_Parallel := 15;
+      return Table;
+   end Create_Parse_Table;
+
+   function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector
+   is begin
+      return Result : WisiToken.Syntax_Trees.Production_Info_Trees.Vector do
+         Result.Set_First_Last (12, 25);
+         Result (16).RHSs.Set_First_Last (0, 7);
+         Result (16).RHSs (0).In_Parse_Action := null;
+         Result (16).RHSs (0).Post_Parse_Action := object_declaration_0'Access;
+         Result (16).RHSs (1).In_Parse_Action := null;
+         Result (16).RHSs (1).Post_Parse_Action := object_declaration_1'Access;
+         Result (16).RHSs (2).In_Parse_Action := null;
+         Result (16).RHSs (2).Post_Parse_Action := object_declaration_2'Access;
+         Result (16).RHSs (3).In_Parse_Action := null;
+         Result (16).RHSs (3).Post_Parse_Action := object_declaration_3'Access;
+         Result (16).RHSs (4).In_Parse_Action := null;
+         Result (16).RHSs (4).Post_Parse_Action := object_declaration_4'Access;
+         Result (16).RHSs (5).In_Parse_Action := null;
+         Result (16).RHSs (5).Post_Parse_Action := object_declaration_5'Access;
+         Result (16).RHSs (6).In_Parse_Action := null;
+         Result (16).RHSs (6).Post_Parse_Action := object_declaration_6'Access;
+         Result (16).RHSs (7).In_Parse_Action := null;
+         Result (16).RHSs (7).Post_Parse_Action := object_declaration_7'Access;
+      end return;
+   end Create_Productions;
+
+   function Create_Parser
+     (Trace      : in WisiToken.Trace_Access;
+      User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.LR.Parser_No_Recover.Parser
+   is begin
+      return Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser do
+         Parser.Tree.Lexer := Lexer.New_Lexer (Trace, Ada_Ebnf_Process_Actions.Descriptor'Access);
+         Parser.Productions := Create_Productions;
+         Parser.User_Data := User_Data;
+         Parser.Table := Create_Parse_Table;
+      end return;
+   end Create_Parser;
+end Ada_Ebnf_Process_LALR_Main;

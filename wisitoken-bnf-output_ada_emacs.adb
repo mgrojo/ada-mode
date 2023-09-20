@@ -192,10 +192,10 @@ is
       Space_Paren_Set : constant Ada.Strings.Maps.Character_Set :=
         Ada.Strings.Maps.To_Set ("])") or Blank_Set;
 
-      Navigate_Lines     : String_Lists.List;
-      Face_Line          : Unbounded_String;
-      Indent_Action_Line : Unbounded_String;
-      In_Parse_Action_Line         : Unbounded_String;
+      Navigate_Lines       : String_Lists.List;
+      Face_Line            : Unbounded_String;
+      Indent_Action_Line   : Unbounded_String;
+      In_Parse_Action_Line : Unbounded_String;
 
       Label_Needed   : array (Rule.Labels.First_Index .. Rule.Labels.Last_Index) of Boolean := (others => False);
       Nonterm_Needed : Boolean := False;
@@ -1621,9 +1621,9 @@ is
 
    procedure Create_Ada_Actions_Body
      (Post_Parse_Action_Names : not null access WisiToken.Names_Array_Array;
-      In_Parse_Action_Names  : not null access WisiToken.Names_Array_Array;
-      Label_Count  : in              Ada.Containers.Count_Type;
-      Package_Name : in              String)
+      In_Parse_Action_Names   : not null access WisiToken.Names_Array_Array;
+      Label_Count             : in              Ada.Containers.Count_Type;
+      Package_Name            : in              String)
    is
       use Ada.Strings.Unbounded;
       use Generate_Utils;
@@ -1706,6 +1706,10 @@ is
                      if Empty then
                         Post_Parse_Action_Names (LHS_ID)(RHS_Index) := null;
                      end if;
+                  exception
+                  when others =>
+                     Put_Error (Error_Message (Grammar_File_Name, RHS.Source_Line, "fatal internal error"));
+                     raise;
                   end;
                end if;
 

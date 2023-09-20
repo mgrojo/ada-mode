@@ -1,0 +1,580 @@
+Tokens:
+ 0 => USE
+ 1 => RANGE
+ 2 => CONSTANT
+ 3 => IS
+ 4 => SUBTYPE
+ 5 => GENERIC
+ 6 => COLON
+ 7 => COLON_EQUAL
+ 8 => SEMICOLON
+ 9 => TICK
+ 10 => IDENTIFIER
+ 11 => Wisi_EOI
+ 12 => wisitoken_accept
+ 13 => assign_value
+ 14 => generic_formal_part
+ 15 => subtype_declaration
+ 16 => object_declaration
+ 17 => compilation_unit
+ 18 => constraint
+ 19 => generic_formal_parameter_declaration
+ 20 => use_clause
+ 21 => subtype_indication
+ 22 => name
+ 23 => expression
+ 24 => generic_formal_parameter_declaration_use_clause
+ 25 => generic_formal_parameter_declaration_use_clause_list
+
+Productions:
+12.0: wisitoken_accept <= compilation_unit Wisi_EOI
+13.0: assign_value <= COLON_EQUAL expression
+14.0: generic_formal_part <= GENERIC generic_formal_parameter_declaration_use_clause_list
+14.1: generic_formal_part <= GENERIC
+15.0: subtype_declaration <= SUBTYPE IDENTIFIER IS name SEMICOLON
+15.1: subtype_declaration <= SUBTYPE IDENTIFIER IS subtype_indication SEMICOLON
+16.0: object_declaration <= IDENTIFIER COLON CONSTANT name assign_value SEMICOLON
+16.1: object_declaration <= IDENTIFIER COLON CONSTANT name SEMICOLON
+16.2: object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication assign_value SEMICOLON
+16.3: object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication SEMICOLON
+16.4: object_declaration <= IDENTIFIER COLON name assign_value SEMICOLON
+16.5: object_declaration <= IDENTIFIER COLON name SEMICOLON
+16.6: object_declaration <= IDENTIFIER COLON subtype_indication assign_value SEMICOLON
+16.7: object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON
+17.0: compilation_unit <= generic_formal_part
+17.1: compilation_unit <= subtype_declaration
+17.2: compilation_unit <= object_declaration
+18.0: constraint <= RANGE IDENTIFIER TICK IDENTIFIER
+19.0: generic_formal_parameter_declaration <= name SEMICOLON
+20.0: use_clause <= USE name SEMICOLON
+21.0: subtype_indication <= name constraint
+21.1: subtype_indication <= name
+22.0: name <= IDENTIFIER
+23.0: expression <= IDENTIFIER
+24.0: generic_formal_parameter_declaration_use_clause <= generic_formal_parameter_declaration
+24.1: generic_formal_parameter_declaration_use_clause <= use_clause
+25.0: generic_formal_parameter_declaration_use_clause_list <= generic_formal_parameter_declaration_use_clause
+25.1: generic_formal_parameter_declaration_use_clause_list <= generic_formal_parameter_declaration_use_clause_list generic_formal_parameter_declaration_use_clause
+
+LALR Parse Table:
+State 0:
+     12.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI
+
+   SUBTYPE                                              => shift and goto state 1 15.0
+   GENERIC                                              => shift and goto state 2 14.0
+   IDENTIFIER                                           => shift and goto state 3 16.0
+   default                                              => ERROR
+
+   generic_formal_part                                  goto state 4
+   subtype_declaration                                  goto state 5
+   object_declaration                                   goto state 6
+   compilation_unit                                     goto state 7
+
+   Minimal_Complete_Actions => 
+
+State 1:
+     15.0:subtype_declaration <= SUBTYPE ^ IDENTIFIER IS name SEMICOLON
+     15.1:subtype_declaration <= SUBTYPE ^ IDENTIFIER IS subtype_indication SEMICOLON
+
+   IDENTIFIER                                           => shift and goto state 8 15.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 2:
+     14.0:generic_formal_part <= GENERIC ^ generic_formal_parameter_declaration_use_clause_list
+     14.1:generic_formal_part <= GENERIC ^
+
+   USE                                                  => shift and goto state 9 20.0
+   IDENTIFIER                                           => shift and goto state 10 22.0
+   Wisi_EOI                                             => reduce 1 tokens to generic_formal_part 14.1
+   default                                              => ERROR
+
+   generic_formal_parameter_declaration                 goto state 11
+   use_clause                                           goto state 12
+   name                                                 goto state 13
+   generic_formal_parameter_declaration_use_clause      goto state 14
+   generic_formal_parameter_declaration_use_clause_list goto state 15
+
+   Minimal_Complete_Actions => 
+
+State 3:
+     16.0:object_declaration <= IDENTIFIER ^ COLON CONSTANT name assign_value SEMICOLON
+     16.1:object_declaration <= IDENTIFIER ^ COLON CONSTANT name SEMICOLON
+     16.2:object_declaration <= IDENTIFIER ^ COLON CONSTANT subtype_indication assign_value SEMICOLON
+     16.3:object_declaration <= IDENTIFIER ^ COLON CONSTANT subtype_indication SEMICOLON
+     16.4:object_declaration <= IDENTIFIER ^ COLON name assign_value SEMICOLON
+     16.5:object_declaration <= IDENTIFIER ^ COLON name SEMICOLON
+     16.6:object_declaration <= IDENTIFIER ^ COLON subtype_indication assign_value SEMICOLON
+     16.7:object_declaration <= IDENTIFIER ^ COLON subtype_indication SEMICOLON
+
+   COLON                                                => shift and goto state 16 16.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 4:
+     17.0:compilation_unit <= generic_formal_part ^
+
+   Wisi_EOI                                             => reduce 1 tokens to compilation_unit 17.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 5:
+     17.1:compilation_unit <= subtype_declaration ^
+
+   Wisi_EOI                                             => reduce 1 tokens to compilation_unit 17.1
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 6:
+     17.2:compilation_unit <= object_declaration ^
+
+   Wisi_EOI                                             => reduce 1 tokens to compilation_unit 17.2
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 7:
+     12.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
+
+   Wisi_EOI                                             => accept it 12.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 8:
+     15.0:subtype_declaration <= SUBTYPE IDENTIFIER ^ IS name SEMICOLON
+     15.1:subtype_declaration <= SUBTYPE IDENTIFIER ^ IS subtype_indication SEMICOLON
+
+   IS                                                   => shift and goto state 17 15.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 9:
+     20.0:use_clause <= USE ^ name SEMICOLON
+
+   IDENTIFIER                                           => shift and goto state 10 22.0
+   default                                              => ERROR
+
+   name                                                 goto state 18
+
+   Minimal_Complete_Actions => 
+
+State 10:
+     22.0:name <= IDENTIFIER ^
+
+   RANGE                                                => reduce 1 tokens to name 22.0
+   COLON_EQUAL                                          => reduce 1 tokens to name 22.0
+   SEMICOLON                                            => reduce 1 tokens to name 22.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 11:
+     24.0:generic_formal_parameter_declaration_use_clause <= generic_formal_parameter_declaration ^
+
+   USE                                                  => reduce 1 tokens to generic_formal_parameter_declaration_use_clause 24.0
+   IDENTIFIER                                           => reduce 1 tokens to generic_formal_parameter_declaration_use_clause 24.0
+   Wisi_EOI                                             => reduce 1 tokens to generic_formal_parameter_declaration_use_clause 24.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 12:
+     24.1:generic_formal_parameter_declaration_use_clause <= use_clause ^
+
+   USE                                                  => reduce 1 tokens to generic_formal_parameter_declaration_use_clause 24.1
+   IDENTIFIER                                           => reduce 1 tokens to generic_formal_parameter_declaration_use_clause 24.1
+   Wisi_EOI                                             => reduce 1 tokens to generic_formal_parameter_declaration_use_clause 24.1
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 13:
+     19.0:generic_formal_parameter_declaration <= name ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 19 19.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 14:
+     25.0:generic_formal_parameter_declaration_use_clause_list <= generic_formal_parameter_declaration_use_clause ^
+
+   USE                                                  => reduce 1 tokens to generic_formal_parameter_declaration_use_clause_list 25.0
+   IDENTIFIER                                           => reduce 1 tokens to generic_formal_parameter_declaration_use_clause_list 25.0
+   Wisi_EOI                                             => reduce 1 tokens to generic_formal_parameter_declaration_use_clause_list 25.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 15:
+     14.0:generic_formal_part <= GENERIC generic_formal_parameter_declaration_use_clause_list ^
+     25.1:generic_formal_parameter_declaration_use_clause_list <= generic_formal_parameter_declaration_use_clause_list ^ generic_formal_parameter_declaration_use_clause
+
+   USE                                                  => shift and goto state 9 20.0
+   IDENTIFIER                                           => shift and goto state 10 22.0
+   Wisi_EOI                                             => reduce 2 tokens to generic_formal_part 14.0
+   default                                              => ERROR
+
+   generic_formal_parameter_declaration                 goto state 11
+   use_clause                                           goto state 12
+   name                                                 goto state 13
+   generic_formal_parameter_declaration_use_clause      goto state 20
+
+   Minimal_Complete_Actions => 
+
+State 16:
+     16.0:object_declaration <= IDENTIFIER COLON ^ CONSTANT name assign_value SEMICOLON
+     16.1:object_declaration <= IDENTIFIER COLON ^ CONSTANT name SEMICOLON
+     16.2:object_declaration <= IDENTIFIER COLON ^ CONSTANT subtype_indication assign_value SEMICOLON
+     16.3:object_declaration <= IDENTIFIER COLON ^ CONSTANT subtype_indication SEMICOLON
+     16.4:object_declaration <= IDENTIFIER COLON ^ name assign_value SEMICOLON
+     16.5:object_declaration <= IDENTIFIER COLON ^ name SEMICOLON
+     16.6:object_declaration <= IDENTIFIER COLON ^ subtype_indication assign_value SEMICOLON
+     16.7:object_declaration <= IDENTIFIER COLON ^ subtype_indication SEMICOLON
+
+   CONSTANT                                             => shift and goto state 21 16.0
+   IDENTIFIER                                           => shift and goto state 10 22.0
+   default                                              => ERROR
+
+   subtype_indication                                   goto state 22
+   name                                                 goto state 23
+
+   Minimal_Complete_Actions => 
+
+State 17:
+     15.0:subtype_declaration <= SUBTYPE IDENTIFIER IS ^ name SEMICOLON
+     15.1:subtype_declaration <= SUBTYPE IDENTIFIER IS ^ subtype_indication SEMICOLON
+
+   IDENTIFIER                                           => shift and goto state 10 22.0
+   default                                              => ERROR
+
+   subtype_indication                                   goto state 24
+   name                                                 goto state 25
+
+   Minimal_Complete_Actions => 
+
+State 18:
+     20.0:use_clause <= USE name ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 26 20.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 19:
+     19.0:generic_formal_parameter_declaration <= name SEMICOLON ^
+
+   USE                                                  => reduce 2 tokens to generic_formal_parameter_declaration 19.0
+   IDENTIFIER                                           => reduce 2 tokens to generic_formal_parameter_declaration 19.0
+   Wisi_EOI                                             => reduce 2 tokens to generic_formal_parameter_declaration 19.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 20:
+     25.1:generic_formal_parameter_declaration_use_clause_list <= generic_formal_parameter_declaration_use_clause_list generic_formal_parameter_declaration_use_clause ^
+
+   USE                                                  => reduce 2 tokens to generic_formal_parameter_declaration_use_clause_list 25.1
+   IDENTIFIER                                           => reduce 2 tokens to generic_formal_parameter_declaration_use_clause_list 25.1
+   Wisi_EOI                                             => reduce 2 tokens to generic_formal_parameter_declaration_use_clause_list 25.1
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 21:
+     16.0:object_declaration <= IDENTIFIER COLON CONSTANT ^ name assign_value SEMICOLON
+     16.1:object_declaration <= IDENTIFIER COLON CONSTANT ^ name SEMICOLON
+     16.2:object_declaration <= IDENTIFIER COLON CONSTANT ^ subtype_indication assign_value SEMICOLON
+     16.3:object_declaration <= IDENTIFIER COLON CONSTANT ^ subtype_indication SEMICOLON
+
+   IDENTIFIER                                           => shift and goto state 10 22.0
+   default                                              => ERROR
+
+   subtype_indication                                   goto state 27
+   name                                                 goto state 28
+
+   Minimal_Complete_Actions => 
+
+State 22:
+     16.6:object_declaration <= IDENTIFIER COLON subtype_indication ^ assign_value SEMICOLON
+     16.7:object_declaration <= IDENTIFIER COLON subtype_indication ^ SEMICOLON
+
+   COLON_EQUAL                                          => shift and goto state 29 13.0
+   SEMICOLON                                            => shift and goto state 30 16.7
+   default                                              => ERROR
+
+   assign_value                                         goto state 31
+
+   Minimal_Complete_Actions => 
+
+State 23:
+     16.4:object_declaration <= IDENTIFIER COLON name ^ assign_value SEMICOLON
+     16.5:object_declaration <= IDENTIFIER COLON name ^ SEMICOLON
+     21.0:subtype_indication <= name ^ constraint
+     21.1:subtype_indication <= name ^
+
+   RANGE                                                => shift and goto state 32 18.0
+   COLON_EQUAL                                          => shift and goto state 29 13.0,
+                                                           reduce 1 tokens to subtype_indication 21.1
+   SEMICOLON                                            => shift and goto state 33 16.5,
+                                                           reduce 1 tokens to subtype_indication 21.1
+   default                                              => ERROR
+
+   assign_value                                         goto state 34
+   constraint                                           goto state 35
+
+   Minimal_Complete_Actions => 
+
+State 24:
+     15.1:subtype_declaration <= SUBTYPE IDENTIFIER IS subtype_indication ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 36 15.1
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 25:
+     15.0:subtype_declaration <= SUBTYPE IDENTIFIER IS name ^ SEMICOLON
+     21.0:subtype_indication <= name ^ constraint
+     21.1:subtype_indication <= name ^
+
+   RANGE                                                => shift and goto state 32 18.0
+   SEMICOLON                                            => shift and goto state 37 15.0,
+                                                           reduce 1 tokens to subtype_indication 21.1
+   default                                              => ERROR
+
+   constraint                                           goto state 35
+
+   Minimal_Complete_Actions => 
+
+State 26:
+     20.0:use_clause <= USE name SEMICOLON ^
+
+   USE                                                  => reduce 3 tokens to use_clause 20.0
+   IDENTIFIER                                           => reduce 3 tokens to use_clause 20.0
+   Wisi_EOI                                             => reduce 3 tokens to use_clause 20.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 27:
+     16.2:object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication ^ assign_value SEMICOLON
+     16.3:object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication ^ SEMICOLON
+
+   COLON_EQUAL                                          => shift and goto state 29 13.0
+   SEMICOLON                                            => shift and goto state 38 16.3
+   default                                              => ERROR
+
+   assign_value                                         goto state 39
+
+   Minimal_Complete_Actions => 
+
+State 28:
+     16.0:object_declaration <= IDENTIFIER COLON CONSTANT name ^ assign_value SEMICOLON
+     16.1:object_declaration <= IDENTIFIER COLON CONSTANT name ^ SEMICOLON
+     21.0:subtype_indication <= name ^ constraint
+     21.1:subtype_indication <= name ^
+
+   RANGE                                                => shift and goto state 32 18.0
+   COLON_EQUAL                                          => shift and goto state 29 13.0,
+                                                           reduce 1 tokens to subtype_indication 21.1
+   SEMICOLON                                            => shift and goto state 40 16.1,
+                                                           reduce 1 tokens to subtype_indication 21.1
+   default                                              => ERROR
+
+   assign_value                                         goto state 41
+   constraint                                           goto state 35
+
+   Minimal_Complete_Actions => 
+
+State 29:
+     13.0:assign_value <= COLON_EQUAL ^ expression
+
+   IDENTIFIER                                           => shift and goto state 42 23.0
+   default                                              => ERROR
+
+   expression                                           goto state 43
+
+   Minimal_Complete_Actions => 
+
+State 30:
+     16.7:object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 4 tokens to object_declaration 16.7
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 31:
+     16.6:object_declaration <= IDENTIFIER COLON subtype_indication assign_value ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 44 16.6
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 32:
+     18.0:constraint <= RANGE ^ IDENTIFIER TICK IDENTIFIER
+
+   IDENTIFIER                                           => shift and goto state 45 18.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 33:
+     16.5:object_declaration <= IDENTIFIER COLON name SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 4 tokens to object_declaration 16.5
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 34:
+     16.4:object_declaration <= IDENTIFIER COLON name assign_value ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 46 16.4
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 35:
+     21.0:subtype_indication <= name constraint ^
+
+   COLON_EQUAL                                          => reduce 2 tokens to subtype_indication 21.0
+   SEMICOLON                                            => reduce 2 tokens to subtype_indication 21.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 36:
+     15.1:subtype_declaration <= SUBTYPE IDENTIFIER IS subtype_indication SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 5 tokens to subtype_declaration 15.1
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 37:
+     15.0:subtype_declaration <= SUBTYPE IDENTIFIER IS name SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 5 tokens to subtype_declaration 15.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 38:
+     16.3:object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 5 tokens to object_declaration 16.3
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 39:
+     16.2:object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication assign_value ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 47 16.2
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 40:
+     16.1:object_declaration <= IDENTIFIER COLON CONSTANT name SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 5 tokens to object_declaration 16.1
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 41:
+     16.0:object_declaration <= IDENTIFIER COLON CONSTANT name assign_value ^ SEMICOLON
+
+   SEMICOLON                                            => shift and goto state 48 16.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 42:
+     23.0:expression <= IDENTIFIER ^
+
+   SEMICOLON                                            => reduce 1 tokens to expression 23.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 43:
+     13.0:assign_value <= COLON_EQUAL expression ^
+
+   SEMICOLON                                            => reduce 2 tokens to assign_value 13.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 44:
+     16.6:object_declaration <= IDENTIFIER COLON subtype_indication assign_value SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 5 tokens to object_declaration 16.6
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 45:
+     18.0:constraint <= RANGE IDENTIFIER ^ TICK IDENTIFIER
+
+   TICK                                                 => shift and goto state 49 18.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 46:
+     16.4:object_declaration <= IDENTIFIER COLON name assign_value SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 5 tokens to object_declaration 16.4
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 47:
+     16.2:object_declaration <= IDENTIFIER COLON CONSTANT subtype_indication assign_value SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 6 tokens to object_declaration 16.2
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 48:
+     16.0:object_declaration <= IDENTIFIER COLON CONSTANT name assign_value SEMICOLON ^
+
+   Wisi_EOI                                             => reduce 6 tokens to object_declaration 16.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 49:
+     18.0:constraint <= RANGE IDENTIFIER TICK ^ IDENTIFIER
+
+   IDENTIFIER                                           => shift and goto state 50 18.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 50:
+     18.0:constraint <= RANGE IDENTIFIER TICK IDENTIFIER ^
+
+   COLON_EQUAL                                          => reduce 4 tokens to constraint 18.0
+   SEMICOLON                                            => reduce 4 tokens to constraint 18.0
+   default                                              => ERROR
+
+   Minimal_Complete_Actions => 
+
+0 states with minimal_complete_actions; 0 total minimal_complete_actions.
+
+3 states with conflicts: 23 25 28
+
+ 13 rules, 8 post_parse actions, 0 in_parse actions, 51 states
