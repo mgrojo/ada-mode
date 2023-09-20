@@ -1,16 +1,9 @@
-break wisitoken-syntax_trees.adb:6958
-command 1
-show_id Node.ID
-p Node.Node_Index
-end
-disable 1
-break test_syntax_trees.adb:1162
-
 # *_run.exe:
 #set args --verbosity "debug=1 parse=3" ../test/bnf/debug.input
 
 # wisitoken-bnf-generate:
-#set args ../test/bnf/object_declaration.wy 
+cd /Projects/org.emacs.gpr-mode/
+set args --output_bnf gpr.wy 
 
 # t_mck:
 #set args LALR Missing_Name_2 "debug=1 mckenzie=1"
@@ -18,7 +11,7 @@ break test_syntax_trees.adb:1162
 #catch except WisiToken.Parse.LR.McKenzie_Recover.Invalid_Case
 
 # t_one, t_all:
-set args test_syntax_trees.adb Prev_New_Line_01 "debug=1 test=2 lexer=1"
+#set args test_syntax_trees.adb Prev_New_Line_01 "debug=1 test=2 lexer=1"
 
 catch excep
 # catch excep ADA.ASSERTIONS.ASSERTION_ERROR
@@ -26,13 +19,13 @@ catch excep
 # catch excep CONSTRAINT_ERROR
 # catch excep SAL.PROGRAMMER_ERROR
 # catch excep SAL.NOT_IMPLEMENTED
-set varsize-limit 0
+set max-value-size unlimited
 
 # token_id
 define show_id
 #  print ada_lite_actions.descriptor.image ($arg0).all
-  print grammar_grammar_01_actions.descriptor.image ($arg0).all
-#  print Wisitoken_Grammar_Actions.descriptor.image ($arg0).all
+#  print grammar_grammar_01_actions.descriptor.image ($arg0).all
+  print Wisitoken_Grammar_Actions.descriptor.image ($arg0).all
 end
 
 # node

@@ -27,6 +27,7 @@ bump version
 
     ../alire.toml
         version
+        dependency versions
 
 Makefile
     (gpr-query-kill-all-sessions)
@@ -46,21 +47,20 @@ On Debian
     cd /Projects/org.wisitoken/
     ~/bin/alire-publish-git.sh
 
+# after Alire pull request accepted:
+
 Makefile
     zip tag
 
-upload to savannah for Emacs Ada mode:
+upload to savannah for tarball distribution:
     in Cygwin Console (for gpg2 prompts):
     cd /cygdrive/c/Projects/org.wisitoken/build/
     rm wisitoken-<old>.tar*
     gpg -b *.tar.bz2
     scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
-push local Alire index to github after all other crates done
-
 update:
     FSF/UNESCO free software directory? https://directory.fsf.org/
-    Alire? https://alire.ada.dev/
     https://en.wikipedia.org/wiki/Comparison_of_parser_generators
 
 ~/Web/Makefile
