@@ -1013,21 +1013,21 @@ Alire.make
     rm -rf alire config
     alire-build
 
+do other package releases:
+    ../org.stephe_leake.sal/notes.text           local, alire
+    ../org.wisitoken/build/release_process.text  local, alire
+    ../org.emacs.wisi/notes.text                 elpa, alire
+    ../elpa/packages/gnat-compiler/notes.text    elpa
+    ../elpa/packages/gpr-query/notes.text        elpa, alire
+
+    recommended:
+    ../org.emacs.gpr-mode/notes.text elpa, alire
+
 build in elpa
     build/Makefile pub
 
     /Projects/elpa/packages/ada-mode/ELPA.make all
     check for unused sources in wisi; no .o => edit Makefile pub-*
-
-do other package releases:
-    ../org.stephe_leake.sal/notes.text local, alire
-    ../org.wisitoken/build/release_process.text  local, alire
-    ../org.emacs.wisi/notes.text                 elpa, alire
-    ../org.emacs.gnat-compiler/notes.text        elpa, alire
-    ../org.emacs.gpr-query/notes.text            elpa, alire
-
-    recommended:
-    ../org.emacs.gpr-mode/notes.text elpa, alire
 
 compare:
     (ediff-directories "/Projects/elpa/packages/ada-mode" "/Projects/org.emacs.ada-mode" nil)
@@ -1087,6 +1087,7 @@ bump versions
         (should have been changed already, but verify;
          should match last mention of language protocol version in NEWS)
         ie, if installed parser must be replaced on upgrade or downgrade
+        in particular, if any changes in grammar file!
 
     ada-mode.el
         Version:
@@ -1124,14 +1125,9 @@ bump versions
 
 Publish Alire crate
     (dvc-status ".")
-    ~/bin/alire_publish-tar.sh
-    # at "upload and enter url" prompt, C-c C-k
-    ~/bin/alire-to-savannah.sh
-    # wait until http download actually works; even then alr publish may fail; wait some more
-    cd ~/Downloads; curl -L -O https://download.savannah.nongnu.org/releases/ada-mode/emacs_ada_mode-1.0.0.tgz
+    ~/bin/alire-publish-git.sh
 
-    similarly for all depends-on
-    when all are in local index:
+    when all dependencies are in local index:
     cd /Projects/alire-workspace
     rm -rf emacs_ada_mode*
     alr get emacs_ada_mode --build
