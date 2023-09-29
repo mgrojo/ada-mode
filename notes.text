@@ -66,9 +66,9 @@ bump versions
 
 ~/bin/alire-publish-git.sh
 
-After Alire pull request accepted:
-
 build/Makefile pub
+
+After Alire pull request accepted:
 
 (dvc-propagate-one "/Projects/elpa/packages/wisi" "/Projects/elpa_release/packages/wisi")
 (dvc-sync-run "/Projects/elpa/packages/wisi")
