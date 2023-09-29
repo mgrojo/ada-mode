@@ -7,7 +7,7 @@
 --  [build-switches] in alire.toml. That is harder to maintain than
 --  this file.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -48,11 +48,11 @@ project Standard_Common_Alire is
       "-g",
       "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
       "-gnatw.d", -- warnings about tags
-      "-gnatwaBCeJL"
+      "-gnatwaBCJL"
      -- wa = most warnings
      -- wB = no warn on bad fixed values
      -- wC = no warn on conditionals
-     -- we = error on warning
+     -- we = error on warning; only in debug, so released code still compiles with newer gnat
      -- wJ = no warn on obsolescent (including () for array indices!)
      -- wL = no warn on elaboration
      );
@@ -64,7 +64,7 @@ project Standard_Common_Alire is
       "-O0", --  we don't use -Og because that causes gdb to report incorrect results in some cases in Ada.
       "-gnatVa", -- validity checks
       "-gnateE", -- extra info in exceptions
-      "-gnatwP", -- no warn on Inline
+      "-gnatweP", -- error on warn, no warn on Inline
       "-gnata"  -- assertions, pre/post-conditions
      );
 
