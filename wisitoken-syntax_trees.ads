@@ -2204,7 +2204,8 @@ package WisiToken.Syntax_Trees is
    --  Tree.Parents_Set.
 
    function Tree_Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
-   --  WORKAROUND: gnat 13 is confused about Tree.Parents_Set in aspects, so we use an unambiguous name.
+   --  WORKAROUND: gnat 13 is confused about Tree.Parents_Set in aspects,
+   --  so we use an unambiguous name.
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
 
@@ -3200,9 +3201,6 @@ private
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
    function Tree_Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Parents_Set);
-
-   function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set);
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
