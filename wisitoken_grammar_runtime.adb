@@ -242,7 +242,12 @@ package body WisiToken_Grammar_Runtime is
          begin
             WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
               ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
-            raise; -- WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma no_return' on Raise_Programmer_Error
+
+            --  WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma
+            --  no_return' on Raise_Programmer_Error; uncomment 'raise' for that
+            --  compiler.
+            --
+            --  raise;
          end;
       end if;
    end Get_RHS;

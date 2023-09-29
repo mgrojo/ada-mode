@@ -8045,6 +8045,12 @@ package body WisiToken.Syntax_Trees is
       Node    : in out Node_Access;
       Parents : in out Node_Stacks.Stack)
    is
+      --  WORKAROUND: if the postcondition and this pragma is uncommented,
+      --  GNAT 13 complains that Tree is referenced in the postcondition; if
+      --  the postcondition is uncommented and this pragma commented, it
+      --  complains that it is referenced in the body. previous versions of
+      --  GNAT did not complain about the postcondition. So we comment out the postcondition
+      --
       pragma Unreferenced (Tree);
 
       function Last_Child (Node : in Valid_Node_Access) return Node_Access

@@ -46,7 +46,7 @@ gen_BNF :: range_conflict_re2c.c
 gen_BNF :: skip_to_grammar_re2c.c
 gen_BNF :: warth_left_recurse_expr_1_re2c.c
 
-gen_EBNF :: ada_ebnf_bnf.wy # not a valid grammar
+gen_EBNF :: ada_ebnf_re2c.c
 gen_EBNF :: ada_lite_ebnf_re2c.c
 gen_EBNF :: grammar_grammar_01_re2c.c
 gen_EBNF :: identifier_list_name_conflict_re2c.c
