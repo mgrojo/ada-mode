@@ -954,6 +954,15 @@ update emacs master
     git pull
     make -j8 bootstrap
 
+update Alire
+    https://github.com/alire-project/alire/releases
+    alr index --update-all
+    alr toolchain --select
+        select current internal gnat
+
+update GNAT Pro
+    https://support.adacore.com/
+
 sync Windows with Debian
     Windows:
     (dvc-state-multiple "/Projects" t)
@@ -1125,7 +1134,9 @@ bump versions
 
 Publish Alire crate
     (dvc-status ".")
-    ~/bin/alire-publish-git.sh
+    git push
+    /Projects/alire-main/bin/alr publish --skip-build https://git.savannah.nongnu.org/git/ada-mode.git `git rev-parse HEAD`
+    cp alire/releases/*.toml ~/.config/alire/indexes/community/repo/index/<2letters>/<crate>/
 
     when all dependencies are in local index:
     cd /Projects/alire-workspace
