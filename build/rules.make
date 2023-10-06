@@ -129,8 +129,21 @@ update-wisitoken_grammar : wisitoken_grammar-clean ../wisitoken_grammar_re2c.c
 wisitoken-bnf-generate.exe : obj/s-memory.ali force
 	gprbuild -p -j8 $(GPRBUILD_ARGS) -P wisitoken.gpr wisitoken-bnf-generate
 
-# We must compile s-memory.adb specially, because it overrides a system package
+# We must compile s-memory.adb specially, because it overrides a
+# system package On Windows, if git has "autocrlf=true", GNAT
+# complains that s-memory.adb has the wrong line termination. That's
+# because we compile it with -gnatg, which forbids DOS line endings.
+# We tried adding .gitattributes to prevent that, but it doesn't work.
+# So we run dos2unix here, and hope that's installed.
 obj/s-memory.ali :
+ifeq ($(shell uname),Linux)
+# nil
+else ifeq ($(shell uname),Darwin)
+# nil
+else
+# windows
+	dos2unix ../memory/s-memory.adb
+endif
 	gprbuild -c -P wisitoken.gpr s-memory.adb
 
 wisitoken-to_tree_sitter.exe : force
