@@ -45,7 +45,8 @@ On Debian
     (dvc-state-one ".") ;; commit or stash
     (dvc-push ".")
     cd /Projects/org.wisitoken/
-    ~/bin/alire-publish-git.sh
+    /Projects/alire-main/bin/alr publish --skip-build https://git.savannah.nongnu.org/git/ada-mode.git `git rev-parse HEAD`
+    cp alire/releases/*.toml ~/.config/alire/indexes/stephe/repo/index/wi/wisitoken
 
 # after Alire pull request accepted:
 
