@@ -15,6 +15,11 @@ project-files = ["build/wisitoken_alire.gpr", "build/wisitoken_alire_mains.gpr"]
 #  We use ".exe" extension even on non-Windows, to simplify the makefiles.
 executables = ["wisitoken-bnf-generate.exe"]
 
+[[actions]]
+[actions.'case(os)'windows]
+type = "pre-build"
+command = ["dos2unix", "memory/s-memory.adb"]
+
 [[depends-on]]
 # While wisitoken-bnf-generate can output a Tree-Sitter grammar file,
 # it does not use any tree-sitter code, so we have no dependency on
