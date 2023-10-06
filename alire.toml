@@ -16,7 +16,7 @@ project-files = ["build/wisitoken_alire.gpr", "build/wisitoken_alire_mains.gpr"]
 executables = ["wisitoken-bnf-generate.exe"]
 
 [[actions]]
-[actions.'case(os)'windows]
+[actions.'case(os)'.windows]
 type = "pre-build"
 command = ["dos2unix", "memory/s-memory.adb"]
 
