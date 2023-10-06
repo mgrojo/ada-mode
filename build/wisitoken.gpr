@@ -40,8 +40,11 @@ project WisiToken is
 
       end case;
 
-      for Switches ("s-memory.adb") use Standard_Common.Compiler.Release_Switches & ("-gnatg", "-gnata");
-      --  See comment in gnatcoll-memory.ads
+      for Switches ("s-memory.adb") use
+        Standard_Common.Compiler.Release_Switches &
+        Standard_Common.Compiler.Style_Checks & ("-gnatg", "-gnata");
+      --  See comment in gnatcoll-memory.ads. Style checks included to
+      --  disable the check for no DOS line termination.
 
    end Compiler;
 
