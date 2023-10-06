@@ -1,1 +1,2 @@
-s-memory.adb text=unset
+# Preserve Unix line endings for -gnatg
+s-memory.adb text eol=lf
