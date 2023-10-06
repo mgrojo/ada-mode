@@ -1,7 +1,7 @@
 name = "emacs_ada_mode"
 description = "Parser for Emacs ada-mode"
 tags = ["emacs", "ada-mode"]
-version = "8.0.5"
+version = "8.1.0"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -13,7 +13,9 @@ website = "https://www.nongnu.org/ada-mode/"
 project-files = ["emacs_ada_mode.gpr"]
 
 executables = ["ada_mode_wisi_lalr_parse",
-               "ada_mode_wisi_lr1_parse"
+               "ada_mode_wisi_lr1_parse",
+               "run_ada_lalr_parse",
+               "run_ada_lr1_parse"
               ]
 
 [[actions]]
@@ -21,9 +23,9 @@ type = "pre-build"
 command = ["make", "-f", "Alire.make", "ada_annex_p_re2c.c"]
 
 [[depends-on]]
-stephes_ada_library = "~3.7.2"
-wisitoken = "~4.1.0"
-emacs_wisi = "~4.2.0"
+stephes_ada_library = "~3.7.3"
+wisitoken = "~4.2.0"
+emacs_wisi = "~4.3.0"
 
 # Debian 11.2 Bullseye Dec 2022 has re2c 2.0.3
 re2c = ">=2.0.3"

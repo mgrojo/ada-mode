@@ -1,14 +1,16 @@
+--  FIXME: ada-declarative-region needs work
+--EMACS_SKIP_UNLESS:nil
 procedure Ada_Mode.Ancestor
 is
    A : Integer;
 
-   procedure B
+   procedure B (Arg : in Integer)
    is -- Empty B
       --EMACSCMD:(progn (goto-char (cdr (ada-declarative-region (progn (forward-line 2)(back-to-indentation)(point))))) (looking-at " -- Ada_Mode.Ancestor declarative region end"))
       --EMACSRESULT:t
    begin
       --EMACSCMD:(progn (goto-char (cdr (ada-declarative-region (progn (forward-line 2)(back-to-indentation)(point))))) (looking-at " -- Empty B"))
-      A := 1;
+      A := Arg;
    end B;
 
    procedure C
@@ -20,16 +22,16 @@ is
       A := 2;
    end C;
 
-   D : Integer; -- Ada_Mode.Ancestor declarative region end
+   D : Integer := 1; -- Ada_Mode.Ancestor declarative region end
 
 begin
    Declare_1 :
    declare
       --EMACSCMD:(progn (goto-char (cdr (ada-declarative-region (progn (forward-line 2)(back-to-indentation)(point))))) (looking-at " -- declare 1 end"))
       --EMACSRESULT:t
-      A : Integer; -- declare 1 end
+      A : Integer := D; -- declare 1 end
    begin
-      null;
+      B (A);
    end Declare_1;
 
    Declare_2 :

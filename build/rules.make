@@ -28,10 +28,10 @@ test-elisp :
 	-diff -u $< $(*F).tmp
 
 # for building only these
-../run_ada_lalr_parse.exe : ../run_ada_lalr_parse.ads ../ada_annex_p_re2c.c force
+../run_ada_lalr_parse$(EXE_EXT) : ../run_ada_lalr_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
-../run_ada_lr1_parse.exe : ../run_ada_lr1_parse.ads ../ada_annex_p_re2c.c force
+../run_ada_lr1_parse$(EXE_EXT) : ../run_ada_lr1_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 	cd ..; if [ -f ada_annex_p_lr1_parse_table.txt ] ; then mv ada_annex_p_lr1_parse_table.txt bin ; fi
 

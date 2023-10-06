@@ -4,7 +4,7 @@
 # variable, that is set in the project files loaded in the file local
 # variables below.
 
-export ADA_MODE_VERSION       := 8.0.5
+export ADA_MODE_VERSION       := 8.1.0
 export ADA_REF_MAN_VERSION    := 2012.5
 
 TEST_DIR ?= source
@@ -98,7 +98,7 @@ benchmark :
 # For running a test with ELPA build
 #ADA_MODE_DIR := -L c:/Projects/elpa_release/ada-mode -l c:/Projects/elpa_release/ada-mode/autoloads.el -L c:/Projects/elpa_release/wisi -l c:/Projects/elpa_release/wisi/autoloads.el -l exclude-elpa.el
 
-one :: TEST_FILE ?= ada_mode-child_procedure.adb
+one :: TEST_FILE ?= ada_mode-recover_50.adb
 #one :: ELISP ?= (setq-default debug-on-error t save-parser-log (list (list "*EGLOT (_default_/(ada-mode)) events*" "/Projects/org.emacs.ada-mode/debug-1.log")))
 one :: ELISP ?= (setq-default save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 #one :: ELISP ?= (setq-default debug-on-error t)
@@ -132,16 +132,16 @@ oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 oneb :: $(addsuffix .diff, $(TEST_FILE))
 
 two : LOG_ARGS ?= > debug.log 2>&1
-two : TEST_FILE ?= debug_edited-1_030
-two : ACTION ?= none
-two : VERBOSITY ?= debug=1 parse=1 mckenzie=1
-two : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0" # end name optional nil
+two : TEST_FILE ?= test/debug.adb
+two : ACTION ?= indent
+two : VERBOSITY ?= debug=1 action=2
+# two : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0" # end name optional nil
 #two : LANG_PARAMS ?= --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1" # end name optional t
 two : RUN_ARGS ?= parse_partial $(ACTION) $(TEST_FILE) $(LANG_PARAMS) --verbosity '$(VERBOSITY)'
 #two : RUN_ARGS ?= command_file debug.cmd
 two : GENERATE_ARGS := --generate LALR Ada_Emacs Process re2c
-two : ../run_ada_lalr_parse.exe
-	cd ../; bin/run_ada_lalr_parse.exe $(RUN_ARGS) $(LOG_ARGS)
+two : ../run_ada_lalr_parse$(EXE_EXT)
+	cd ../; bin/run_ada_lalr_parse$(EXE_EXT) $(RUN_ARGS) $(LOG_ARGS)
 
 two-lr1 : LOG_ARGS ?= > debug-lr1.log 2>&1
 two-lr1 : TEST_FILE ?= debug_edited-1_030

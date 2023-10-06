@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 8.0.5
-;; package-requires: ((uniquify-files "1.0.4") (wisi "4.2.2") (gnat-compiler "1.0.2") (emacs "25.3"))
+;; Version: 8.1.0
+;; package-requires: ((uniquify-files "1.0.4") (wisi "4.3.0") (gnat-compiler "1.0.3") (emacs "25.3"))
 ;; url: https://www.nongnu.org/ada-mode/
 ;;
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "8.0.5"))
+  (let ((version-string "8.1.0"))
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
@@ -884,12 +884,10 @@ the file name."
 (defun ada-declarative-region (pos)
   "Return (BEGIN . END) of declaration region containing POS.
 Does not contain trailing non_grammar."
-  ;; First we check whether to do 'wisi-statement-start'. Consider
+  ;; FIXME: First we check whether to do 'wisi-statement-start'. Consider
   ;; test/ada_mode-ancestor.adb; if pos is on 'begin' of procedure B,
   ;; we want the declarative region of Ada_Mode.Ancestor, so move to
   ;; 'procedure' before querying for the block ancestor.
-  (let ((query-result (wisi-parse-tree-query wisi-parser-shared 'node pos)))
-    (if
   (let ((query-result (wisi-parse-tree-query
 		       wisi-parser-shared 'ancestor pos
 		       '(non_empty_declarative_part
@@ -1165,7 +1163,7 @@ Otherwise, allow UPPERCASE for identifiers."
 
 ;;;; wisi integration
 
-(defconst ada-wisi-language-protocol-version "4"
+(defconst ada-wisi-language-protocol-version "5"
   "Defines language-specific parser parameters.
 Must match wisi-ada.ads Language_Protocol_Version.")
 
