@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2023 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -401,6 +401,10 @@ package body Emacs_Wisi_Common_Parse is
                      declare
                         LR_Parser : WisiToken.Parse.LR.Parser.Parser renames WisiToken.Parse.LR.Parser.Parser (Parser);
                      begin
+                        --  WORKAROUND: This is broken by gnat 13; ada-mode
+                        --  test/ada_mode-function_2.adb fails with a ref_count error.
+                        LR_Parser.Tree.Enable_Ref_Count_Check (LR_Parser.Tree.Shared_Stream, Enable => False);
+
                         if Params.Zombie_Limit > 0 then
                            LR_Parser.Table.McKenzie_Param.Zombie_Limit := Params.Zombie_Limit;
                         end if;
