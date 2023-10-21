@@ -59,7 +59,7 @@ On Debian - alr publish --tar broken on Windows (alr version 1.2.1)
 
 do alire pull request (together with others in this release)
     when accepted:
-    git tag <branch>-alire-<version>
+    git tag org.stephe_leake.sal-alire-<version>
 
 upload tarball to savannah for users to run tests (not in Alire):
     Makefile zip tag

@@ -11,6 +11,10 @@ alire-env :
 alire-clean :
 	rm -rf alire config build/obj/release build/obj/development build/lib
 
+alr.env :
+	alr printenv > alr.env
+	echo "edit alr.env to delete messages and PATH"
+
 .PHONY : force
 
 # end of file
