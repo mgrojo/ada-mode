@@ -55,6 +55,8 @@ o.e.a.stephe-7 (): available
    ))
 
  current work
+Add generate command line option for partial recursion. Set on low memory machines.
+
 ada_mode-ancestor.adb
     handle empty declarative_part
     non_empty_declarative_part appears in:
@@ -816,6 +818,9 @@ browse Alire source:
     (let ((default-directory "/Projects/alire-main/"))
        (load-file "prj.el"))
 
+to test alire.toml syntax, on the machine that will run 'alr get wisitoken', edit ~/.config/alire/indexes/stephe/repo/wi/wisitoken/wisitoken-<version>.toml, don't commit
+
+
 run als tests:
     generate test from log: M-x ada-eglot-log-to-als-test
         see IMPROVEME in ada-eglot.el on what needs to be edited manually
@@ -954,14 +959,15 @@ update emacs master
     git pull
     make -j8 bootstrap
 
+update GNAT Pro
+    https://support.adacore.com/
+
 update Alire
     https://github.com/alire-project/alire/releases
     alr index --update-all
     alr toolchain --select
         select current internal gnat
-
-update GNAT Pro
-    https://support.adacore.com/
+        if that is more recent than Debian or Pro gnat, use it for all testing
 
 sync Windows with Debian
     Windows:
@@ -1135,52 +1141,51 @@ bump versions
 Publish Alire crate
     (dvc-status ".")
     git push
-    /Projects/alire-main/bin/alr publish --skip-build https://git.savannah.nongnu.org/git/ada-mode.git `git rev-parse HEAD`
-    cp alire/releases/*.toml ~/.config/alire/indexes/community/repo/index/<2letters>/<crate>/
 
-    when all dependencies are in local index:
+    #if no local stephe index:
+    alr index --add=git+https://github.com/stephe-ada-guru/alire-index.git --name=stephe --before=community
+    # edit ~/.config/alire/indexes/stephe/repo/.git/config:
+         change origin.url to git@github.com:stephe-ada-guru/alire-index.git
+    #fi
+
+    /Projects/alire-main/bin/alr publish --skip-build https://git.savannah.nongnu.org/git/ada-mode.git `git rev-parse HEAD`
+    cp alire/releases/*.toml ~/.config/alire/indexes/stephe/repo/index/em/emacs_ada_mode/
+
+    when all dependencies are in local stephe index:
     cd /Projects/alire-workspace
     rm -rf emacs_ada_mode*
     alr get emacs_ada_mode --build
 
-    git tag done below after pull request accepted; review may find problems
-
-    (dvc-status "~/.config/alire/indexes/stephe/repo")
+    (dvc-state-one "~/.config/alire/indexes/stephe/repo")
     (dvc-push "~/.config/alire/indexes/stephe/repo/")
 
-    post ada_annex_p_lr1_parse_table.txt to https://download.savannah.nongnu.org/releases/ada-mode/
-        with version
-        for people whose machines are too small to regenerate it
+    # Alire pull request after test below
 
 publish to elpa devel:
     build/Makefile pub
 
-    (dvc-status "/Projects/elpa/packages/ada-mode")
-    (dvc-push "/Projects/elpa/packages/ada-mode")
+    # after all packages published to local elpa:
+    (dvc-state-multiple "/Projects/elpa/packages/")
 
-    If the ELPA processing fails, it logs the error messages in
-        https://elpa.gnu.org/devel/<package>-build-failure.txt
-        https://elpa.gnu.org/packages/<package>-build-failure.txt
-
-prep for elpa tests:
+test with elpa, Debian Emacs, current alire, internal gnat:
+    (8.1.0 discovered a difference between Alire build and gprbuild build)
     build/Makefile byte-compile-clean
-    build/Makefile pub-install
-    # builds local elpa archive, installs it
+    build/Makefile build-elpa
+    C-x C-c
 
-    build/Makefile uninstall-elpa
-        # for other emacs versions
-
-Emacs 25.3, current gnat/alire
-    ~/bin/emacs-25.sh
+    /bin/emacs -q
     build/Makefile install-elpa
-    (gpr-query-kill-all-sessions)
-    (list-processes)
-    # 'd' = kill; gpr_mode_wisi_parse.exe, ada_mode_lr1_wisi_parse.exe
-    cd ~/.emacs.d/elpa/ada-mode-7.1.0*
-    ./build.sh
-    cd .. # allow uninstall-elpa
+    cd ~/.emacs.d/elpa/ada-mode-8.1.0*
 
-    restart Emacs to set load-path
+    # test build without alr
+    mv ~/bin/alr ~/bin/alr-save
+    ./build.sh
+    ./install.sh
+
+    # test build with alr
+    mv ~/bin/alr-save ~/bin/alr
+    ./build.sh
+    ./install.sh
 
     build/Makefile compile-ada-test test-clean
     build/Makefile test TEST_DIR=elpa
@@ -1189,24 +1194,25 @@ Emacs 25.3, current gnat/alire
     (gpr-query-kill-all-sessions)
     build/Makefile recursive-clean clean # if changing compilers
 
-Emacs 26
-Emacs 27
-Emacs 28
-Emacs master testing done above.
+do Alire pull request
+        https://github.com/alire-project/alire-index/pulls
+        click "New pull request"
+        click "compare across forks"
+        in head repository, select stephe-ada-guru/alire-index
+        click "Create pull request"
+        click "Create pull request"
 
-do alire pull request
-    when accepted:
-    git tag <branch>-alire-<version>
+    wait for accepted
+        check status of automatic checks
 
-install current version from ELPA, to test upgrade to new
+        wait for review
+
+    git tag org.emacs.ada-mode-alire-<version>
+
+before push ELPA release, install current version from local ELPA, to test upgrade to new
     (list-packages)
     ~/.emacs.d/early-init.el
         ada-mode 7.1.5 should have required wisi 3.1.5
-
-after Gnu ELPA updated, test install from GNU ELPA devel
-    (list-packages)
-    5.1.8 crashed emacs for me
-    see 'build.sh; install.sh' above for compiling
 
 If release:
     (dvc-propagate-multiple
@@ -1239,7 +1245,13 @@ If release:
 
         takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
 
-    scp /home/stephe/.local/bin/ada_annex_p_lr1_parse_table.txt stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/ada_annex_p_lr1_parse_table.txt-8.0.4
+    scp /home/stephe/.local/bin/ada_annex_p_lr1_parse_table.txt stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/ada_annex_p_lr1_parse_table.txt-<version>
+        # for people whose machines are too small to regenerate it
+
+    after Gnu ELPA updated, test install from GNU ELPA devel
+        (list-packages)
+        5.1.8 crashed emacs for me
+        see 'build.sh; install.sh' above for compiling
 
 post on:
     https://savannah.nongnu.org/news/submit.php?group_id=11631

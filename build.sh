@@ -18,8 +18,11 @@ if type alr; then
 elif type gprbuild; then
     echo "building ada-mode executables via gnat compiler"
     
-    if [ -d ../wisi-4.3.? ]; then
-        WISI_DIR=`ls -d ../wisi-4.3.?`
+    if [ -d ../wisi-4.3.* ]; then
+        WISI_DIR=`ls -d ../wisi-4.3.*`
+    else
+        echo "current wisi version not found"
+        exit
     fi
 
     args=`echo -DELPA="yes" $WISI_DIR/wisi.gpr.gp $WISI_DIR/wisi.gpr`

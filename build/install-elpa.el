@@ -17,7 +17,8 @@
 (setq package-check-signature nil)
 (setq byte-compile-error-on-warn t)
 
-(package-install 'ada-mode)
+(package-install 'ada-mode) ;; also installs dependencies
+(package-install 'gpr-query) ;; recommended, needed for tests
 (package-install 'ada-ref-man)
 
 (pop-to-buffer "*Messages*")

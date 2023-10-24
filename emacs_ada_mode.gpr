@@ -29,7 +29,9 @@ project Emacs_Ada_Mode is
    for Exec_Dir use "bin";
    for Main use
      ("ada_mode_wisi_lalr_parse.ads",
-      "ada_mode_wisi_lr1_parse.ads"
+      "ada_mode_wisi_lr1_parse.ads",
+      "run_ada_lalr_parse",
+      "run_ada_lr1_parse"
      );
 
    package Compiler is

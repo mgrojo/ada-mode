@@ -70,3 +70,4 @@ binding.gyp
 bindings/
 package.json
 ada_annex_p.js
+alr.env
