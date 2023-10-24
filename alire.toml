@@ -1,7 +1,7 @@
 name = "wisitoken"
 description = "Generalized error correcting LALR and packrat parser generator"
 tags = ["parser", "generator", "generalized"]
-version = "4.2.0"
+version = "4.2.1"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
