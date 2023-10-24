@@ -50,13 +50,12 @@ On Debian
 
 # after Alire pull request accepted:
 
-Makefile
-    zip tag
+    git tag org.wisitoken-alire-<version>
 
 upload to savannah for tarball distribution:
-    in Cygwin Console (for gpg2 prompts):
     cd /cygdrive/c/Projects/org.wisitoken/build/
     rm wisitoken-<old>.tar*
+    make zip
     gpg -b *.tar.bz2
     scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
