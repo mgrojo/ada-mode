@@ -63,10 +63,12 @@ bump versions
         version, depends-on versions
 
 # dvc-state-multiple above
-
-~/bin/alire-publish-git.sh
+git push
 
 build/Makefile pub
+
+/Projects/alire-main/bin/alr publish --skip-build https://git.savannah.nongnu.org/git/ada-mode.git `git rev-parse HEAD`
+cp alire/releases/*.toml ~/.config/alire/indexes/community/repo/index/em/emacs_wisi/
 
 After Alire pull request accepted:
 
