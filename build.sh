@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build executables for gpr mode.
-#    build.sh <other gprbuild options>
+#    build.sh options when not using Alire; <other gprbuild options>
 #    e.g. 'build.sh -j0' : use all available processors to compile
 #         'build.sh -wn' : treat warnings as warnings.
 #         'build.sh -vh' : Verbose output (high verbosity)
@@ -8,7 +8,9 @@
 # See install.sh for install
 
 if type alr; then
+    # alr can be installed from https://alire.ada.dev/
     echo "building gpr-mode executables via Alire"
+
     alr get emacs_gpr_mode~1.0.4
     cd emacs_gpr_mode_*; alr build --release
 
@@ -31,6 +33,8 @@ elif type gprbuild; then
 
     gprclean -r -P gpr_mode_wisi_parse.gpr -aP$WISI_DIR
 
+    # We don't generate the parser code here (unlike ada-mode),
+    # because it is small enough to keep in ELPA
     gprbuild -p -j8 -P gpr_mode_wisi_parse.gpr -aP $WISI_DIR "$@"
 
 else
