@@ -9,11 +9,11 @@ must be installed separately. Ada mode uses whichever of these is
 found on PATH, defaulting to gpr-query.
 
 Ada mode uses a parser to provide fontification, single-file
-navigation, and indentation. Ada mode allows using eglot as the
-backend for these, but the current version of AdaCore
-ada_language_server only supports single and multi-file navigation.
-The wisi parser backend supports all Ada mode functions, is
-implemented in Ada, is fast enough even for very large files (via
+navigation, indentation, and completion. Ada mode allows using eglot
+as the backend for these, but the current version of AdaCore
+ada_language_server only supports single and multi-file navigation and
+completion. The wisi parser backend supports all Ada mode functions,
+is implemented in Ada, is fast enough even for very large files (via
 partial or incremental parsing), and recovers from almost all syntax
 errors.
 
@@ -24,7 +24,7 @@ cd ~/.emacs.d/elpa/ada-mode-i.j.k
 ./build.sh
 ./install.sh
 
-install.sh can take an option "--prefix=<dir>" to set the installation
+install.sh can take an option "<dir>" to set the installation
 directory.
 
 Both shell scripts use Alire if the 'alr' executable is found in PATH.

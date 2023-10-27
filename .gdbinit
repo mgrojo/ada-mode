@@ -1,3 +1,7 @@
+# gdb is normally run from the ./bin directory, but that is not in
+# version control, so we keep this here. Include it in a gdb session
+# with 'source ../.gdbinit'.
+
 set args parse_partial none ../test/debug.adb --verbosity "debug=1 parse=1 mckenzie=1"
 
 # catch excep
