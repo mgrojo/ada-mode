@@ -620,6 +620,12 @@ COLUMN - Emacs column of the start of the identifier")
 	(wisi-compiler-root-dir (wisi-prj-compiler project)))
    (car (wisi-prj-source-path project))))
 
+(with-no-warnings
+(when (<= emacs-major-version 27)
+  (cl-defmethod project-roots ((project wisi-prj))
+    "Return the list containing the current project root."
+    (list (project-root project)))))
+
 (cl-defmethod project-name ((project wisi-prj))
   (wisi-prj-name project))
 
