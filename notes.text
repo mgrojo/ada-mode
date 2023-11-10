@@ -75,6 +75,16 @@ bump versions
         version
         depends-on
 
+Publish Alire crate
+    (dvc-status ".")
+    git push
+    /Projects/alire-main/bin/alr publish --skip-build https://git.savannah.nongnu.org/git/ada-mode.git `git rev-parse HEAD`
+    cp alire/releases/*.toml ~/.config/alire/indexes/stephe/repo/index/em/emacs_gpr_mode/
+
+    cd /Projects/alire-workspace
+    rm -rf emacs_gpr_mode*
+    alr get emacs_gpr_mode --build
+
 -------------------
 Gnu Emacs gpr mode 1.0.0 released.
 -------------------
