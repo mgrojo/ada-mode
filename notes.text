@@ -39,8 +39,6 @@ o.e.g-m.stephe-3 (o.s_l.sal.s_1, o.w.s_1, o.e.w.s_4): available
    ("../org.emacs.gpr-mode.stephe-2"   . "../org.emacs.gpr-mode")))
 
  current work
-fix/delete ELPA.make
-
 There is a gpr_lsp, bundled with ada_lsp
 
  release process

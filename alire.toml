@@ -27,8 +27,8 @@ command = ["make", "-f", "Alire.make", "gpr_re2c.c"]
 
 [[depends-on]]
 stephes_ada_library = "~3.7.3"
-wisitoken = "~4.1.0"
-emacs_wisi = "~4.3.0"
+wisitoken = "~4.2.1"
+emacs_wisi = "~4.3.2"
 
 # MSYS has 2.2; Debian, MacOS have 3.0 (oct 2022) 
 re2c = ">=2.2"
