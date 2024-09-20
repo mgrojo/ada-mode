@@ -49,9 +49,4 @@ project Emacs_Ada_Mode is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback
    end Binder;
 
-   package Install is
-      for Required_Artifacts ("bin") use
-        ("ada_annex_p_lr1_parse_table.txt");
-   end Install;
-
 end Emacs_Ada_Mode;
