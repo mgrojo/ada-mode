@@ -51,7 +51,7 @@ project Emacs_Ada_Mode is
 
    package Install is
       for Required_Artifacts ("bin") use
-        ("ada_annex_p_lr1_parse_table.txt");
+        ("ada_annex_p_lr1_re2c_parse_table.txt");
    end Install;
 
 end Emacs_Ada_Mode;
