@@ -1,7 +1,7 @@
 name = "emacs_ada_mode"
 description = "Parser for Emacs ada-mode"
 tags = ["emacs", "ada-mode"]
-version = "8.1.0"
+version = "8.1.1-dev"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Stephen Leake"]
@@ -28,13 +28,8 @@ wisitoken = "~4.2.0"
 emacs_wisi = "~4.3.0"
 
 # Debian 11.2 Bullseye Dec 2022 has re2c 2.0.3
-re2c = ">=2.0.3"
+# Ubuntu 20.04 LTS has re2c 1.3
+re2c = ">=1.3"
 
 # We use Ada 2022 syntax, so need the -gnat2022 switch; introduced in gnat FSF 11, Community 2021. 
-gnat = "(>=11 & <2000) | >=2021"
-
-[[pins]]
-stephes_ada_library  = { path='../org.stephe_leake.sal' }
-wisitoken            = { path='../org.wisitoken' }
-emacs_wisi           = { path='../org.emacs.wisi' }
-
+gnat = "(>=11 & <13) | >=2021"
