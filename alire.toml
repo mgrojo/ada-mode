@@ -32,7 +32,8 @@ emacs_wisi = "~4.3.2"
 
 # MSYS has 2.2; MacOS has 3.0 (oct 2022) 
 # Debian 11.2 Bullseye Dec 2022 has re2c 2.0.3
-re2c = ">=2.0.3"
+# Ubuntu 20.04 LTS has re2c 1.3
+re2c = ">=1.3"
 
 # We use Ada 2022 syntax, so need the -gnat2022 switch; introduced in gnat FSF 11, Community 2021. 
 gnat = "(>=11 & <2000) | >=2021"
